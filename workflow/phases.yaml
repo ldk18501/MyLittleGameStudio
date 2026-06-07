@@ -1,0 +1,101 @@
+version: 0.1
+name: MyLittleGameStudio Workflow
+updated: 2026-06-07
+
+principles:
+  - Keep the studio small and fast.
+  - Prefer action with recorded assumptions over repeated confirmation.
+  - Keep one canonical state file.
+  - Let prototypes reduce risk, but do not force them when the user intentionally skips.
+  - Production commands must exist and be usable.
+
+phases:
+  - id: idea-alignment
+    name: Idea Alignment
+    lead: producer
+    purpose: Understand the project idea, constraints, references, workspace, automation level, and current code state.
+    required_artifacts:
+      - studio/state.yaml
+      - project/studio/project.md
+      - project/design/references.md
+    commands:
+      - start
+      - references
+      - status
+    exit_gate:
+      idea_alignment: approved
+
+  - id: concept-package
+    name: Concept Package
+    lead: creative-director
+    purpose: Define pitch, core fantasy, pillars, anti-goals, target player, core loop, visual direction, and scope.
+    required_artifacts:
+      - project/design/concept-package.md
+    commands:
+      - concept
+      - review
+    exit_gate:
+      concept_package: approved
+
+  - id: design-tech-plan
+    name: Design & Tech Plan
+    lead: game-designer
+    purpose: Convert concept into system specs, Unity technical plan, task plan, asset requirements, and test strategy.
+    required_artifacts:
+      - project/design/systems/
+      - project/docs/tech-plan.md
+      - project/production/task-plan.md
+    commands:
+      - design-plan
+      - review
+      - test
+    exit_gate:
+      design_tech_plan: approved
+
+  - id: prototype-validation
+    name: Prototype Validation
+    lead: gameplay-developer
+    purpose: Validate uncertain core-loop or interaction risk through HTML or Unity greybox prototype.
+    required_artifacts:
+      - project/prototype/prototype-plan.md
+      - project/prototype/playtest-report.md
+    commands:
+      - prototype
+      - test
+    exit_gate:
+      prototype_validation: pass-or-skipped-with-risk
+
+  - id: production
+    name: Production
+    lead: unity-architect
+    purpose: Implement approved tasks in Unity, run checks, record completion, and keep code aligned with design.
+    required_artifacts:
+      - project/production/tasks/
+      - project/src-or-external-unity-project
+      - project/tests-or-qa-reports
+    commands:
+      - implement
+      - fix
+      - review
+      - test
+      - build
+      - status
+    exit_gate:
+      qa_review: pass
+
+  - id: polish-ship
+    name: Polish & Ship
+    lead: qa-lead
+    purpose: Improve feel, content, balance, UI, performance, build readiness, and release risk.
+    required_artifacts:
+      - project/production/release-checklist.md
+      - project/production/known-issues.md
+    commands:
+      - fix
+      - review
+      - test
+      - build
+      - status
+    exit_gate:
+      owner_release_approval: true
+

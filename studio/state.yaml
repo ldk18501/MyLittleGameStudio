@@ -1,0 +1,49 @@
+version: 0.1
+updated: 2026-06-07
+
+active_project:
+  name: ""
+  slug: ""
+  mode: none # none | internal | external-adopted | embedded
+  workspace_path: ""
+  external_path: ""
+  engine: Unity
+  engine_version: ""
+  approved_write_paths: []
+
+automation:
+  planning: high
+  production: medium
+
+phase:
+  current: not-started
+  allowed_values:
+    - not-started
+    - idea-alignment
+    - concept-package
+    - design-tech-plan
+    - prototype-validation
+    - production
+    - polish-ship
+
+approvals:
+  idea_alignment: false
+  concept_package: false
+  design_tech_plan: false
+  prototype_validation: false
+  production_unblocked: false
+
+prototype:
+  policy: recommended # recommended | required | skipped-with-risk | not-needed
+  type: html-or-unity-greybox
+  verdict: pending # pending | pass | revise | skipped
+  skip_reason: ""
+
+next_action:
+  command: start
+  reason: "No active project is configured yet."
+
+assumptions: []
+
+risks: []
+

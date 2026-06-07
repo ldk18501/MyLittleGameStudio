@@ -1,0 +1,11 @@
+{
+  "provider": "none",
+  "apiKeyEnv": "PACKY_API_KEY",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "quality": "medium",
+  "outputFormat": "png",
+  "responseFormat": "b64_json",
+  "defaultUnityOutputDir": "Assets/MyLittleGameStudio/Art/Generated"
+}
+

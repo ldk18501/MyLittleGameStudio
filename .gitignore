@@ -1,0 +1,13 @@
+# Local project workspaces
+projects/
+
+# Secrets and local provider configs
+**/image-generation.config.json
+**/*.key
+**/.env
+
+# Local logs / temp
+*.log
+tmp/
+temp/
+

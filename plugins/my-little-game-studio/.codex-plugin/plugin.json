@@ -1,0 +1,37 @@
+{
+  "name": "my-little-game-studio",
+  "version": "0.1.0",
+  "description": "Lightweight Unity indie game studio workflow for Codex. Use MLGS to route game development requests through MyLittleGameStudio agents and commands.",
+  "author": {
+    "name": "MyLittleGameStudio"
+  },
+  "license": "MIT",
+  "keywords": [
+    "unity",
+    "game-development",
+    "workflow",
+    "agents",
+    "skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "MyLittleGameStudio",
+    "shortDescription": "Unity indie game studio workflow",
+    "longDescription": "A lightweight AI game studio workflow for Unity indie projects. It routes requests through Producer, Creative Director, Game Designer, Unity Architect, Gameplay Developer, UI/UX Developer, Technical Artist, and QA Lead without repeated setup prompts.",
+    "developerName": "MyLittleGameStudio",
+    "category": "Engineering",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "MLGS status for my Unity project",
+      "MLGS implement the next task",
+      "MLGS fix this Unity issue"
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}
+

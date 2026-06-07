@@ -1,0 +1,21 @@
+{
+  "name": "my-little-game-studio-local",
+  "interface": {
+    "displayName": "MyLittleGameStudio Local"
+  },
+  "plugins": [
+    {
+      "name": "my-little-game-studio",
+      "source": {
+        "source": "local",
+        "path": "./plugins/my-little-game-studio"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    }
+  ]
+}
+
