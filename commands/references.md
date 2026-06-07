@@ -21,7 +21,7 @@ Producer
 
 ## Procedure
 
-1. Resolve active project from `studio/state.yaml`.
+1. Resolve active project from project state.
 2. Collect references through natural conversation or from files/links the user provided.
 3. Record raw references in `design/references.md`.
 4. Analyze:
@@ -32,11 +32,10 @@ Producer
    - UI/control implications
    - production risk
 5. Write `design/reference-analysis.md`.
-6. Update `studio/state.yaml` next action to `concept`.
+6. Update project state next action to `concept`.
 
 ## Automation
 
 - High: analyze directly and present the synthesis.
 - Medium: confirm the reference inventory before analysis.
 - Low: confirm important borrow/avoid interpretations.
-

@@ -1,0 +1,6 @@
+version: 0.1
+updated: ""
+
+# Local pointer only. Copy to current-project.local.yaml on one machine if needed.
+state_path: ""
+project_root: ""

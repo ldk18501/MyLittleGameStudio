@@ -6,13 +6,14 @@ MyLittleGameStudio 是一套轻量化的 AI 游戏工作室工作流，主要面
 
 ## 核心特点
 
-- 8 个角色，不模拟大公司。
-- 12 个命令，不搞复杂菜单。
+- 8 个角色，不模拟复杂公司流程。
+- 12 个命令，不做繁琐菜单。
 - 默认主动推进，少问废话。
 - 高风险操作才询问你。
-- `studio/state.yaml` 是唯一状态源。
+- 具体游戏项目携带自己的状态信息。
 - 自带 Codex 插件源，可以用 `mlgs` 作为短入口。
 - 不假设用户有任何特定 Unity 项目或框架目录。
+- 自带活动追踪和办公室看板，能看到哪些 agent 和 skill 参与了工作。
 
 ## 目录结构
 
@@ -24,11 +25,18 @@ MyLittleGameStudio/
   studio/
     state.yaml
     config.md
+    runtime.json
+    trace.schema.json
+    logs/
+      activity.jsonl
   workflow/
     command-router.md
     phases.yaml
   agents/
   commands/
+  dashboard/
+    index.html
+    studio-data.js
   templates/
   adapters/
   rules/
@@ -114,7 +122,7 @@ mlgs build APK
 
 ### 安装步骤
 
-在终端中进入 MyLittleGameStudio 根目录：
+在终端进入 MyLittleGameStudio 根目录：
 
 ```powershell
 cd <你的路径>\MyLittleGameStudio
@@ -129,9 +137,73 @@ codex plugin add my-little-game-studio@my-little-game-studio-local
 
 注意：这里传的是 `MyLittleGameStudio` 根目录。不要传 `.\.agents\plugins`，也不要传 `marketplace.json` 文件。
 
-原因是 Codex 期待的 marketplace root 需要同时包含 `.agents/plugins/marketplace.json` 和 `plugins/<plugin-name>/`。
+Codex 期待的 marketplace root 需要同时包含：
 
-安装后请新开一个 Codex thread，让插件和 skill 刷新。
+```text
+.agents/plugins/marketplace.json
+plugins/<plugin-name>/
+```
+
+安装后建议新开一个 Codex thread，让插件和 skill 刷新。
+
+## 如何知道 agent 和 skill 是否真的被用到了？
+
+MLGS 每次执行命令时都应该写入一条活动记录：
+
+```text
+studio/logs/activity.jsonl
+```
+
+并刷新当前运行状态：
+
+```text
+studio/runtime.json
+```
+
+记录内容包括：
+
+- 使用了哪个 command。
+- 谁是 lead agent。
+- 哪些 supporting agents 参与。
+- 使用了哪些外部 skills。
+- 读取了哪些文件。
+- 写入了哪些文件。
+- 做了哪些假设和决策。
+- 进行了哪些验证。
+
+## 办公室看板
+
+打开这个文件即可查看可视化办公室：
+
+```text
+dashboard/index.html
+```
+
+看板会显示：
+
+- 8 个 agent 的办公桌。
+- 每个 agent 当前状态：`idle`、`active`、`completed`、`partial`、`blocked`。
+- 最近一次任务。
+- 最近活动时间线。
+- 参与的 agent、skill 和写入文件。
+
+如果你手动改了日志，或者想刷新看板数据，可以运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/export-dashboard.ps1
+```
+
+正常情况下，`tools/trace.ps1` 写入活动记录后会自动刷新看板数据。
+
+这些运行时文件会被 `.gitignore` 忽略：
+
+```text
+studio/runtime.json
+studio/logs/activity.jsonl
+dashboard/studio-data.js
+```
+
+所以别人 clone 你的仓库时，会看到一个干净的 dashboard，而不是你的本地测试记录。
 
 ## 是否需要把 Unity 项目放进 MyLittleGameStudio？
 
@@ -153,13 +225,20 @@ mlgs start
 
 然后告诉它你的 Unity 项目路径即可。
 
+`mlgs start` 连接外部 Unity 项目时，MyLittleGameStudio 默认只会在自己目录里更新：
+
+```text
+studio/state.yaml
+projects/<slug>/studio/project.md
+```
+
+后续命令可能继续在 `projects/<slug>/` 下生成设计、任务、测试记录等工作流文件。它不会把 Unity 工程复制进来，也不会默认改 Unity 工程文件；真正写 Unity 项目前，需要在 `studio/state.yaml` 里记录允许写入的路径。
+
 ## 三种项目管理方式
 
 ### 方式 A：外部 Unity 项目
 
-推荐给大多数用户。
-
-MyLittleGameStudio 保持独立，Unity 项目放在别处。`studio/state.yaml` 记录 Unity 项目路径。
+推荐给大多数用户。MyLittleGameStudio 保持独立，Unity 项目放在别处，`studio/state.yaml` 记录 Unity 项目路径。
 
 ### 方式 B：内部 managed project
 
@@ -217,4 +296,4 @@ mlgs test
 mlgs build APK
 ```
 
-一句话：MyLittleGameStudio 是一个可独立发布的 Unity AI 工作流仓库，别人 clone 下来后，可以直接从这个目录安装 `mlgs` 插件入口。
+一句话：MyLittleGameStudio 是一个可独立发布的 Unity AI 工作流仓库，别人 clone 下来后，可以直接从这个目录安装 `mlgs` 插件入口，并通过看板确认工作流是否真的被调用。

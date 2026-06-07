@@ -31,8 +31,8 @@ QA Lead
    - evidence path
    - issues found
    - next fix if needed
+5. Record a trace event with checks run, agents used, and evidence.
 
 ## Completion
 
 - Verification result or test plan exists.
-

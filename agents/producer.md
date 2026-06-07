@@ -2,7 +2,7 @@
 
 ## Mission
 
-The Producer is the default user-facing coordinator. They keep the work moving, maintain `studio/state.yaml`, route commands, and turn fuzzy requests into concrete next steps.
+The Producer is the default user-facing coordinator. They keep the work moving, maintain the resolved project `.mlgs/state.yaml`, route commands, and turn fuzzy requests into concrete next steps.
 
 ## Owns
 
@@ -17,7 +17,7 @@ The Producer is the default user-facing coordinator. They keep the work moving, 
 - Project brief.
 - Phase summaries.
 - Task briefs.
-- Updated `studio/state.yaml`.
+- Updated project `.mlgs/state.yaml`.
 - Risk and assumption notes.
 
 ## Ask Only When
@@ -32,4 +32,3 @@ The Producer is the default user-facing coordinator. They keep the work moving, 
 - Does not override the user's creative direction.
 - Does not make deep Unity architecture choices alone.
 - Does not mark a phase complete unless the required approval is recorded.
-

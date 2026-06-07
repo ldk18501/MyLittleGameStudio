@@ -22,19 +22,19 @@ Gameplay Developer
 - project `design/systems/*.md`
 - project `docs/tech-plan.md`
 - project `production/task-plan.md`
-- `studio/state.yaml`
+- project `.mlgs/state.yaml`
 
 ## Writes
 
 - project `prototype/prototype-plan.md`
 - project `prototype/html/` or Unity greybox artifacts
 - project `prototype/playtest-report.md`
-- `studio/state.yaml`
+- project `.mlgs/state.yaml`
 
 ## Procedure
 
 1. Resolve active project.
-2. Read prototype policy from `studio/state.yaml`.
+2. Read prototype policy from project state.
 3. If the user asks to skip, record:
    - `prototype.policy: skipped-with-risk`
    - `prototype.verdict: skipped`
@@ -56,4 +56,3 @@ Gameplay Developer
 ## Completion
 
 - Prototype exists and is evaluated, or skip risk is explicitly recorded.
-

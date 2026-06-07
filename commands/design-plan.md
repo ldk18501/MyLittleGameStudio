@@ -30,7 +30,7 @@ Game Designer
 - project `production/task-plan.md`
 - optional project `design/assets/asset-requirements.md`
 - optional project `design/ux/[screen].md`
-- `studio/state.yaml`
+- project `.mlgs/state.yaml`
 
 ## Procedure
 
@@ -58,7 +58,7 @@ Game Designer
    - recommended for uncertain core loop
    - Unity greybox if engine interaction is the risk
    - skipped-with-risk if the user wants direct production
-9. Record approval and next action in `studio/state.yaml`.
+9. Record approval and next action in project state.
 
 ## Completion
 
@@ -66,4 +66,3 @@ Game Designer
 - Technical plan exists.
 - Task plan exists.
 - Prototype policy is recorded.
-

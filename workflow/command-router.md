@@ -6,11 +6,42 @@ Route user requests to command files. Use the closest matching command and keep 
 
 Read:
 
-1. `studio/state.yaml`
-2. `studio/config.md`
+1. `studio/config.md`
+2. `rules/state.md`
 3. this router
-4. the selected command file
-5. relevant agent files
+4. the resolved project state, or `studio/state.yaml` as template if no project is configured
+5. the selected command file
+6. relevant agent files
+
+Resolve:
+
+1. command name
+2. lead agent
+3. supporting agents
+4. external skills used, if any
+5. expected files to read or write
+
+If only the root template state exists, route project-specific requests to `start` before production work.
+
+## After Any Command
+
+Record an audit event with `tools/trace.ps1` whenever possible.
+
+The event should include:
+
+- command
+- task title
+- status
+- lead agent
+- agents used
+- skills used
+- files read
+- files written
+- assumptions
+- decisions
+- verification
+
+This keeps `studio/logs/activity.jsonl`, `studio/runtime.json`, and `dashboard/studio-data.js` aligned for the dashboard.
 
 ## Commands
 
@@ -47,4 +78,3 @@ Read:
 ## Ambiguity Rule
 
 If more than one command fits, ask one short question. Do not present a long menu unless the user asks.
-

@@ -5,7 +5,7 @@ updated: 2026-06-07
 principles:
   - Keep the studio small and fast.
   - Prefer action with recorded assumptions over repeated confirmation.
-  - Keep one canonical state file.
+  - Keep one canonical state file per project.
   - Let prototypes reduce risk, but do not force them when the user intentionally skips.
   - Production commands must exist and be usable.
 
@@ -15,8 +15,8 @@ phases:
     lead: producer
     purpose: Understand the project idea, constraints, references, workspace, automation level, and current code state.
     required_artifacts:
-      - studio/state.yaml
-      - project/studio/project.md
+      - project/.mlgs/state.yaml
+      - project/.mlgs/project.md
       - project/design/references.md
     commands:
       - start
@@ -98,4 +98,3 @@ phases:
       - status
     exit_gate:
       owner_release_approval: true
-

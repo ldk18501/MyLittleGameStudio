@@ -2,9 +2,12 @@ param(
   [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 )
 
-$statePath = Join-Path $Root "studio/state.yaml"
-if (-not (Test-Path $statePath)) {
-  Write-Error "Missing studio/state.yaml"
+$templatePath = Join-Path $Root "studio/state.yaml"
+$pointerPath = Join-Path $Root "studio/current-project.local.yaml"
+$resolverPath = Join-Path $Root "tools/resolve-state.ps1"
+
+if (-not (Test-Path $templatePath)) {
+  Write-Error "Missing studio/state.yaml template"
   exit 1
 }
 
@@ -27,11 +30,29 @@ if ($found.Count -gt 0) {
   exit 1
 }
 
-$content = Get-Content -Path $statePath -Raw -Encoding UTF8
-if ($content -notmatch "active_project:" -or $content -notmatch "phase:" -or $content -notmatch "next_action:") {
-  Write-Error "studio/state.yaml is missing required sections."
+$template = Get-Content -Path $templatePath -Raw -Encoding UTF8
+if ($template -notmatch "kind:\s*template" -or $template -notmatch "active_project:" -or $template -notmatch "phase:" -or $template -notmatch "next_action:") {
+  Write-Error "studio/state.yaml template is missing required sections."
   exit 1
 }
 
-Write-Output "State check passed: studio/state.yaml is the only root state source."
+if (-not (Test-Path $resolverPath)) {
+  Write-Error "Missing tools/resolve-state.ps1"
+  exit 1
+}
 
+$resolved = & powershell -ExecutionPolicy Bypass -File $resolverPath -Root $Root -AllowTemplate | ConvertFrom-Json
+if (-not $resolved.exists) {
+  Write-Error "Could not resolve a template or project state."
+  exit 1
+}
+
+if ((Test-Path $pointerPath) -and $resolved.mode -eq "local-pointer") {
+  $state = Get-Content -Path $resolved.state_path -Raw -Encoding UTF8
+  if ($state -notmatch "active_project:" -or $state -notmatch "phase:" -or $state -notmatch "next_action:") {
+    Write-Error "Resolved project state is missing required sections: $($resolved.state_path)"
+    exit 1
+  }
+}
+
+Write-Output "State check passed: root state is a template; project state resolves via rules/state.md."

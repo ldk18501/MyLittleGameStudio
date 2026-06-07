@@ -27,8 +27,8 @@ Unity Architect
 4. Ask before changing project settings or package/build configuration.
 5. Build when environment and permissions allow.
 6. Record build path, size, warnings, and next test action.
+7. Record a trace event with platform, preflight result, build output, warnings, and blockers.
 
 ## Completion
 
 - Build succeeds, or blockers are listed with precise fixes.
-

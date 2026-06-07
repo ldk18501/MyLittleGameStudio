@@ -23,9 +23,9 @@ QA Lead for readiness, Unity Architect for code/architecture, Creative Director 
 3. Lead with findings ordered by severity.
 4. Include file references when reviewing code or artifacts.
 5. Recommend concrete next action.
+6. Record a trace event with review mode, agents used, files read, findings summary, and verification limits.
 
 ## Completion
 
 - Findings are clear.
 - Next step is actionable.
-

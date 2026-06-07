@@ -11,3 +11,9 @@ projects/
 tmp/
 temp/
 
+# Generated MLGS runtime data
+studio/current-project.local.yaml
+studio/runtime.json
+studio/logs/*
+!studio/logs/.gitkeep
+dashboard/studio-data.js

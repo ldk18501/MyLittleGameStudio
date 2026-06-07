@@ -17,7 +17,7 @@ Gameplay Developer
 
 ## Reads
 
-- `studio/state.yaml`
+- resolved project `.mlgs/state.yaml`
 - project `production/task-plan.md`
 - project `production/tasks/[task].md` if present
 - relevant design/system docs
@@ -43,9 +43,9 @@ Gameplay Developer
    - acceptance criteria covered
    - tests/checks run
    - deviations and risks
+   - trace event with lead/supporting agents, skills used, files read/written, decisions, and verification
 
 ## Completion
 
 - Task is implemented or blocked with a clear reason.
 - Verification evidence is recorded.
-

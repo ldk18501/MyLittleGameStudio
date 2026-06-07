@@ -73,3 +73,15 @@ After installing, start a new Codex thread so the skill list refreshes.
 Codex built-in slash commands and plugin skills are not exactly the same thing.
 
 This plugin gives you a short skill trigger (`mlgs`) and plugin starter prompts. If Codex exposes installed plugin skills through its slash UI, it should become selectable there. If not, typing `mlgs status` is the reliable fallback.
+
+## Activity Trace
+
+The `mlgs` skill should record routed work in:
+
+```text
+studio/logs/activity.jsonl
+studio/runtime.json
+dashboard/studio-data.js
+```
+
+Open `dashboard/index.html` to inspect the office-style activity view.

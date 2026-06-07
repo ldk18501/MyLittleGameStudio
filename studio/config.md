@@ -10,9 +10,11 @@
 
 ## State Policy
 
-- Canonical state file: `studio/state.yaml`.
+- Root state template: `studio/state.yaml`.
+- Local current-project pointer: `studio/current-project.local.yaml`.
+- Canonical project state: `.mlgs/state.yaml` inside the active game workspace.
 - Do not duplicate active project or current phase in separate root files.
-- Historical notes may be kept in project-local `production/session-log.md`, but must not override `studio/state.yaml`.
+- Historical notes may be kept in project-local `production/session-log.md`, but must not override the resolved `.mlgs/state.yaml`.
 
 ## Safety Policy
 
@@ -24,7 +26,7 @@
 
 - HTML prototypes are recommended for uncertain core loops.
 - Unity greybox prototypes are acceptable when Unity interaction, physics, UI, or rendering is the real risk.
-- The prototype gate can be skipped by recording `prototype.policy: skipped-with-risk` in `studio/state.yaml`.
+- The prototype gate can be skipped by recording `prototype.policy: skipped-with-risk` in the resolved project state.
 
 ## Production Policy
 
@@ -32,4 +34,3 @@ Production may start when either:
 
 1. concept and design-plan are approved, and prototype has passed; or
 2. concept and design-plan are approved, and prototype is explicitly skipped with a recorded reason.
-

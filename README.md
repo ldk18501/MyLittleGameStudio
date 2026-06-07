@@ -14,10 +14,11 @@ It keeps the useful structure from larger multi-agent game studio templates, but
 This version is written around five practical goals:
 
 1. **Readable text**: all source files are UTF-8 and Chinese trigger phrases are written plainly.
-2. **Single state source**: the canonical state is `studio/state.yaml`.
+2. **Project-scoped state**: live game state follows the active game project.
 3. **Installable shortcut**: the bundled Codex plugin provides the `mlgs` entry point.
 4. **Production-ready commands**: implementation, fix, review, test, and build workflows are included.
 5. **Flexible prototype policy**: prototypes are recommended by default, but can be skipped with a recorded risk.
+6. **Auditable activity**: routed work records agents, skills, files, decisions, and verification.
 
 ## Structure
 
@@ -28,6 +29,7 @@ MyLittleGameStudio/
   workflow/              # phases and command routing
   agents/                # small studio role definitions
   commands/              # executable workflow commands
+  dashboard/             # static office-style activity dashboard
   plugins/               # Codex plugin source
   .agents/plugins/       # local Codex marketplace entry
   templates/             # project artifact templates
@@ -72,3 +74,39 @@ Recommended for most users:
 - Run `mlgs status` to see the next recommended action.
 
 The workflow does not assume any specific Unity project name or local framework directory.
+
+## Activity Trace And Dashboard
+
+Every MLGS command should record an event in:
+
+```text
+studio/logs/activity.jsonl
+```
+
+The current office state lives in:
+
+```text
+studio/runtime.json
+```
+
+Open the static dashboard to see which agents and skills participated:
+
+```text
+dashboard/index.html
+```
+
+If you need to refresh dashboard data manually:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/export-dashboard.ps1
+```
+
+Generated runtime files are ignored by git:
+
+```text
+studio/runtime.json
+studio/logs/activity.jsonl
+dashboard/studio-data.js
+```
+
+A fresh clone opens with a clean dashboard.

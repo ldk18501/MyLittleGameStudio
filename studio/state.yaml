@@ -1,5 +1,10 @@
 version: 0.1
 updated: 2026-06-07
+kind: template
+
+# Template only. Live project state belongs in:
+# - <UnityProject>/.mlgs/state.yaml
+# - projects/<slug>/.mlgs/state.yaml
 
 active_project:
   name: ""
@@ -46,4 +51,3 @@ next_action:
 assumptions: []
 
 risks: []
-

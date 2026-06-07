@@ -22,6 +22,7 @@ Gameplay Developer or UI/UX Developer depending on issue.
 4. Fix narrowly.
 5. Run the most relevant verification.
 6. Record the fix and evidence in the task or QA note.
+7. Record a trace event with the symptom, agent handoff, files read/written, decision, and verification result.
 
 ## Ask Only When
 
@@ -32,4 +33,3 @@ Gameplay Developer or UI/UX Developer depending on issue.
 ## Completion
 
 - Bug is fixed and verified, or blocked with a concrete missing input.
-

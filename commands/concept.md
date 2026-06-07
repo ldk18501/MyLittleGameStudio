@@ -24,7 +24,7 @@ Creative Director
 ## Writes
 
 - project `design/concept-package.md`
-- `studio/state.yaml`
+- project `.mlgs/state.yaml`
 
 ## Procedure
 
@@ -42,10 +42,9 @@ Creative Director
    - risks and assumptions
 4. In high automation, write the recommended package and ask for gate approval.
 5. In medium/low automation, show a compact draft before finalizing.
-6. If approved, set `approvals.concept_package: true` and next action `design-plan`.
+6. If approved, set `approvals.concept_package: true` and next action `design-plan` in project state.
 
 ## Completion
 
 - Concept package exists.
 - Approval state is recorded.
-
