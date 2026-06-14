@@ -37,6 +37,7 @@ Game Designer
 1. 解析活动项目。
 2. 确认概念包存在；如果缺失，先起草必要概念假设。
 3. 对涉及玩法机制、游戏手感、经济、成长、反馈或性能敏感运行时行为的 MVP 系统，使用 `mlgs-unity-mechanics`。
+   - 如果系统涉及弹幕、海量对象、对象池、GPU instancing、自定义 culling/碰撞或 DOD 数据布局，同时读取 `references/dod-performance.md`。
 4. 拆解 MVP 系统。
 5. 为每个 MVP 系统创建紧凑系统设计：
    - purpose
@@ -53,6 +54,7 @@ Game Designer
    - package risks
    - scene/prefab strategy
    - testing strategy
+   - 大规模对象系统的 authoring/runtime 边界、优化层级和降级策略
 7. Producer 创建 `production/task-plan.md`。
 8. QA Lead 检查验收标准，确保每个玩法机制覆盖正常、边界、失败、反馈和性能路径。
 9. 决定 prototype policy：

@@ -24,6 +24,7 @@ QA Lead
    - UI walkthrough
    - build preflight
 2. 使用 `mlgs-unity-mechanics` 为玩法机制推导正常、边界、失败、反馈和性能检查。
+   - 对 DOD/instancing/海量对象系统，补充目标规模、CPU/GPU frame time、GC Alloc、draw calls/batches、culling、碰撞和降级策略检查。
 3. 环境支持时运行可用检查。
 4. 如果无法运行检查，创建手动验证计划。
 5. 记录结果：

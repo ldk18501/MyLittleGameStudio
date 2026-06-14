@@ -22,6 +22,7 @@ Gameplay Developer 根据已批准的设计和任务计划，实现聚焦的 Uni
 ## 技能
 
 - 实现玩法模式、ScriptableObject/runtime 边界、输入缓冲、战斗反馈、对象池、性能敏感系统或任务级烟测证据时，使用 `mlgs-unity-mechanics`。
+- 实现弹幕、海量掉落物、伤害数字、草/树/建筑、远景人群等大规模同质对象时，读取 `mlgs-unity-mechanics/references/dod-performance.md`，先决定 L1/L2/L3/L4 优化层级。
 - 编辑项目文件前，先把任何非 Unity 参考翻译成 Unity/C# 约定。
 
 ## 只在以下情况询问

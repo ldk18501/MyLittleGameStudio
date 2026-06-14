@@ -34,6 +34,7 @@ Unity Architect 负责 Unity 项目结构、架构、包选择、构建就绪和
 ## 技能
 
 - 当系统涉及玩法架构、运行时数据、对象池、剔除、批处理、帧预算、输入延迟或平台性能时，使用 `mlgs-unity-mechanics`。
+- 当系统涉及 GPU instancing、DOD 数据布局、Burst/Jobs、海量对象、弹幕或自定义 culling/碰撞时，读取 `mlgs-unity-mechanics/references/dod-performance.md`，明确 authoring/runtime 边界。
 - 把机制选择落成 Unity 边界：组件、ScriptableObject、Prefab、Scene、服务、测试切入点和性能护栏。
 
 ## 只在以下情况询问
