@@ -1,6 +1,6 @@
 version: 0.1
 updated: ""
 
-# Local pointer only. Copy to current-project.local.yaml on one machine if needed.
+# 仅作为本地指针示例。需要时在单台机器上复制为 current-project.local.yaml。
 state_path: ""
 project_root: ""

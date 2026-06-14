@@ -1,28 +1,28 @@
-# Codex Plugin Shortcut
+# Codex Plugin 快捷入口
 
-This repository includes a local Codex plugin source:
+本仓库包含一个本地 Codex plugin 源：
 
 ```text
 <MyLittleGameStudio>/plugins/my-little-game-studio/
 ```
 
-It defines one skill:
+它定义了一个技能：
 
 ```text
 mlgs
 ```
 
-The skill automatically loads the workflow from the same MyLittleGameStudio checkout:
+该技能会从同一个 MyLittleGameStudio checkout 自动加载工作流：
 
 ```text
 <MyLittleGameStudio>/AGENTS.md
 ```
 
-So the user does not need to repeat the long setup phrase.
+因此用户不需要反复输入很长的设置句。
 
-## How To Use After Installation
+## 安装后的使用方式
 
-Use short prompts such as:
+可以使用短 prompt：
 
 ```text
 mlgs status
@@ -32,7 +32,7 @@ mlgs fix this compile error
 mlgs build APK
 ```
 
-Chinese prompts also work:
+中文 prompt 也可以：
 
 ```text
 mlgs 看状态
@@ -41,15 +41,15 @@ mlgs 修复这个问题
 mlgs 打包 APK
 ```
 
-## Marketplace File
+## Marketplace 文件
 
-A repo-local marketplace entry is available at:
+仓库本地 marketplace 入口位于：
 
 ```text
 <MyLittleGameStudio>/.agents/plugins/marketplace.json
 ```
 
-Install from the repository root:
+从仓库根目录安装：
 
 ```powershell
 cd <MyLittleGameStudio>
@@ -57,26 +57,26 @@ codex plugin marketplace add .
 codex plugin add my-little-game-studio@my-little-game-studio-local
 ```
 
-Pass the MyLittleGameStudio repository root. Do not pass `.\.agents\plugins` or the `marketplace.json` file directly.
+传入 MyLittleGameStudio 仓库根目录。不要传 `.\.agents\plugins` 或 `marketplace.json` 文件本身。
 
-Codex expects the marketplace root to contain both:
+Codex 期望 marketplace root 同时包含：
 
 ```text
 .agents/plugins/marketplace.json
 plugins/my-little-game-studio/
 ```
 
-After installing, start a new Codex thread so the skill list refreshes.
+安装后新开一个 Codex thread，让 skill list 刷新。
 
-## Note About Slash Commands
+## 关于 Slash Commands
 
-Codex built-in slash commands and plugin skills are not exactly the same thing.
+Codex 内置 slash commands 和 plugin skills 不完全是同一种东西。
 
-This plugin gives you a short skill trigger (`mlgs`) and plugin starter prompts. If Codex exposes installed plugin skills through its slash UI, it should become selectable there. If not, typing `mlgs status` is the reliable fallback.
+这个 plugin 提供短 skill trigger（`mlgs`）和 plugin starter prompts。如果 Codex 在 slash UI 中暴露已安装 plugin skills，它应该会显示在那里。如果没有，输入 `mlgs status` 是可靠 fallback。
 
-## Activity Trace
+## 活动 Trace
 
-The `mlgs` skill should record routed work in:
+`mlgs` skill 应把路由后的工作记录到：
 
 ```text
 studio/logs/activity.jsonl
@@ -84,4 +84,4 @@ studio/runtime.json
 dashboard/studio-data.js
 ```
 
-Open `dashboard/index.html` to inspect the office-style activity view.
+打开 `dashboard/index.html` 可以查看工作室活动视图。

@@ -1,31 +1,31 @@
 # Command: status
 
-## Purpose
+## 目的
 
-Show current project state, missing artifacts, risks, and the next best action.
+展示当前项目状态、缺失产物、风险和最合适的下一步。
 
-## Lead
+## 主负责人
 
 Producer
 
-## Reads
+## 读取
 
-- resolved project `.mlgs/state.yaml`, or `studio/state.yaml` template if no project is configured
+- 已解析项目 `.mlgs/state.yaml`，没有配置项目时读取 `studio/state.yaml` 模板
 - `workflow/phases.yaml`
-- `studio/runtime.json` if present
-- latest entries from `studio/logs/activity.jsonl` if present
-- active project artifacts when present
+- 如存在，读取 `studio/runtime.json`
+- 如存在，读取 `studio/logs/activity.jsonl` 最新条目
+- 活动项目产物（如果存在）
 
-## Writes
+## 写入
 
-- resolved project `.mlgs/state.yaml` only if correcting stale next action or recording observed risk.
+- 只有在修正过期 next action 或记录观察到的风险时，才写入已解析项目 `.mlgs/state.yaml`。
 
-## Procedure
+## 流程
 
-1. Resolve and read project state.
-2. Verify the active project path exists if configured.
-3. Check the required artifacts for the current phase.
-4. Report:
+1. 解析并读取项目状态。
+2. 如果已配置活动项目路径，验证路径存在。
+3. 检查当前阶段所需产物。
+4. 报告：
    - active project
    - current phase
    - approvals
@@ -34,9 +34,9 @@ Producer
    - completed/missing artifacts
    - risks
    - recommended next command
-5. If state conflicts with the filesystem, state the conflict and recommend `start` or a state repair.
-6. Record a `status` trace event.
+5. 如果状态与文件系统冲突，说明冲突并推荐 `start` 或 state repair。
+6. 记录 `status` trace event。
 
-## Completion
+## 完成条件
 
-- The user knows what is true now and what to do next.
+- 用户知道当前真实状态和下一步该做什么。

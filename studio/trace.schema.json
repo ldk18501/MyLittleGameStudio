@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MyLittleGameStudio Trace Event",
+  "title": "MyLittleGameStudio Trace 事件",
   "type": "object",
   "required": [
     "id",

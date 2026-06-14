@@ -1,11 +1,10 @@
-# Unity Code Rules
+# Unity 代码规则
 
-- Prefer `[SerializeField] private` fields over public mutable fields.
-- Avoid `Find`, `FindObjectOfType`, and `SendMessage` in production paths.
-- Cache components instead of repeated `GetComponent` in hot paths.
-- Avoid allocations in `Update`, physics callbacks, and tight loops.
-- Keep gameplay rules data-driven where practical.
-- Use ScriptableObjects for content/config when content is authored or generated.
-- Keep UI code separate from core gameplay rules.
-- Record test or smoke evidence for production tasks.
-
+- 优先使用 `[SerializeField] private` 字段，避免 public mutable fields。
+- 生产路径避免 `Find`、`FindObjectOfType` 和 `SendMessage`。
+- 缓存组件，避免在热路径反复 `GetComponent`。
+- 避免在 `Update`、物理回调和紧密循环中分配内存。
+- 实际可行时，让玩法规则数据驱动。
+- 当内容需要由设计师编辑或生成时，使用 ScriptableObject 承载 content/config。
+- UI 代码与核心玩法规则分离。
+- 为 production 任务记录 test 或 smoke evidence。

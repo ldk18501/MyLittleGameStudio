@@ -1,42 +1,41 @@
-# Task: [Task Name]
+# Task：[任务名]
 
-## Metadata
+## 元数据
 
-- ID:
-- Status: not-started / ready / in-progress / done / blocked
-- Owner:
-- Source design:
+- ID：
+- 状态：not-started / ready / in-progress / done / blocked
+- Owner：
+- 来源设计：
 
-## Goal
+## 目标
 
-[What this task achieves.]
+[这个任务要达成什么。]
 
-## Scope
+## 范围
 
-### In Scope
-
-- 
-
-### Out of Scope
+### 范围内
 
 - 
 
-## Acceptance Criteria
-
-- GIVEN [state], WHEN [action], THEN [measurable result].
-
-## Implementation Notes
+### 范围外
 
 - 
 
-## Verification
+## 验收标准
 
-- Required check:
-- Evidence:
+- GIVEN [状态], WHEN [动作], THEN [可测结果]。
 
-## Completion Notes
+## 实现记录
 
-- Files changed:
-- Deviations:
-- Tests/checks:
+- 
 
+## 验证
+
+- 必需检查：
+- 证据：
+
+## 完成记录
+
+- 修改文件：
+- 偏差：
+- Tests/checks：

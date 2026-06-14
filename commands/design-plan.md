@@ -1,14 +1,14 @@
 # Command: design-plan
 
-## Purpose
+## 目的
 
-Turn the concept into system designs, Unity technical plan, task plan, asset requirements, and test strategy.
+把概念转成系统设计、Unity 技术方案、任务计划、资产需求和测试策略。
 
-## Lead
+## 主负责人
 
 Game Designer
 
-## Supporting Agents
+## 支持角色
 
 - Producer
 - Unity Architect
@@ -17,27 +17,28 @@ Game Designer
 - Technical Artist
 - QA Lead
 
-## Reads
+## 读取
 
 - project `design/concept-package.md`
 - project `design/reference-analysis.md`
-- existing Unity project structure when available
+- 可用时读取现有 Unity 项目结构
 
-## Writes
+## 写入
 
 - project `design/systems/[system].md`
 - project `docs/tech-plan.md`
 - project `production/task-plan.md`
-- optional project `design/assets/asset-requirements.md`
-- optional project `design/ux/[screen].md`
+- 可选 project `design/assets/asset-requirements.md`
+- 可选 project `design/ux/[screen].md`
 - project `.mlgs/state.yaml`
 
-## Procedure
+## 流程
 
-1. Resolve active project.
-2. Confirm concept package exists or draft missing concept assumptions.
-3. Decompose MVP systems.
-4. For each MVP system, create a compact system design:
+1. 解析活动项目。
+2. 确认概念包存在；如果缺失，先起草必要概念假设。
+3. 对涉及玩法机制、游戏手感、经济、成长、反馈或性能敏感运行时行为的 MVP 系统，使用 `mlgs-unity-mechanics`。
+4. 拆解 MVP 系统。
+5. 为每个 MVP 系统创建紧凑系统设计：
    - purpose
    - player experience
    - rules
@@ -45,24 +46,25 @@ Game Designer
    - tuning ranges
    - dependencies
    - acceptance criteria
-5. Unity Architect drafts the technical plan:
+6. Unity Architect 起草技术方案：
    - Unity version and platform
    - architecture
    - data/content strategy
    - package risks
    - scene/prefab strategy
    - testing strategy
-6. Producer creates `production/task-plan.md`.
-7. QA Lead checks acceptance criteria.
-8. Decide prototype policy:
-   - recommended for uncertain core loop
-   - Unity greybox if engine interaction is the risk
-   - skipped-with-risk if the user wants direct production
-9. Record approval and next action in project state.
+7. Producer 创建 `production/task-plan.md`。
+8. QA Lead 检查验收标准，确保每个玩法机制覆盖正常、边界、失败、反馈和性能路径。
+9. 决定 prototype policy：
+   - 核心循环不确定时推荐原型
+   - 风险来自引擎交互时使用 Unity greybox
+   - 用户想直接生产时记录 skipped-with-risk
+10. 在项目状态中记录批准和 next action。
 
-## Completion
+## 完成条件
 
-- MVP systems are documented.
-- Technical plan exists.
-- Task plan exists.
-- Prototype policy is recorded.
+- MVP 系统已文档化。
+- 技术方案存在。
+- 任务计划存在。
+- Prototype policy 已记录。
+- 使用该技能时，trace 记录 `mlgs-unity-mechanics`。

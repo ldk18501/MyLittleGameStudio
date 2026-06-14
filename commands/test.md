@@ -1,38 +1,39 @@
 # Command: test
 
-## Purpose
+## 目的
 
-Run, define, or summarize verification for the current task or project phase.
+为当前任务或项目阶段运行、定义或总结验证。
 
-## Lead
+## 主负责人
 
 QA Lead
 
-## Supporting Agents
+## 支持角色
 
 - Gameplay Developer
 - Unity Architect
 - UI/UX Developer
 
-## Procedure
+## 流程
 
-1. Determine target:
+1. 确定目标：
    - current task
    - Unity compile
    - smoke test
    - balance simulation
    - UI walkthrough
    - build preflight
-2. Run available checks when the environment supports them.
-3. If checks cannot be run, create a manual verification plan.
-4. Record results:
+2. 使用 `mlgs-unity-mechanics` 为玩法机制推导正常、边界、失败、反馈和性能检查。
+3. 环境支持时运行可用检查。
+4. 如果无法运行检查，创建手动验证计划。
+5. 记录结果：
    - command/check
    - pass/fail
    - evidence path
    - issues found
    - next fix if needed
-5. Record a trace event with checks run, agents used, and evidence.
+6. 记录 trace event，包含 checks run、agents used、skills used 和 evidence。
 
-## Completion
+## 完成条件
 
-- Verification result or test plan exists.
+- 存在验证结果或测试计划。

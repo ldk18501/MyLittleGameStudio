@@ -3,17 +3,17 @@ name: MyLittleGameStudio Workflow
 updated: 2026-06-07
 
 principles:
-  - Keep the studio small and fast.
-  - Prefer action with recorded assumptions over repeated confirmation.
-  - Keep one canonical state file per project.
-  - Let prototypes reduce risk, but do not force them when the user intentionally skips.
-  - Production commands must exist and be usable.
+  - 保持工作室小而快。
+  - 优先行动并记录假设，避免反复确认。
+  - 每个项目只保留一个规范状态文件。
+  - 用原型降低风险，但用户明确跳过时不要强迫原型。
+  - Production 命令必须存在且可用。
 
 phases:
   - id: idea-alignment
-    name: Idea Alignment
+    name: 想法对齐
     lead: producer
-    purpose: Understand the project idea, constraints, references, workspace, automation level, and current code state.
+    purpose: 理解项目想法、约束、参考、工作区、自动化等级和当前代码状态。
     required_artifacts:
       - project/.mlgs/state.yaml
       - project/.mlgs/project.md
@@ -26,9 +26,9 @@ phases:
       idea_alignment: approved
 
   - id: concept-package
-    name: Concept Package
+    name: 概念包
     lead: creative-director
-    purpose: Define pitch, core fantasy, pillars, anti-goals, target player, core loop, visual direction, and scope.
+    purpose: 定义 pitch、核心幻想、支柱、反目标、目标玩家、核心循环、视觉方向和范围。
     required_artifacts:
       - project/design/concept-package.md
     commands:
@@ -38,9 +38,9 @@ phases:
       concept_package: approved
 
   - id: design-tech-plan
-    name: Design & Tech Plan
+    name: 设计与技术方案
     lead: game-designer
-    purpose: Convert concept into system specs, Unity technical plan, task plan, asset requirements, and test strategy.
+    purpose: 把概念转成系统规格、Unity 技术方案、任务计划、资产需求和测试策略。
     required_artifacts:
       - project/design/systems/
       - project/docs/tech-plan.md
@@ -53,9 +53,9 @@ phases:
       design_tech_plan: approved
 
   - id: prototype-validation
-    name: Prototype Validation
+    name: 原型验证
     lead: gameplay-developer
-    purpose: Validate uncertain core-loop or interaction risk through HTML or Unity greybox prototype.
+    purpose: 通过 HTML 或 Unity greybox 原型验证不确定的核心循环或交互风险。
     required_artifacts:
       - project/prototype/prototype-plan.md
       - project/prototype/playtest-report.md
@@ -66,9 +66,9 @@ phases:
       prototype_validation: pass-or-skipped-with-risk
 
   - id: production
-    name: Production
+    name: 生产开发
     lead: unity-architect
-    purpose: Implement approved tasks in Unity, run checks, record completion, and keep code aligned with design.
+    purpose: 在 Unity 中实现已批准任务，运行检查，记录完成情况，并保持代码与设计一致。
     required_artifacts:
       - project/production/tasks/
       - project/src-or-external-unity-project
@@ -84,9 +84,9 @@ phases:
       qa_review: pass
 
   - id: polish-ship
-    name: Polish & Ship
+    name: 打磨与发布
     lead: qa-lead
-    purpose: Improve feel, content, balance, UI, performance, build readiness, and release risk.
+    purpose: 改善手感、内容、平衡、UI、性能、构建就绪和发布风险。
     required_artifacts:
       - project/production/release-checklist.md
       - project/production/known-issues.md

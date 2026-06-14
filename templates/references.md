@@ -1,16 +1,15 @@
-# References
+# 参考资料
 
-## Raw References
+## 原始参考
 
-| Reference | Type | Borrow | Avoid | Notes |
+| 参考 | 类型 | 借鉴 | 避免 | 备注 |
 |---|---|---|---|---|
 |  | game / image / video / text / mood |  |  |  |
 
-## User Taste Notes
+## 用户品味记录
 
 - 
 
-## Constraints From References
+## 参考带来的约束
 
 - 
-

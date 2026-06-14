@@ -1,33 +1,32 @@
-# Reference Analysis
+# 参考分析
 
-## Creative Pattern
+## 创意模式
 
-- What the game should borrow:
-- What the game should avoid:
-- Tension between references:
+- 游戏应该借鉴：
+- 游戏应该避免：
+- 参考之间的张力：
 
-## Player Experience
+## 玩家体验
 
-- Desired feeling:
-- Session rhythm:
-- Skill/strategy expectation:
+- 目标感受：
+- 单局节奏：
+- 技能/策略预期：
 
-## Visual Direction
+## 视觉方向
 
-- Readability needs:
-- Palette/material notes:
-- Asset implications:
+- 可读性需求：
+- 色彩/材质记录：
+- 资产影响：
 
-## UI/UX Direction
+## UI/UX 方向
 
-- Input implications:
-- HUD/screen implications:
+- 输入影响：
+- HUD/屏幕影响：
 
-## Production Risks
-
-- 
-
-## Recommended Concept Direction
+## 生产风险
 
 - 
 
+## 推荐概念方向
+
+- 

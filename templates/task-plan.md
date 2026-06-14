@@ -1,32 +1,31 @@
-# Production Task Plan
+# Production 任务计划
 
-## Metadata
+## 元数据
 
-- Project:
-- Date:
-- Owner: Producer
-- Status: draft / approved / revise
+- 项目：
+- 日期：
+- Owner：Producer
+- 状态：draft / approved / revise
 
-## MVP Tasks
+## MVP 任务
 
-| ID | Task | Owner | Source | Status |
+| ID | 任务 | Owner | 来源 | 状态 |
 |---|---|---|---|---|
 | T-001 |  |  |  | not-started |
 
-## Suggested Order
+## 建议顺序
 
 1. 
 
-## Dependencies
+## 依赖
 
 - 
 
 ## Prototype Policy
 
-- Policy: recommended / required / skipped-with-risk / not-needed
-- Reason:
+- Policy：recommended / required / skipped-with-risk / not-needed
+- 原因：
 
-## Risks
+## 风险
 
 - 
-

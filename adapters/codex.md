@@ -1,23 +1,23 @@
-# Codex Adapter Notes
+# Codex 适配说明
 
-This workflow is immediately usable in Codex by reading `AGENTS.md`.
+在 Codex 中读取 `AGENTS.md` 后，本工作流即可使用。
 
-## Usage
+## 使用方式
 
-1. Open the workspace that contains `MyLittleGameStudio`.
-2. Ask Codex to use `MyLittleGameStudio/AGENTS.md`.
-3. Codex should route commands through `workflow/command-router.md`.
-4. Codex should resolve project state through `rules/state.md` and keep `studio/state.yaml` as a template only.
+1. 打开包含 `MyLittleGameStudio` 的 workspace。
+2. 让 Codex 使用 `MyLittleGameStudio/AGENTS.md`。
+3. Codex 应通过 `workflow/command-router.md` 路由命令。
+4. Codex 应通过 `rules/state.md` 解析项目状态，并只把 `studio/state.yaml` 当模板。
 
-## Suggested Prompt
+## 建议 Prompt
 
 ```text
-Use MyLittleGameStudio as the workflow system. Read MyLittleGameStudio/AGENTS.md first, then route my request through its command router.
+请使用 MyLittleGameStudio 作为工作流系统。先读取 MyLittleGameStudio/AGENTS.md，再通过它的 command router 路由我的请求。
 ```
 
-## Codex Behavior
+## Codex 行为
 
-- Use normal file tools for implementation.
-- Ask before package/project setting changes.
-- For Unity tasks, inspect the real Unity project before changing code.
-- Run available checks when possible.
+- 使用普通文件工具完成实现。
+- 修改 package 或 project settings 前先询问。
+- Unity 任务先检查真实 Unity 项目，再修改代码。
+- 可行时运行检查。

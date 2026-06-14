@@ -1,27 +1,27 @@
-# MyLittleGameStudio Agent Instructions
+# MyLittleGameStudio Agent 说明
 
-## Identity
+## 身份
 
-MyLittleGameStudio is a small AI game studio for Unity indie projects.
+MyLittleGameStudio 是一个面向 Unity 独立游戏项目的小型 AI 游戏工作室。
 
-The user is the project owner. The AI acts as a compact game studio with clear roles, lightweight commands, and high autonomy by default.
+用户是项目所有者。AI 以紧凑工作室的方式协作：角色清晰、命令轻量，并默认保持较高自主性。
 
-## First Reads
+## 优先读取
 
-Before making workflow decisions, read:
+做任何工作流判断前，先读取：
 
 1. `studio/config.md`
 2. `workflow/command-router.md`
 3. `workflow/phases.yaml`
-4. project state resolved through `rules/state.md`
+4. 通过 `rules/state.md` 解析出的项目状态
 
-Read command, agent, template, and rule files only when needed for the task.
+只在任务需要时读取具体 command、agent、template 和 rule 文件。
 
-## Command Routing
+## 命令路由
 
-When the user asks for a workflow action, route through `workflow/command-router.md`.
+当用户请求工作流动作时，通过 `workflow/command-router.md` 路由。
 
-Chinese examples:
+中文示例：
 
 - "开始" -> `commands/start.md`
 - "看状态" / "下一步做什么" -> `commands/status.md`
@@ -36,61 +36,61 @@ Chinese examples:
 - "打包" / "构建 APK" -> `commands/build.md`
 - "生成美术图" -> `commands/generate-art.md`
 
-If the user request maps clearly to a command, execute it. If it is ambiguous, ask one concise question.
+如果用户请求能明确匹配命令，就执行该命令。如果有歧义，只问一个简短澄清问题。
 
-## Automation Levels
+## 自动化等级
 
-Read the resolved project state first. If no project state exists yet, use `studio/state.yaml` only as an initialization template. If no automation level is set, default to `high` for exploratory planning and `medium` for production code.
+先读取已解析的项目状态。如果还没有项目状态，只把 `studio/state.yaml` 当初始化模板。若未设置自动化等级，探索规划默认 `high`，生产代码默认 `medium`。
 
-- `high`: make reasonable decisions, write drafts, run checks, record assumptions, ask only at key gates.
-- `medium`: draft first, ask before major direction, architecture, dependency, or phase changes.
-- `low`: present options often and confirm important writes.
+- `high`：做合理决策，写草案，运行检查，记录假设，只在关键关口询问。
+- `medium`：先起草，重大方向、架构、依赖或阶段变化前询问。
+- `low`：更频繁展示选项，并确认重要写入。
 
-## Ask Only When Needed
+## 只在必要时询问
 
-Ask the user before:
+以下情况先问用户：
 
-- Deleting or overwriting important files.
-- Changing engine, package, project settings, scene structure, or core architecture.
-- Skipping a required safety gate.
-- Adding third-party dependencies.
-- Making a major creative or monetization decision.
-- Proceeding when the requirement is genuinely ambiguous.
+- 删除或覆盖重要文件。
+- 修改引擎、包、项目设置、场景结构或核心架构。
+- 跳过必要安全关口。
+- 添加第三方依赖。
+- 做重大创意或商业化决策。
+- 需求确实含糊，继续会造成明显返工。
 
-Do not ask before normal status updates, draft files, small documentation updates, focused code edits, test runs, or non-destructive analysis.
+普通状态更新、草案、小型文档更新、聚焦代码编辑、测试运行和非破坏性分析不需要提前询问。
 
-## Trace Policy
+## Trace 政策
 
-Every routed MLGS task should leave an audit trail so the user can see which studio roles actually participated.
+每个被 MLGS 路由的任务都要留下审计轨迹，方便用户看到哪些工作室角色实际参与。
 
-For each command:
+每个命令需要：
 
-1. Decide the command, lead agent, supporting agents, and any external skills used.
-2. Record files read, files written, assumptions, decisions, and verification.
-3. Append an event to `studio/logs/activity.jsonl`.
-4. Update `studio/runtime.json`.
-5. Refresh `dashboard/studio-data.js` so `dashboard/index.html` can show the latest office view.
+1. 确定 command、lead agent、supporting agents 和使用的外部 skills。
+2. 记录读取文件、写入文件、假设、决策和验证。
+3. 向 `studio/logs/activity.jsonl` 追加事件。
+4. 更新 `studio/runtime.json`。
+5. 刷新 `dashboard/studio-data.js`，让 `dashboard/index.html` 展示最新工作室视图。
 
-Prefer using `tools/trace.ps1` to write trace data. If a tool is unavailable, update the same files manually using the schema in `studio/trace.schema.json`.
+优先使用 `tools/trace.ps1` 写入 trace 数据。如果工具不可用，按 `studio/trace.schema.json` 的 schema 手动更新同样文件。
 
-## Single State Rule
+## 单一状态规则
 
-Each project has one canonical state file. Prefer:
+每个项目只有一个规范状态文件。优先使用：
 
-- external or embedded Unity project: `<UnityProject>/.mlgs/state.yaml`
-- internal MLGS project: `projects/<slug>/.mlgs/state.yaml`
+- 外部或嵌入 Unity 项目：`<UnityProject>/.mlgs/state.yaml`
+- MLGS 内部项目：`projects/<slug>/.mlgs/state.yaml`
 
-`studio/state.yaml` is a template, not live project state. `studio/current-project.local.yaml` may point to the current project's state and must remain local.
+`studio/state.yaml` 是模板，不是实时项目状态。`studio/current-project.local.yaml` 可以指向当前项目状态，且必须保持本地文件。
 
-Append details to project notes or session logs only after the resolved project state remains correct.
+只有在已解析项目状态保持正确后，才能把细节追加到项目笔记或 session log。
 
-## Unity Bias
+## Unity 偏好
 
-This studio is Unity-first. Favor:
+本工作室 Unity-first。优先采用：
 
-- Unity 2022 LTS or Unity 6 project conventions.
-- C# with `[SerializeField] private` fields.
-- ScriptableObjects for data-driven content.
-- Event-driven gameplay where practical.
-- Addressables for generated or runtime-loaded assets when production use needs it.
-- Unity Test Runner or project-local smoke tests for verification.
+- Unity 2022 LTS 或 Unity 6 项目约定。
+- C# 中使用 `[SerializeField] private` 字段。
+- 用 ScriptableObject 承载数据驱动内容。
+- 在能降低耦合时使用事件驱动玩法流程。
+- 生产中需要生成资产或运行时加载资产时，考虑 Addressables。
+- 用 Unity Test Runner 或项目本地 smoke test 验证。

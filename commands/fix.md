@@ -1,35 +1,35 @@
 # Command: fix
 
-## Purpose
+## 目的
 
-Diagnose and fix a bug, playtest issue, build failure, UI problem, compile error, or QA failure.
+诊断并修复 bug、试玩问题、构建失败、UI 问题、编译错误或 QA 失败。
 
-## Lead
+## 主负责人
 
-Gameplay Developer or UI/UX Developer depending on issue.
+根据问题类型由 Gameplay Developer 或 UI/UX Developer 负责。
 
-## Supporting Agents
+## 支持角色
 
-- Unity Architect for architecture/build/package issues
-- QA Lead for repro and verification
-- Technical Artist for visual/VFX issues
+- 架构/构建/包问题由 Unity Architect 支持
+- 复现和验证由 QA Lead 支持
+- 视觉/VFX 问题由 Technical Artist 支持
 
-## Procedure
+## 流程
 
-1. Capture the symptom and expected behavior.
-2. Reproduce or inspect the relevant evidence.
-3. Identify the smallest responsible area.
-4. Fix narrowly.
-5. Run the most relevant verification.
-6. Record the fix and evidence in the task or QA note.
-7. Record a trace event with the symptom, agent handoff, files read/written, decision, and verification result.
+1. 捕获症状和期望行为。
+2. 复现问题或检查相关证据。
+3. 定位最小责任区域。
+4. 做窄范围修复。
+5. 运行最相关验证。
+6. 在任务或 QA 记录中写明修复和证据。
+7. 记录 trace event，包含 symptom、agent handoff、files read/written、decision 和 verification result。
 
-## Ask Only When
+## 只在以下情况询问
 
-- The fix requires changing design behavior.
-- The fix touches broad architecture, packages, scenes, prefabs, or project settings.
-- There are multiple valid fixes with different product feel.
+- 修复需要改变设计行为。
+- 修复触及大范围架构、包、场景、Prefab 或项目设置。
+- 存在多个有效修复方案，且产品手感不同。
 
-## Completion
+## 完成条件
 
-- Bug is fixed and verified, or blocked with a concrete missing input.
+- Bug 已修复并验证，或因具体缺失输入而 blocked。

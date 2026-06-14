@@ -1,12 +1,12 @@
-# Claude Code Adapter Notes
+# Claude Code 适配说明
 
-This core workflow is platform-neutral. To convert it into Claude Code:
+核心工作流是平台中立的。转换到 Claude Code 时按以下方式处理。
 
-## Agents
+## Agents 映射
 
-Copy files under `agents/` into `.claude/agents/` and add Claude Code frontmatter.
+把 `agents/` 下的文件复制到 `.claude/agents/`，并添加 Claude Code frontmatter。
 
-Recommended mapping:
+推荐映射：
 
 - `producer`
 - `creative-director`
@@ -17,25 +17,24 @@ Recommended mapping:
 - `technical-artist`
 - `qa-lead`
 
-## Skills
+## Skills 映射
 
-Convert files under `commands/` into `.claude/skills/[command]/SKILL.md`.
+把 `commands/` 下的文件转换到 `.claude/skills/[command]/SKILL.md`。
 
-Suggested allowed tools:
+建议 allowed tools：
 
-- Planning commands: `Read, Glob, Grep, Write, Edit`
-- Production commands: `Read, Glob, Grep, Write, Edit, Bash`
-- Art generation: add `Bash` only if a configured local generation script exists.
+- Planning commands：`Read, Glob, Grep, Write, Edit`
+- Production commands：`Read, Glob, Grep, Write, Edit, Bash`
+- Art generation：只有存在已配置的本地生成脚本时才添加 `Bash`
 
-## Hooks
+## Hooks 建议
 
-Do not copy heavy hooks from larger templates by default. Start with:
+默认不要从大型模板复制 heavy hooks。可以先从以下轻量 hook 开始：
 
 - session start status reminder
 - optional state consistency check
 - optional Unity compile/test helper
 
-## Key Rule
+## 关键规则
 
-Do not reintroduce per-file "May I write?" requirements. Keep the automation-level policy from `AGENTS.md`.
-
+不要重新引入逐文件 “May I write?” 要求。保留 `AGENTS.md` 中的自动化等级策略。

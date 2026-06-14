@@ -1,32 +1,31 @@
-# Prototype Plan
+# 原型计划
 
-## Metadata
+## 元数据
 
-- Project:
-- Date:
-- Type: HTML / Unity greybox / skipped
-- Status: planned / built / passed / revise / skipped
+- 项目：
+- 日期：
+- 类型：HTML / Unity greybox / skipped
+- 状态：planned / built / passed / revise / skipped
 
-## Purpose
+## 目的
 
-[What risk this prototype must reduce.]
+[这个原型必须降低什么风险。]
 
-## Playable Scope
-
-- 
-
-## Visual Baseline
-
-- Use distinguishable visual placeholders for player, enemies, rewards, doors, exits, interactables, and important UI.
-- Avoid pure text-only placeholders for core objects unless intentionally out of scope.
-
-## Evaluation Criteria
+## 可玩范围
 
 - 
 
-## Skip Record
+## 视觉基线
 
-- Skipped: yes / no
-- Reason:
-- Risk accepted:
+- 用可区分的视觉占位表现 player、enemies、rewards、doors、exits、interactables 和重要 UI。
+- 除非刻意排除核心对象，否则避免纯文字占位。
 
+## 评估标准
+
+- 
+
+## 跳过记录
+
+- Skipped：yes / no
+- 原因：
+- 接受的风险：

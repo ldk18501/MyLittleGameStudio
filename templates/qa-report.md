@@ -1,23 +1,22 @@
-# QA Report
+# QA 报告
 
-## Metadata
+## 元数据
 
-- Project:
-- Date:
-- Target:
-- Verdict: pass / pass-with-warnings / fail / blocked
+- 项目：
+- 日期：
+- 目标：
+- Verdict：pass / pass-with-warnings / fail / blocked
 
-## Checks
+## 检查
 
-| Check | Result | Evidence |
+| 检查 | 结果 | 证据 |
 |---|---|---|
 |  |  |  |
 
-## Issues
+## 问题
 
 - 
 
-## Next Action
+## 下一步
 
 - 
-

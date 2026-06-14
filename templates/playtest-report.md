@@ -1,30 +1,29 @@
-# Playtest Report
+# 试玩报告
 
-## Metadata
+## 元数据
 
-- Project:
-- Build/prototype:
-- Date:
-- Tester:
-- Verdict: pending / pass / revise / return-to-design
+- 项目：
+- Build/prototype：
+- 日期：
+- Tester：
+- Verdict：pending / pass / revise / return-to-design
 
-## Focus
-
-- 
-
-## Observations
+## 关注点
 
 - 
 
-## Problems
+## 观察
 
 - 
 
-## Decisions
+## 问题
 
 - 
 
-## Required Revisions
+## 决策
 
 - 
 
+## 必需修订
+
+- 

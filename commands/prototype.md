@@ -1,14 +1,14 @@
 # Command: prototype
 
-## Purpose
+## 目的
 
-Validate the core loop or risky interaction before production, without making the prototype a rigid blocker for every project.
+在 production 前验证核心循环或高风险交互，同时不把原型变成每个项目的僵硬阻塞。
 
-## Lead
+## 主负责人
 
 Gameplay Developer
 
-## Supporting Agents
+## 支持角色
 
 - Producer
 - Game Designer
@@ -16,7 +16,7 @@ Gameplay Developer
 - UI/UX Developer
 - QA Lead
 
-## Reads
+## 读取
 
 - project `design/concept-package.md`
 - project `design/systems/*.md`
@@ -24,35 +24,37 @@ Gameplay Developer
 - project `production/task-plan.md`
 - project `.mlgs/state.yaml`
 
-## Writes
+## 写入
 
 - project `prototype/prototype-plan.md`
-- project `prototype/html/` or Unity greybox artifacts
+- project `prototype/html/` 或 Unity greybox artifacts
 - project `prototype/playtest-report.md`
 - project `.mlgs/state.yaml`
 
-## Procedure
+## 流程
 
-1. Resolve active project.
-2. Read prototype policy from project state.
-3. If the user asks to skip, record:
+1. 解析活动项目。
+2. 从项目状态读取 prototype policy。
+3. 如果用户要求跳过，记录：
    - `prototype.policy: skipped-with-risk`
    - `prototype.verdict: skipped`
    - skip reason
    - production risk
-4. If building:
-   - define the minimum playable scope
-   - prefer readable visual placeholders over text-only objects
-   - build HTML prototype or Unity greybox depending on risk
-   - run locally when practical
-   - create playtest report
-5. Record verdict:
+4. 如果要构建原型：
+   - 定义最小可玩范围
+   - 使用 `mlgs-unity-mechanics` 只选择验证核心风险所需的机制模式
+   - 优先使用可读视觉占位，而不是纯文字对象
+   - 根据风险构建 HTML prototype 或 Unity greybox
+   - 实际可行时本地运行
+   - 创建 playtest report
+5. 记录 verdict：
    - pass
    - revise
    - return-to-design
    - skipped
-6. If pass or skipped-with-risk and design-plan is approved, set production unblocked.
+6. 如果 pass 或 skipped-with-risk，且 design-plan 已批准，设置 production unblocked。
 
-## Completion
+## 完成条件
 
-- Prototype exists and is evaluated, or skip risk is explicitly recorded.
+- 原型存在并已评估，或跳过风险已明确记录。
+- 原型报告写明已测试机制、调参假设和 pass/revise 证据。

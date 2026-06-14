@@ -2,7 +2,7 @@ version: 0.1
 updated: 2026-06-07
 kind: template
 
-# Template only. Live project state belongs in:
+# 仅作为模板。实时项目状态应放在：
 # - <UnityProject>/.mlgs/state.yaml
 # - projects/<slug>/.mlgs/state.yaml
 
@@ -46,7 +46,7 @@ prototype:
 
 next_action:
   command: start
-  reason: "No active project is configured yet."
+  reason: "尚未配置活动项目。"
 
 assumptions: []
 

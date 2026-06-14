@@ -1,36 +1,35 @@
-# Project Brief
+# 项目简报
 
-## Identity
+## 身份
 
-- Name:
-- Slug:
-- Mode: internal / external-adopted / embedded
-- Unity version:
-- Target platform:
-- Project path:
-- External path:
+- 名称：
+- Slug：
+- Mode：internal / external-adopted / embedded
+- Unity version：
+- Target platform：
+- Project path：
+- External path：
 
-## Automation
+## 自动化
 
-- Planning: high / medium / low
-- Production: high / medium / low
+- Planning：high / medium / low
+- Production：high / medium / low
 
-## Write Policy
+## 写入策略
 
-- Access: none / planning-only / approved-paths / full-project
-- Approved paths:
+- Access：none / planning-only / approved-paths / full-project
+- Approved paths：
   - 
 
-## Current Goal
+## 当前目标
 
-[What the user wants to make.]
+[用户想做什么游戏。]
 
-## Constraints
+## 约束
 
-- Time:
-- Team:
-- Budget:
-- Existing architecture:
-- Must keep:
-- Must avoid:
-
+- 时间：
+- 团队：
+- 预算：
+- 现有架构：
+- 必须保留：
+- 必须避免：

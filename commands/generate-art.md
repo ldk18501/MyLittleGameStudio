@@ -1,28 +1,27 @@
 # Command: generate-art
 
-## Purpose
+## 目的
 
-Generate or specify placeholder/concept art for the active Unity project.
+为活动 Unity 项目生成或规格化占位/概念美术。
 
-## Lead
+## 主负责人
 
 Technical Artist
 
-## Supporting Agents
+## 支持角色
 
 - Creative Director
 - Unity Architect
 
-## Procedure
+## 流程
 
-1. Read visual direction and asset requirement if available.
-2. Draft prompt and target usage.
-3. Use configured image generation only when provider config is available and the user requested generation.
-4. Save outputs under approved Unity art paths.
-5. Record prompt metadata without secrets.
+1. 读取视觉方向和资产需求（如果存在）。
+2. 起草 prompt 和目标用途。
+3. 只有在 provider config 可用且用户明确请求生成时，才使用配置好的图像生成。
+4. 把输出保存到已批准的 Unity art 路径。
+5. 保存不含密钥的 prompt metadata。
 
-## Safety
+## 安全
 
-- Never store API keys in shared workflow files or prompt metadata.
-- Ask before generating paid/network assets if provider cost is unclear.
-
+- 不要把 API keys 存入共享工作流文件或 prompt metadata。
+- 如果 provider 成本不清楚，付费/联网生成前先询问。

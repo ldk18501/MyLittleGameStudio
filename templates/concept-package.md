@@ -1,69 +1,68 @@
-# Concept Package
+# 概念包
 
-## Metadata
+## 元数据
 
-- Project:
-- Date:
-- Status: draft / approved / revise
-- Owner: Creative Director
+- 项目：
+- 日期：
+- 状态：draft / approved / revise
+- Owner：Creative Director
 
-## One-Sentence Pitch
+## 一句话 Pitch
 
-[The shortest clear description of the game.]
+[用最短且清楚的一句话描述游戏。]
 
-## Core Fantasy
+## 核心幻想
 
-[What the player gets to be, do, or feel.]
+[玩家能成为什么、做什么，或感受到什么。]
 
-## Target Player
+## 目标玩家
 
-- Primary player:
-- Motivation:
-- Session length:
-- Skill expectation:
+- 主要玩家：
+- 动机：
+- 单局时长：
+- 技能预期：
 
-## Gameplay Pillars
+## 玩法支柱
 
-1. **[Pillar]**
-   - Meaning:
-   - Design test:
+1. **[支柱]**
+   - 含义：
+   - 设计检验：
 
-2. **[Pillar]**
-   - Meaning:
-   - Design test:
+2. **[支柱]**
+   - 含义：
+   - 设计检验：
 
-3. **[Pillar]**
-   - Meaning:
-   - Design test:
+3. **[支柱]**
+   - 含义：
+   - 设计检验：
 
-## Anti-Goals
+## 反目标
 
 - 
 
-## Core Loop
+## 核心循环
 
 ```text
-[Action] -> [Choice] -> [Consequence] -> [Reward/Progress] -> repeat
+[行动] -> [选择] -> [后果] -> [奖励/成长] -> repeat
 ```
 
-## MVP Scope
+## MVP 范围
 
-- Must have:
-- Nice to have:
-- Out of scope:
+- 必须有：
+- 可以有：
+- 不在范围：
 
-## Visual Direction
+## 视觉方向
 
-- Style:
-- Mood:
-- Readability:
+- 风格：
+- 情绪：
+- 可读性：
 
-## Risks and Assumptions
+## 风险与假设
 
 - 
 
-## Approval
+## 批准
 
-- User approval: pending / approved / revise
-- Notes:
-
+- 用户批准：pending / approved / revise
+- 备注：

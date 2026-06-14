@@ -1,15 +1,15 @@
-# State Rules
+# 状态规则
 
-## State Files
+## 状态文件
 
-`studio/state.yaml` is a template for new projects. It is not live project state.
+`studio/state.yaml` 是新项目模板，不是实时项目状态。
 
-Live state belongs to the active game project:
+实时状态属于活动游戏项目：
 
-- external or embedded Unity project: `<UnityProject>/.mlgs/state.yaml`
-- internal MLGS project: `projects/<slug>/.mlgs/state.yaml`
+- 外部或嵌入 Unity 项目：`<UnityProject>/.mlgs/state.yaml`
+- MLGS 内部项目：`projects/<slug>/.mlgs/state.yaml`
 
-`studio/current-project.local.yaml` is an optional local pointer to the active project's state:
+`studio/current-project.local.yaml` 是可选的本地指针，指向活动项目状态：
 
 ```yaml
 version: 0.1
@@ -18,22 +18,22 @@ state_path: "E:/path/to/YourUnityGame/.mlgs/state.yaml"
 project_root: "E:/path/to/YourUnityGame"
 ```
 
-The local pointer must be ignored by git.
+本地指针必须被 git 忽略。
 
-## Resolution Order
+## 解析顺序
 
-Resolve project state in this order:
+按以下顺序解析项目状态：
 
-1. Explicit state path or project path from the user.
-2. `studio/current-project.local.yaml`.
-3. `.mlgs/state.yaml` in the current working directory or nearest parent when working inside a game project.
-4. `studio/state.yaml` as a template only.
+1. 用户显式提供的 state path 或 project path。
+2. `studio/current-project.local.yaml`。
+3. 当前工作目录或最近父目录中的 `.mlgs/state.yaml`。
+4. 只作为模板使用的 `studio/state.yaml`。
 
-If only the template is available, route to `commands/start.md` before project-specific production work.
+如果只有模板可用，在进入项目级 production 工作前先路由到 `commands/start.md`。
 
-## Single State Rule
+## 单一状态规则
 
-For any one game project, `.mlgs/state.yaml` is the only source of truth for:
+对任何一个游戏项目，`.mlgs/state.yaml` 是以下内容的唯一真实来源：
 
 - active project identity
 - phase
@@ -43,8 +43,8 @@ For any one game project, `.mlgs/state.yaml` is the only source of truth for:
 - next action
 - approved Unity write paths
 
-Do not create separate active-project, stage, or session state files at the MLGS root.
+不要在 MLGS 根目录创建额外的 active-project、stage 或 session state 文件。
 
-Project-local logs are allowed, but they must not contradict the resolved `.mlgs/state.yaml`.
+允许项目本地日志存在，但不能与已解析的 `.mlgs/state.yaml` 矛盾。
 
-If filesystem state conflicts with the resolved project state, report the conflict before running a project-level command.
+如果文件系统状态与已解析项目状态冲突，先报告冲突，再运行项目级命令。

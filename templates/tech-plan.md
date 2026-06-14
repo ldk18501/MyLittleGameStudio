@@ -1,60 +1,59 @@
-# Unity Technical Plan
+# Unity 技术方案
 
-## Metadata
+## 元数据
 
-- Project:
-- Date:
-- Owner: Unity Architect
-- Status: draft / approved / revise
+- 项目：
+- 日期：
+- Owner：Unity Architect
+- 状态：draft / approved / revise
 
-## Engine and Platform
+## 引擎与平台
 
-- Unity version:
-- Target platform:
-- Render pipeline:
-- Input:
+- Unity version：
+- Target platform：
+- Render pipeline：
+- Input：
 
-## Architecture Summary
+## 架构摘要
 
-[High-level approach.]
+[高层方案。]
 
-## Modules
+## 模块
 
-| Module | Purpose | Depends On | Notes |
+| 模块 | 目的 | 依赖 | 备注 |
 |---|---|---|---|
 |  |  |  |  |
 
-## Data Strategy
+## 数据策略
 
-- ScriptableObjects:
-- JSON/config:
-- Generated assets:
-- Save data:
+- ScriptableObjects：
+- JSON/config：
+- Generated assets：
+- Save data：
 
-## Scene and Prefab Strategy
+## 场景与 Prefab 策略
 
-- Scenes:
-- Prefabs:
-- Runtime composition:
+- Scenes：
+- Prefabs：
+- Runtime composition：
 
 ## Packages
 
-| Package | Purpose | Status | Risk |
+| Package | 目的 | 状态 | 风险 |
 |---|---|---|---|
 |  |  | planned / installed / avoid |  |
 
-## Testing Strategy
+## 测试策略
 
-- Compile checks:
-- Smoke tests:
-- Unity Test Runner:
-- Manual playtest:
+- Compile checks：
+- Smoke tests：
+- Unity Test Runner：
+- Manual playtest：
 
-## Implementation Guardrails
-
-- 
-
-## Risks
+## 实现护栏
 
 - 
 
+## 风险
+
+- 

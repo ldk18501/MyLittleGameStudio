@@ -1,60 +1,60 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio shortcut. Use when the user says MLGS, MyLittleGameStudio, GameStudio, start/status/references/concept/design-plan/prototype/implement/fix/review/test/build/generate-art for a Unity indie game workflow, or asks to avoid repeating the MyLittleGameStudio AGENTS.md setup phrase."
+description: "MyLittleGameStudio 快捷入口。用于用户说 MLGS、MyLittleGameStudio、GameStudio，或请求 start/status/references/concept/design-plan/prototype/implement/fix/review/test/build/generate-art 等 Unity 独立游戏工作流动作；也用于用户不想反复输入 MyLittleGameStudio/AGENTS.md 设置语句时。"
 ---
 
-# MLGS Shortcut
+# MLGS 快捷入口
 
-This skill is the short entry point for MyLittleGameStudio.
+本技能是 MyLittleGameStudio 的短入口。
 
-When triggered, do not ask the user to repeat:
+触发后，不要要求用户重复：
 
 ```text
 Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
 ```
 
-Instead, load and follow the workflow automatically.
+而是自动加载并遵循该工作流。
 
-## Workflow Root
+## 工作流根目录
 
-Find the MyLittleGameStudio checkout root before routing:
+路由前先找到 MyLittleGameStudio checkout root：
 
-1. Prefer the repository root that contains this plugin source.
-2. Otherwise find the nearest accessible directory containing all of:
+1. 优先使用包含当前 plugin source 的仓库根目录。
+2. 否则查找最近的可访问目录，且该目录同时包含：
    - `AGENTS.md`
    - `studio/state.yaml`
    - `workflow/command-router.md`
-3. If the checkout root cannot be discovered, ask the user once for the path to their `MyLittleGameStudio` directory.
+3. 如果找不到 checkout root，只问用户一次 `MyLittleGameStudio` 目录路径。
 
-Do not use machine-specific paths from another user's environment.
+不要使用来自其他用户环境的机器特定路径。
 
-Before routing any request, read:
+路由任何请求前，读取：
 
 1. `<MyLittleGameStudio>/AGENTS.md`
 2. `<MyLittleGameStudio>/studio/config.md`
 3. `<MyLittleGameStudio>/rules/state.md`
 4. `<MyLittleGameStudio>/workflow/command-router.md`
 
-Then read only the selected command and relevant agent files.
+然后只读取被选中的 command 和相关 agent 文件。
 
-## Unity Project Target
+## Unity 项目目标
 
-Resolve the target Unity project from the project-local `.mlgs/state.yaml`.
+从项目本地 `.mlgs/state.yaml` 解析目标 Unity 项目。
 
-Use this order:
+使用以下顺序：
 
-1. Explicit project/state path from the user.
-2. `<MyLittleGameStudio>/studio/current-project.local.yaml`.
-3. `.mlgs/state.yaml` in the current working directory or nearest parent.
-4. `<MyLittleGameStudio>/studio/state.yaml` as an initialization template only.
+1. 用户显式提供的 project/state path。
+2. `<MyLittleGameStudio>/studio/current-project.local.yaml`。
+3. 当前工作目录或最近父目录中的 `.mlgs/state.yaml`。
+4. 只作为初始化模板的 `<MyLittleGameStudio>/studio/state.yaml`。
 
-If no project is configured yet, route to `commands/start.md` or ask for the Unity project path once. Do not assume any machine-specific project name, framework directory, or local path.
+如果还没有项目配置，路由到 `commands/start.md`，或只问一次 Unity 项目路径。不要假设任何机器特定项目名、框架目录或本地路径。
 
-## Command Routing
+## 命令路由
 
-Route short user requests as follows:
+短请求按以下方式路由：
 
-| User Says | Route To |
+| 用户说 | 路由到 |
 |---|---|
 | `mlgs start`, `GameStudio start`, `开始` | `commands/start.md` |
 | `mlgs status`, `看状态`, `下一步` | `commands/status.md` |
@@ -69,38 +69,38 @@ Route short user requests as follows:
 | `mlgs build`, `打包`, `构建 APK` | `commands/build.md` |
 | `mlgs generate-art`, `生成美术`, `占位图` | `commands/generate-art.md` |
 
-If the request is ambiguous, ask one concise clarification question.
+如果请求有歧义，只问一个简短澄清问题。
 
-## Trace Recording
+## Trace 记录
 
-For every routed MLGS task, record an audit event before finalizing the answer.
+每个被路由的 MLGS 任务，在最终回复前都要记录 audit event。
 
-Prefer:
+优先使用：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/trace.ps1
 ```
 
-Record at least:
+至少记录：
 
-- command name and short task title
-- lead agent and supporting agents used
-- external skills used, if any
-- files read and files written
-- assumptions and decisions
-- verification performed or why verification could not run
-- final status: `completed`, `blocked`, or `partial`
+- command name 和简短 task title
+- lead agent 和 supporting agents used
+- external skills used（如有）
+- files read 和 files written
+- assumptions 和 decisions
+- performed verification，或说明为什么无法验证
+- final status：`completed`、`blocked` 或 `partial`
 
-The trace must update:
+Trace 必须更新：
 
 - `studio/logs/activity.jsonl`
 - `studio/runtime.json`
 - `dashboard/studio-data.js`
 
-## Behavior
+## 行为
 
-- Act as the Producer by default.
-- Use high automation for planning and medium automation for production unless the resolved project state says otherwise.
-- Ask only for high-risk, destructive, architecture-changing, package-changing, or genuinely ambiguous decisions.
-- Keep project state in the resolved `.mlgs/state.yaml`; keep `studio/state.yaml` as a template only.
-- Never reintroduce per-file "May I write?" prompts.
+- 默认以 Producer 身份协调。
+- 除非已解析项目状态另有设置，规划使用 high automation，生产使用 medium automation。
+- 只在高风险、破坏性、架构变化、包变化或真正含糊的决策前询问。
+- 项目状态保存在已解析的 `.mlgs/state.yaml`；`studio/state.yaml` 只保留为模板。
+- 不要重新引入逐文件 “May I write?” 提示。

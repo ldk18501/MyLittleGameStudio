@@ -1,62 +1,61 @@
-# System Design: [System Name]
+# 系统设计：[系统名]
 
-## Metadata
+## 元数据
 
-- Status: draft / approved / revise
-- Owner: Game Designer
-- Related pillars:
+- 状态：draft / approved / revise
+- Owner：Game Designer
+- 相关支柱：
 
-## Purpose
+## 目的
 
-[Why this system exists.]
+[这个系统为什么存在。]
 
-## Player Experience
+## 玩家体验
 
-[What the player sees, feels, decides, or learns.]
+[玩家看到、感受、决定或学习到什么。]
 
-## Rules
+## 规则
 
 - 
 
-## Flow
+## 流程
 
 ```text
-[State/Event] -> [Decision/Process] -> [Outcome]
+[状态/事件] -> [决策/处理] -> [结果]
 ```
 
-## Tuning
+## 调参
 
-| Value | Default | Range | Purpose | Risk |
+| 数值 | 默认 | 范围 | 目的 | 风险 |
 |---|---:|---:|---|---|
 |  |  |  |  |  |
 
-## Edge Cases
+## 边界情况
 
-- If [condition], then [result].
+- 如果 [条件]，则 [结果]。
 
-## Dependencies
+## 依赖
 
-- Upstream:
-- Downstream:
+- 上游：
+- 下游：
 
-## UI / Art / Audio Needs
+## UI / 美术 / 音频需求
 
-- UI:
-- Visual feedback:
-- Audio:
-- Assets:
+- UI：
+- 视觉反馈：
+- 音频：
+- 资产：
 
-## Unity Notes
+## Unity 记录
 
-- Data needs:
-- Runtime components:
-- Performance concerns:
+- 数据需求：
+- 运行时组件：
+- 性能关注：
 
-## Acceptance Criteria
+## 验收标准
 
-- GIVEN [state], WHEN [action], THEN [measurable result].
+- GIVEN [状态], WHEN [动作], THEN [可测结果]。
 
-## Open Questions
+## 待确认问题
 
 - 
-
