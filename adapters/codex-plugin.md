@@ -25,8 +25,9 @@ mlgs
 可以使用短 prompt：
 
 ```text
-mlgs status
 mlgs start
+mlgs adopt E:\path\to\UnityProject
+mlgs status
 mlgs implement the next Unity task
 mlgs fix this compile error
 mlgs build APK
@@ -35,11 +36,23 @@ mlgs build APK
 中文 prompt 也可以：
 
 ```text
+mlgs 开始
+mlgs 接管项目 E:\path\to\UnityProject
 mlgs 看状态
 mlgs 实现下一个功能
 mlgs 修复这个问题
 mlgs 打包 APK
 ```
+
+## 引导入口
+
+`mlgs start`、`mlgs adopt` 和 `mlgs status` 是引导入口：
+
+- `start`：询问 A/B/C/D 起点。
+- `adopt`：盘点已有 Unity 项目、原型、文档或代码。
+- `status`：展示当前状态并给出一个下一问。
+
+插件技能应读取 `workflow/onboarding.yaml`，不要把内部字段当作第一问题。
 
 ## Marketplace 文件
 

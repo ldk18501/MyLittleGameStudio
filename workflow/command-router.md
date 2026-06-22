@@ -1,6 +1,6 @@
 # 命令路由器
 
-把用户请求路由到 command 文件。选择最接近的命令，保持路由轻量。
+把用户请求路由到 command 文件。选择最接近的命令，同时先判断用户是否需要 onboarding、恢复或接管。
 
 ## 执行任何命令前
 
@@ -9,9 +9,10 @@
 1. `studio/config.md`
 2. `rules/state.md`
 3. 本 router
-4. 已解析项目状态；如果没有项目配置，则只把 `studio/state.yaml` 当模板
-5. 被选中的 command 文件
-6. 相关 agent 文件
+4. `workflow/onboarding.yaml`
+5. 已解析项目状态；如果没有项目配置，则只把 `studio/state.yaml` 当模板
+6. 被选中的 command 文件
+7. 相关 agent 文件
 
 解析：
 
@@ -20,8 +21,28 @@
 3. supporting agents
 4. 使用的 external skills（如有）
 5. 预期读取或写入的文件
+6. 用户当前需要的是执行、引导、恢复还是接管
 
-如果只有根模板状态可用，项目级请求先路由到 `start`，再进入 production 工作。
+## Guide Kernel
+
+在普通命令路由前，先执行轻量状态判断：
+
+1. 运行或等价执行 `tools/resolve-state.ps1 -AllowTemplate`。
+2. 如果 `needs_repair: true`，优先路由到 `status` 或 `start` 的恢复分支，下一问是修复路径还是清除 pointer。
+3. 如果只有 `studio/state.yaml` 模板可用，优先路由到 `start`，并展示 `workflow/onboarding.yaml` 的 A/B/C/D 起点。
+4. 如果用户提供 project path，运行或等价执行 `tools/detect-project-stage.ps1 -ProjectRoot <path>`：
+   - 已有 `.mlgs/state.yaml` -> `status` 或 pointer repair
+   - 是 Unity 项目但没有 MLGS 状态 -> `adopt`
+   - 有文档/原型/代码但不是 Unity 项目 -> `adopt`
+   - 空目录或没有材料 -> `start`
+5. 如果命令会进入 production 但项目未解锁，先路由到 `status` 或 `design-plan/prototype`，除非用户明确要求带风险继续。
+
+## 用户体验规则
+
+- `start`、`status`、`adopt` 必须输出一个明确 next question，除非已经完成了具体写入动作。
+- 不把内部字段名当作第一问题；先问用户处境，再映射到状态字段。
+- 同一轮只问一个开放问题；需要选择时提供 2-4 个选项。
+- 推荐下一命令后不要自动运行它，除非用户当前请求明确要求执行。
 
 ## 执行任何命令后
 
@@ -47,8 +68,9 @@
 
 | Command | File | Use When |
 |---|---|---|
-| `start` | `commands/start.md` | 初始化、接管、恢复或配置项目 |
-| `status` | `commands/status.md` | 查看当前状态、下一步、缺失产物 |
+| `start` | `commands/start.md` | 从零开始、初始化、恢复断裂 pointer、重新选择项目 |
+| `adopt` | `commands/adopt.md` | 接管已有 Unity 项目、文档、原型或代码，并盘点缺口 |
+| `status` | `commands/status.md` | 查看当前状态、下一步、缺失产物，并得到下一问 |
 | `references` | `commands/references.md` | 收集/分析参考游戏、图片和避让项 |
 | `concept` | `commands/concept.md` | 创建或修订概念包 |
 | `design-plan` | `commands/design-plan.md` | 系统设计、Unity 技术方案、任务计划 |
@@ -63,7 +85,8 @@
 ## 中文触发示例
 
 - "开始" -> `start`
-- "看状态" -> `status`
+- "接管项目" / "已有项目" -> `adopt`
+- "看状态" / "下一步" -> `status`
 - "分析参考" -> `references`
 - "生成概念包" -> `concept`
 - "做设计方案" -> `design-plan`

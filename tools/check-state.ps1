@@ -5,6 +5,9 @@ param(
 $templatePath = Join-Path $Root "studio/state.yaml"
 $pointerPath = Join-Path $Root "studio/current-project.local.yaml"
 $resolverPath = Join-Path $Root "tools/resolve-state.ps1"
+$onboardingPath = Join-Path $Root "workflow/onboarding.yaml"
+$detectPath = Join-Path $Root "tools/detect-project-stage.ps1"
+$repairPath = Join-Path $Root "tools/repair-pointer.ps1"
 
 if (-not (Test-Path $templatePath)) {
   Write-Error "Missing studio/state.yaml template"
@@ -36,13 +39,20 @@ if ($template -notmatch "kind:\s*template" -or $template -notmatch "active_proje
   exit 1
 }
 
-if (-not (Test-Path $resolverPath)) {
-  Write-Error "Missing tools/resolve-state.ps1"
-  exit 1
+foreach ($requiredPath in @($resolverPath, $onboardingPath, $detectPath, $repairPath)) {
+  if (-not (Test-Path $requiredPath)) {
+    Write-Error "Missing required workflow file: $requiredPath"
+    exit 1
+  }
 }
 
 $resolved = & powershell -ExecutionPolicy Bypass -File $resolverPath -Root $Root -AllowTemplate | ConvertFrom-Json
 if (-not $resolved.exists) {
+  if ($resolved.needs_repair -and $resolved.template_exists) {
+    Write-Output "State check warning: local project pointer needs repair ($($resolved.repair_reason)). Template state is available; run start/status to repair."
+    exit 0
+  }
+
   Write-Error "Could not resolve a template or project state."
   exit 1
 }

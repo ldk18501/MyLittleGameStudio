@@ -31,6 +31,27 @@ project_root: "E:/path/to/YourUnityGame"
 
 如果只有模板可用，在进入项目级 production 工作前先路由到 `commands/start.md`。
 
+## 断裂指针恢复
+
+如果 `studio/current-project.local.yaml` 存在，但 `state_path` 或 `project_root` 不存在：
+
+1. 不要继续项目级命令。
+2. 报告断裂路径。
+3. 只问一个恢复问题：提供新的 project/state path，还是清除当前 pointer 重新开始。
+4. 推荐使用 `tools/repair-pointer.ps1` 修复或清除。
+5. `status` trace 可记录为 `partial`，因为项目状态尚未恢复。
+
+`tools/check-state.ps1` 在这种情况下应返回可修复警告，而不是把模板状态也视为不可用。
+
+## 接管已有项目
+
+当用户提供已有 Unity 项目、代码、原型或文档路径时：
+
+1. 先运行或等价执行 `tools/detect-project-stage.ps1`。
+2. 如果已有 `.mlgs/state.yaml`，优先修复 pointer 后进入 `status`。
+3. 如果是 Unity 项目但没有 `.mlgs/state.yaml`，路由到 `commands/adopt.md`。
+4. 如果不是 Unity 项目但已有设计/原型/代码，路由到 `commands/adopt.md` 做差距盘点。
+
 ## 单一状态规则
 
 对任何一个游戏项目，`.mlgs/state.yaml` 是以下内容的唯一真实来源：

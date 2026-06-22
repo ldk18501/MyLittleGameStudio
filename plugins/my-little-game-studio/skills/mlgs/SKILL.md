@@ -1,6 +1,6 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio 快捷入口。用于用户说 MLGS、MyLittleGameStudio、GameStudio，或请求 start/status/references/concept/design-plan/prototype/implement/fix/review/test/build/generate-art 等 Unity 独立游戏工作流动作；也用于用户不想反复输入 MyLittleGameStudio/AGENTS.md 设置语句时。"
+description: "MyLittleGameStudio 快捷入口。用于用户说 MLGS、MyLittleGameStudio、GameStudio，或请求 start/status/adopt/references/concept/design-plan/prototype/implement/fix/review/test/build/generate-art 等 Unity 独立游戏工作流动作；也用于用户不想反复输入 MyLittleGameStudio/AGENTS.md 设置语句时。"
 ---
 
 # MLGS 快捷入口
@@ -34,8 +34,20 @@ Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
 2. `<MyLittleGameStudio>/studio/config.md`
 3. `<MyLittleGameStudio>/rules/state.md`
 4. `<MyLittleGameStudio>/workflow/command-router.md`
+5. `<MyLittleGameStudio>/workflow/onboarding.yaml`
 
 然后只读取被选中的 command 和相关 agent 文件。
+
+## Guide Kernel
+
+`start`、`status` 和 `adopt` 是用户引导入口：
+
+1. 先解析项目状态；如果 pointer 断裂，进入恢复分支。
+2. 如果只有模板状态，进入 `start` 的 A/B/C/D 起点选择。
+3. 如果用户提供已有项目路径，进入 `adopt` 做差距盘点。
+4. 每次只给一个明确 next question 或一个明确 next command。
+
+不要把 project name、workspace mode、approved write paths 等内部字段作为第一问题。先问用户处境，再映射到这些字段。
 
 ## Unity 项目目标
 
@@ -48,7 +60,7 @@ Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
 3. 当前工作目录或最近父目录中的 `.mlgs/state.yaml`。
 4. 只作为初始化模板的 `<MyLittleGameStudio>/studio/state.yaml`。
 
-如果还没有项目配置，路由到 `commands/start.md`，或只问一次 Unity 项目路径。不要假设任何机器特定项目名、框架目录或本地路径。
+如果还没有项目配置，路由到 `commands/start.md`。如果用户提供现有项目路径，路由到 `commands/adopt.md`。不要假设任何机器特定项目名、框架目录或本地路径。
 
 ## 命令路由
 
@@ -57,6 +69,7 @@ Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
 | 用户说 | 路由到 |
 |---|---|
 | `mlgs start`, `GameStudio start`, `开始` | `commands/start.md` |
+| `mlgs adopt`, `接管项目`, `已有项目` | `commands/adopt.md` |
 | `mlgs status`, `看状态`, `下一步` | `commands/status.md` |
 | `mlgs references`, `整理参考`, `分析竞品` | `commands/references.md` |
 | `mlgs concept`, `生成概念包`, `核心玩法` | `commands/concept.md` |
@@ -101,6 +114,6 @@ Trace 必须更新：
 
 - 默认以 Producer 身份协调。
 - 除非已解析项目状态另有设置，规划使用 high automation，生产使用 medium automation。
-- 只在高风险、破坏性、架构变化、包变化或真正含糊的决策前询问。
+- 只在高风险、破坏性、架构变化、包变化、项目起点选择或真正含糊的决策前询问。
 - 项目状态保存在已解析的 `.mlgs/state.yaml`；`studio/state.yaml` 只保留为模板。
 - 不要重新引入逐文件 “May I write?” 提示。

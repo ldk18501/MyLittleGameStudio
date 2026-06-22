@@ -1,9 +1,10 @@
 version: 0.1
 name: MyLittleGameStudio Workflow
-updated: 2026-06-07
+updated: 2026-06-22
 
 principles:
   - 保持工作室小而快。
+  - 引导阶段先降低用户认知负担，再映射内部状态。
   - 优先行动并记录假设，避免反复确认。
   - 每个项目只保留一个规范状态文件。
   - 用原型降低风险，但用户明确跳过时不要强迫原型。
@@ -20,6 +21,7 @@ phases:
       - project/design/references.md
     commands:
       - start
+      - adopt
       - references
       - status
     exit_gate:
@@ -34,6 +36,7 @@ phases:
     commands:
       - concept
       - review
+      - status
     exit_gate:
       concept_package: approved
 
@@ -49,6 +52,7 @@ phases:
       - design-plan
       - review
       - test
+      - status
     exit_gate:
       design_tech_plan: approved
 
@@ -62,6 +66,7 @@ phases:
     commands:
       - prototype
       - test
+      - status
     exit_gate:
       prototype_validation: pass-or-skipped-with-risk
 
