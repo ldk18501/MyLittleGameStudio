@@ -1,6 +1,6 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "面向 Codex 的轻量 Unity 独立游戏工作室工作流。使用 MLGS 将游戏开发请求路由给 MyLittleGameStudio 的 agents 和 commands。",
   "author": {
     "name": "MyLittleGameStudio"
