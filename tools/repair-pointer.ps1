@@ -1,9 +1,21 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)),
+  [string]$Root = "",
   [string]$ProjectRoot = "",
   [string]$StatePath = "",
   [switch]$Clear
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 function Resolve-ExistingPath {
   param([string]$Base, [string]$Path)

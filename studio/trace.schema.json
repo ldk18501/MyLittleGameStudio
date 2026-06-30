@@ -77,6 +77,16 @@
     },
     "summary": {
       "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phase": { "type": "string" },
+        "participation": { "type": "string" },
+        "nextCommand": { "type": "string" },
+        "projectRoot": { "type": "string" }
+      }
     }
   }
 }

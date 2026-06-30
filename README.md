@@ -1,136 +1,132 @@
 # MyLittleGameStudio
 
-MyLittleGameStudio is a lightweight AI game studio workflow for Unity indie game development.
+MyLittleGameStudio is a Codex-first AI game studio workflow for Unity + C# indie development.
 
-It keeps the useful structure from larger multi-agent game studio templates, but now preserves the part that matters most for first-time use: guided onboarding. The default behavior is:
+It is inspired by Claude Code Game Studios, but intentionally simplified:
 
-- Guide first when the user is starting, returning, or adopting existing work.
-- Act proactively once the project context is clear.
-- Record assumptions.
-- Ask only when the decision is high-risk, ambiguous, destructive, changes the game direction, or chooses a project entry path.
-- Keep project state in one source of truth.
+- Codex plugin entry instead of Claude Code hooks/settings.
+- Unity + C# only.
+- A compact specialist staff instead of dozens of agents.
+- Short `/mlgs ...` commands instead of a long process menu.
+- Owner participation levels so the studio can be either autonomous or collaborative.
+- A dashboard that shows staff activity and project state.
 
-## Design Goals
+## Quick Start
 
-This version is written around six practical goals:
+Install the local Codex plugin from this repository root:
 
-1. **Guided onboarding**: `start`, `status`, and `adopt` produce one clear next question or one clear next command.
-2. **Readable text**: all source files are UTF-8 and Chinese trigger phrases are written plainly.
-3. **Project-scoped state**: live game state follows the active game project.
-4. **Installable shortcut**: the bundled Codex plugin provides the `mlgs` entry point.
-5. **Production-ready commands**: implementation, fix, review, test, and build workflows are included.
-6. **Flexible prototype policy**: prototypes are recommended by default, but can be skipped with a recorded risk.
-7. **Auditable activity**: routed work records agents, skills, files, decisions, and verification.
-
-## Structure
-
-```text
-MyLittleGameStudio/
-  AGENTS.md              # main instruction entry
-  studio/                # state template, local pointer, runtime trace
-  workflow/              # phases, command routing, onboarding state machine
-  agents/                # small studio role definitions
-  commands/              # executable workflow commands
-  dashboard/             # static office-style activity dashboard
-  plugins/               # Codex plugin source
-  .agents/plugins/       # local Codex marketplace entry
-  templates/             # project artifact templates
-  adapters/              # Codex / Claude Code usage notes
-  rules/                 # lightweight project rules
-  tools/                 # state, adoption, trace, and dashboard helpers
+```powershell
+codex plugin marketplace add .
+codex plugin add my-little-game-studio@my-little-game-studio-local
 ```
 
-## Default Role Roster
+Open a new Codex thread and run:
 
-- Producer
-- Creative Director
-- Game Designer
-- Unity Architect
-- Gameplay Developer
-- UI/UX Developer
-- Technical Artist
-- QA Lead
+```text
+/mlgs start
+```
+
+MLGS will ask whether you want to:
+
+- A) start a new game
+- B) adopt an existing Unity project
+- C) continue the current project
+- D) repair or switch project
+
+It will also ask your owner participation level:
+
+- A) Low: hands-off owner, MLGS acts autonomously and asks only at major gates
+- B) Medium: balanced collaboration, the default
+- C) High: hands-on owner, more options and draft review
 
 ## Core Commands
 
-- `start`: guided onboarding, initialization, or pointer recovery.
-- `adopt`: inspect and adopt an existing Unity project, prototype, docs, or codebase.
-- `status`: show current state, missing artifacts, risks, and the next question.
-- `references`: collect reference games, images, and avoidances.
-- `concept`: produce the concept package.
-- `design-plan`: create system design, technical plan, and tasks.
-- `prototype`: build or skip an HTML/Unity playable prototype.
-- `implement`: implement a production task.
-- `fix`: diagnose and fix a bug or quality issue.
-- `review`: review code, design, or production readiness.
-- `test`: run or define verification.
-- `build`: prepare or produce a Unity build.
+| Command | Purpose |
+|---|---|
+| `/mlgs start` | Guided start, adoption, participation, or pointer recovery |
+| `/mlgs brainstorm` | Explore ideas, references, pitch, pillars, concept package |
+| `/mlgs adopt <path>` | Inspect and attach an existing Unity project |
+| `/mlgs status` | Project state, staff activity, risks, next options |
+| `/mlgs plan` | Systems, Unity tech plan, tasks, prototype policy |
+| `/mlgs prototype` | Build/evaluate a focused prototype or skip with risk |
+| `/mlgs implement` | Implement an approved Unity/C# task |
+| `/mlgs fix` | Diagnose and fix a bug, compile issue, or QA failure |
+| `/mlgs review` | Review code, design, task, phase, build, or workflow |
+| `/mlgs test` | Run or define verification |
+| `/mlgs build` | Unity build or build preflight |
+| `/mlgs dashboard` | Refresh dashboard data |
+| `/mlgs help` | Compact command menu |
 
-## Recommended Use
+## Studio Staff
 
-Use MyLittleGameStudio as a workflow layer beside or inside your Unity project.
+- Producer: routing, scope, state, task assignment
+- Creative Director: fantasy, pitch, pillars, references
+- Game Designer: systems, rules, tuning, acceptance criteria
+- Unity Architect: Unity architecture, packages, scenes, build risk
+- Gameplay Developer: C# gameplay implementation
+- UI/UX Developer: HUD, runtime UI, input ergonomics
+- Technical Artist: shaders, VFX, generated art integration
+- QA Lead: verification, smoke checks, build readiness
 
-Recommended for most users:
+## Project State
 
-- Clone this repository anywhere convenient.
-- Install the bundled Codex plugin from this repository.
-- Run `mlgs start`.
-- Pick the starting point that fits you:
-  - `A) No idea yet`
-  - `B) Vague idea`
-  - `C) Clear concept`
-  - `D) Existing work`
-- Answer the one next question MLGS asks.
+The root `studio/state.yaml` is only a template.
 
-If you already have a Unity project or design/code folder, run `mlgs adopt` or say “接管项目”. MLGS will inspect the project, report gaps, and ask whether to initialize or repair its `.mlgs/state.yaml` pointer.
+Live project state belongs in:
 
-The workflow does not assume any specific Unity project name or local framework directory.
-
-## State And Recovery Tools
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate
-powershell -ExecutionPolicy Bypass -File tools/detect-project-stage.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -Clear
-powershell -ExecutionPolicy Bypass -File tools/check-state.ps1
+```text
+<UnityProject>/.mlgs/state.yaml
 ```
 
-`check-state` returns a warning, not a hard failure, when the local pointer is stale but the root template is intact. In that case, run `mlgs status` or `mlgs start` to repair the pointer through the guided flow.
+The local pointer is:
 
-## Activity Trace And Dashboard
+```text
+studio/current-project.local.yaml
+```
 
-Every MLGS command should record an event in:
+It is ignored by git.
+
+## Dashboard
+
+MLGS records routed work in:
 
 ```text
 studio/logs/activity.jsonl
-```
-
-The current office state lives in:
-
-```text
 studio/runtime.json
+dashboard/studio-data.js
 ```
 
-Open the static dashboard to see which agents and skills participated:
+Open:
 
 ```text
 dashboard/index.html
 ```
 
-If you need to refresh dashboard data manually:
+The dashboard shows staff status, recent events, active project, phase, owner participation, and next command.
+
+## Tools
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/export-dashboard.ps1
+powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate
+powershell -ExecutionPolicy Bypass -File tools/detect-project-stage.ps1 -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project -Apply
+powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
+powershell -ExecutionPolicy Bypass -File tools/init-project-state.ps1 -ProjectRoot E:/path/to/project -Name "My Game"
+powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -Clear
+powershell -ExecutionPolicy Bypass -File tools/check-state.ps1
+powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
 ```
 
-Generated runtime files are ignored by git:
+## Design Position
 
-```text
-studio/current-project.local.yaml
-studio/runtime.json
-studio/logs/activity.jsonl
-dashboard/studio-data.js
-```
+MLGS keeps the useful studio structure from larger agent templates, but avoids their heavy process:
 
-A fresh clone opens with a clean dashboard.
+- no Claude Code compatibility layer
+- no Claude hooks
+- no approval before every file write
+- no multi-engine abstraction
+- no long mandatory document chain
+
+The default goal is simple: let Codex behave like a small Unity studio that can ask good questions when needed, then get real work done.

@@ -1,6 +1,18 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
+  [string]$Root = ""
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 $templatePath = Join-Path $Root "studio/state.yaml"
 $pointerPath = Join-Path $Root "studio/current-project.local.yaml"
@@ -34,7 +46,7 @@ if ($found.Count -gt 0) {
 }
 
 $template = Get-Content -Path $templatePath -Raw -Encoding UTF8
-if ($template -notmatch "kind:\s*template" -or $template -notmatch "active_project:" -or $template -notmatch "phase:" -or $template -notmatch "next_action:") {
+if ($template -notmatch "kind:\s*template" -or $template -notmatch "active_project:" -or $template -notmatch "owner_participation:" -or $template -notmatch "phase:" -or $template -notmatch "next_action:") {
   Write-Error "studio/state.yaml template is missing required sections."
   exit 1
 }

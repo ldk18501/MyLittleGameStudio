@@ -6,6 +6,13 @@ window.MLGS_STUDIO_DATA = {
     "activeCommand": "",
     "activeTask": "",
     "summary": "No MLGS activity has been recorded yet.",
+    "project": {
+      "name": "",
+      "phase": "",
+      "participation": "",
+      "nextCommand": "",
+      "projectRoot": ""
+    },
     "agents": [],
     "latestEvents": []
   },

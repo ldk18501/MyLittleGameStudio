@@ -13,6 +13,7 @@
 - Target platform：
 - Render pipeline：
 - Input：
+- Owner participation：low / medium / high
 
 ## 架构摘要
 

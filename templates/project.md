@@ -15,6 +15,11 @@
 - Planning：high / medium / low
 - Production：high / medium / low
 
+## 老板参与度
+
+- Level：low / medium / high
+- Notes：
+
 ## 写入策略
 
 - Access：none / planning-only / approved-paths / full-project

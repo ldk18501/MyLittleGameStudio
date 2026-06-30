@@ -1,40 +1,36 @@
 # Command: test
 
-## 目的
+## Purpose
 
-为当前任务或项目阶段运行、定义或总结验证。
+Run, define, or summarize verification for the current Unity task or project phase.
 
-## 主负责人
+## Lead
 
 QA Lead
 
-## 支持角色
+## Supporting Agents
 
 - Gameplay Developer
 - Unity Architect
 - UI/UX Developer
 
-## 流程
+## Flow
 
-1. 确定目标：
-   - current task
+1. Determine target:
    - Unity compile
    - smoke test
-   - balance simulation
+   - current task acceptance
    - UI walkthrough
+   - balance simulation
+   - performance check
    - build preflight
-2. 使用 `mlgs-unity-mechanics` 为玩法机制推导正常、边界、失败、反馈和性能检查。
-   - 对 DOD/instancing/海量对象系统，补充目标规模、CPU/GPU frame time、GC Alloc、draw calls/batches、culling、碰撞和降级策略检查。
-3. 环境支持时运行可用检查。
-4. 如果无法运行检查，创建手动验证计划。
-5. 记录结果：
-   - command/check
-   - pass/fail
-   - evidence path
-   - issues found
-   - next fix if needed
-6. 记录 trace event，包含 checks run、agents used、skills used 和 evidence。
+2. Use `mlgs-unity-mechanics` to derive normal, edge, failure, feedback, and performance checks for gameplay systems.
+3. For mass objects/DOD/instancing, include scale target, CPU/GPU frame time, GC Alloc, draw calls/batches, culling, collision, and fallback checks.
+4. Run available checks when environment supports them.
+5. If checks cannot run, write a manual verification plan and explain the limit.
+6. Record result, evidence path, issues found, and next command.
+7. Record trace.
 
-## 完成条件
+## Completion
 
-- 存在验证结果或测试计划。
+There is verification evidence or a clear manual test plan.

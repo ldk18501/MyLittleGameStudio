@@ -26,6 +26,11 @@
 - Policy：recommended / required / skipped-with-risk / not-needed
 - 原因：
 
+## Owner Participation
+
+- Level：low / medium / high
+- 执行策略：
+
 ## 风险
 
 - 

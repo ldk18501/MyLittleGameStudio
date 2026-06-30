@@ -1,83 +1,78 @@
-version: 0.1
-name: MyLittleGameStudio Workflow
-updated: 2026-06-22
+version: 0.2
+name: MyLittleGameStudio Codex Workflow
+updated: 2026-06-30
 
 principles:
-  - 保持工作室小而快。
-  - 引导阶段先降低用户认知负担，再映射内部状态。
-  - 优先行动并记录假设，避免反复确认。
-  - 每个项目只保留一个规范状态文件。
-  - 用原型降低风险，但用户明确跳过时不要强迫原型。
-  - Production 命令必须存在且可用。
+  - Keep the studio small and fast.
+  - Unity + C# only.
+  - Prefer autonomous progress under the selected owner participation level.
+  - Keep one canonical project state file.
+  - Use prototypes to lower risk, but allow an explicit skipped-with-risk path.
+  - Every production task should end with verification evidence or a clear blocker.
 
 phases:
-  - id: idea-alignment
-    name: 想法对齐
+  - id: intake
+    name: Intake
     lead: producer
-    purpose: 理解项目想法、约束、参考、工作区、自动化等级和当前代码状态。
-    required_artifacts:
-      - project/.mlgs/state.yaml
-      - project/.mlgs/project.md
-      - project/design/references.md
+    purpose: Choose new game, existing project, current project, or pointer recovery.
     commands:
       - start
       - adopt
-      - references
       - status
-    exit_gate:
-      idea_alignment: approved
-
-  - id: concept-package
-    name: 概念包
-    lead: creative-director
-    purpose: 定义 pitch、核心幻想、支柱、反目标、目标玩家、核心循环、视觉方向和范围。
+      - help
     required_artifacts:
-      - project/design/concept-package.md
+      - project/.mlgs/state.yaml
+      - project/.mlgs/project.md
+    exit_gate:
+      project_selected: true
+
+  - id: concept
+    name: Concept
+    lead: creative-director
+    purpose: Turn idea/reference/pitch into a compact playable direction.
     commands:
-      - concept
+      - brainstorm
       - review
       - status
+    required_artifacts:
+      - project/design/concept-package.md
     exit_gate:
       concept_package: approved
 
-  - id: design-tech-plan
-    name: 设计与技术方案
+  - id: plan
+    name: Plan
     lead: game-designer
-    purpose: 把概念转成系统规格、Unity 技术方案、任务计划、资产需求和测试策略。
+    purpose: Convert concept into systems, Unity technical plan, tasks, and prototype policy.
+    commands:
+      - plan
+      - review
+      - test
+      - status
     required_artifacts:
       - project/design/systems/
       - project/docs/tech-plan.md
       - project/production/task-plan.md
-    commands:
-      - design-plan
-      - review
-      - test
-      - status
     exit_gate:
       design_tech_plan: approved
 
-  - id: prototype-validation
-    name: 原型验证
+  - id: prototype
+    name: Prototype
     lead: gameplay-developer
-    purpose: 通过 HTML 或 Unity greybox 原型验证不确定的核心循环或交互风险。
-    required_artifacts:
-      - project/prototype/prototype-plan.md
-      - project/prototype/playtest-report.md
+    purpose: Validate the riskiest loop, input, camera, UI, physics, or performance assumption.
     commands:
       - prototype
       - test
       - status
+    required_artifacts:
+      - project/prototype/prototype-plan.md
+      - project/prototype/playtest-report.md
     exit_gate:
       prototype_validation: pass-or-skipped-with-risk
 
   - id: production
-    name: 生产开发
+    name: Production
     lead: unity-architect
-    purpose: 在 Unity 中实现已批准任务，运行检查，记录完成情况，并保持代码与设计一致。
-    required_artifacts:
-      - project/production/tasks/
-      - project/src-or-external-unity-project
-      - project/tests-or-qa-reports
+    purpose: Implement approved Unity tasks in focused increments with verification.
     commands:
       - implement
       - fix
@@ -85,21 +80,24 @@ phases:
       - test
       - build
       - status
+    required_artifacts:
+      - project/production/tasks/
+      - project/tests-or-qa-reports
     exit_gate:
       qa_review: pass
 
-  - id: polish-ship
-    name: 打磨与发布
+  - id: release
+    name: Release
     lead: qa-lead
-    purpose: 改善手感、内容、平衡、UI、性能、构建就绪和发布风险。
-    required_artifacts:
-      - project/production/release-checklist.md
-      - project/production/known-issues.md
+    purpose: Stabilize, build, test, and prepare a playable release.
     commands:
       - fix
       - review
       - test
       - build
       - status
+    required_artifacts:
+      - project/production/release-checklist.md
+      - project/production/known-issues.md
     exit_gate:
       owner_release_approval: true

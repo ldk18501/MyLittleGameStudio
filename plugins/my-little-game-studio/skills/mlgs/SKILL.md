@@ -1,34 +1,43 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio 快捷入口。用于用户说 MLGS、MyLittleGameStudio、GameStudio，或请求 start/status/adopt/references/concept/design-plan/prototype/implement/fix/review/test/build/generate-art 等 Unity 独立游戏工作流动作；也用于用户不想反复输入 MyLittleGameStudio/AGENTS.md 设置语句时。"
+description: "MyLittleGameStudio Codex 入口。用于 /mlgs start、/mlgs brainstorm、/mlgs adopt、/mlgs status、/mlgs plan、/mlgs prototype、/mlgs implement、/mlgs fix、/mlgs review、/mlgs test、/mlgs build、/mlgs dashboard 等 Unity/C# 游戏开发工作流。"
 ---
 
-# MLGS 快捷入口
+# MLGS Codex Entry
 
-本技能是 MyLittleGameStudio 的短入口。
+This skill is the Codex shortcut for MyLittleGameStudio.
 
-触发后，不要要求用户重复：
+The preferred syntax is:
 
 ```text
-Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
+/mlgs <command> [details]
 ```
 
-而是自动加载并遵循该工作流。
+Also accept `mlgs <command>` and natural-language Chinese/English aliases.
 
-## 工作流根目录
+## Scope
 
-路由前先找到 MyLittleGameStudio checkout root：
+- Codex only.
+- Unity + C# only.
+- Do not load or preserve Claude Code hooks, `.claude` settings, or Claude-specific slash skill behavior.
+- Do not ask the owner to repeat "use AGENTS.md"; load the workflow automatically.
 
-1. 优先使用包含当前 plugin source 的仓库根目录。
-2. 否则查找最近的可访问目录，且该目录同时包含：
+## Find The MLGS Root
+
+Before routing, find the MyLittleGameStudio checkout root:
+
+1. Prefer the repository that contains this plugin source.
+2. Otherwise find the nearest accessible directory containing:
    - `AGENTS.md`
    - `studio/state.yaml`
    - `workflow/command-router.md`
-3. 如果找不到 checkout root，只问用户一次 `MyLittleGameStudio` 目录路径。
+3. If unavailable, ask once for the MyLittleGameStudio directory path.
 
-不要使用来自其他用户环境的机器特定路径。
+Do not use machine-specific paths from another user's environment.
 
-路由任何请求前，读取：
+## Required Reads
+
+Before routing any command, read:
 
 1. `<MyLittleGameStudio>/AGENTS.md`
 2. `<MyLittleGameStudio>/studio/config.md`
@@ -36,84 +45,79 @@ Please use MyLittleGameStudio/AGENTS.md as the workflow entry.
 4. `<MyLittleGameStudio>/workflow/command-router.md`
 5. `<MyLittleGameStudio>/workflow/onboarding.yaml`
 
-然后只读取被选中的 command 和相关 agent 文件。
+Then read only the selected command and relevant agent files.
 
 ## Guide Kernel
 
-`start`、`status` 和 `adopt` 是用户引导入口：
+`/mlgs start`, `/mlgs status`, and `/mlgs adopt` are guide entries:
 
-1. 先解析项目状态；如果 pointer 断裂，进入恢复分支。
-2. 如果只有模板状态，进入 `start` 的 A/B/C/D 起点选择。
-3. 如果用户提供已有项目路径，进入 `adopt` 做差距盘点。
-4. 每次只给一个明确 next question 或一个明确 next command。
+1. Resolve project state with `tools/resolve-state.ps1 -AllowTemplate`.
+2. If pointer is stale, enter recovery.
+3. If only template state exists, route to `/mlgs start`.
+4. If the owner provides a project path, inspect it with `tools/detect-project-stage.ps1`.
+5. Each guide response gives one next question or one next command.
 
-不要把 project name、workspace mode、approved write paths 等内部字段作为第一问题。先问用户处境，再映射到这些字段。
+Do not ask for internal fields first. Ask the owner's situation and participation preference, then map to state fields.
 
-## Unity 项目目标
+## Command Routing
 
-从项目本地 `.mlgs/state.yaml` 解析目标 Unity 项目。
-
-使用以下顺序：
-
-1. 用户显式提供的 project/state path。
-2. `<MyLittleGameStudio>/studio/current-project.local.yaml`。
-3. 当前工作目录或最近父目录中的 `.mlgs/state.yaml`。
-4. 只作为初始化模板的 `<MyLittleGameStudio>/studio/state.yaml`。
-
-如果还没有项目配置，路由到 `commands/start.md`。如果用户提供现有项目路径，路由到 `commands/adopt.md`。不要假设任何机器特定项目名、框架目录或本地路径。
-
-## 命令路由
-
-短请求按以下方式路由：
-
-| 用户说 | 路由到 |
+| Owner Says | Route |
 |---|---|
-| `mlgs start`, `GameStudio start`, `开始` | `commands/start.md` |
-| `mlgs adopt`, `接管项目`, `已有项目` | `commands/adopt.md` |
-| `mlgs status`, `看状态`, `下一步` | `commands/status.md` |
-| `mlgs references`, `整理参考`, `分析竞品` | `commands/references.md` |
-| `mlgs concept`, `生成概念包`, `核心玩法` | `commands/concept.md` |
-| `mlgs design-plan`, `设计方案`, `技术方案`, `拆系统` | `commands/design-plan.md` |
-| `mlgs prototype`, `做原型`, `验证玩法` | `commands/prototype.md` |
-| `mlgs implement`, `实现`, `继续开发` | `commands/implement.md` |
-| `mlgs fix`, `修复`, `修 bug` | `commands/fix.md` |
-| `mlgs review`, `审查`, `review` | `commands/review.md` |
-| `mlgs test`, `测试`, `验证` | `commands/test.md` |
-| `mlgs build`, `打包`, `构建 APK` | `commands/build.md` |
-| `mlgs generate-art`, `生成美术`, `占位图` | `commands/generate-art.md` |
+| `/mlgs start`, `开始` | `commands/start.md` |
+| `/mlgs brainstorm`, `头脑风暴`, `想点子`, `生成概念` | `commands/brainstorm.md` |
+| `/mlgs adopt`, `接管项目`, `已有项目` | `commands/adopt.md` |
+| `/mlgs status`, `看状态`, `下一步` | `commands/status.md` |
+| `/mlgs plan`, `设计方案`, `技术方案`, `拆系统`, `design-plan` | `commands/plan.md` |
+| `/mlgs prototype`, `做原型` | `commands/prototype.md` |
+| `/mlgs implement`, `实现`, `继续开发` | `commands/implement.md` |
+| `/mlgs fix`, `修复`, `修 bug` | `commands/fix.md` |
+| `/mlgs review`, `审查`, `review` | `commands/review.md` |
+| `/mlgs test`, `测试`, `验证` | `commands/test.md` |
+| `/mlgs build`, `打包`, `构建 APK` | `commands/build.md` |
+| `/mlgs dashboard`, `看板` | `commands/dashboard.md` |
+| `/mlgs help`, `帮助` | `commands/help.md` |
+| `/mlgs generate-art`, `生成美术` | `commands/generate-art.md` |
 
-如果请求有歧义，只问一个简短澄清问题。
+If ambiguous, ask one short clarification question.
 
-## Trace 记录
+## Preferred Tools
 
-每个被路由的 MLGS 任务，在最终回复前都要记录 audit event。
+- Status: `tools/get-project-status.ps1 -AllowTemplate`
+- Adoption report: `tools/adopt-project.ps1 -ProjectRoot <path>`
+- Adoption apply after owner confirmation: `tools/adopt-project.ps1 -ProjectRoot <path> -Apply`
+- State resolve: `tools/resolve-state.ps1 -AllowTemplate`
+- Smoke test: `tools/run-smoke-tests.ps1`
 
-优先使用：
+## Owner Participation
+
+Use `owner_participation.level` from project state:
+
+- `low`: act like a trusted staff. Decide routine details, write drafts, run checks, record assumptions.
+- `medium`: balanced default. Ask before major creative, architecture, dependency, scope, or phase changes.
+- `high`: hands-on owner. Offer A/B/C/D options and concise plans more often.
+
+If unset, assume `medium`.
+
+## Trace
+
+Every routed MLGS task must record trace before the final reply when possible:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/trace.ps1
 ```
 
-至少记录：
+Record command, title, status, lead agent, agents used, skills used, files read/written, assumptions, decisions, and verification.
 
-- command name 和简短 task title
-- lead agent 和 supporting agents used
-- external skills used（如有）
-- files read 和 files written
-- assumptions 和 decisions
-- performed verification，或说明为什么无法验证
-- final status：`completed`、`blocked` 或 `partial`
-
-Trace 必须更新：
+Trace updates:
 
 - `studio/logs/activity.jsonl`
 - `studio/runtime.json`
 - `dashboard/studio-data.js`
 
-## 行为
+## Behavior
 
-- 默认以 Producer 身份协调。
-- 除非已解析项目状态另有设置，规划使用 high automation，生产使用 medium automation。
-- 只在高风险、破坏性、架构变化、包变化、项目起点选择或真正含糊的决策前询问。
-- 项目状态保存在已解析的 `.mlgs/state.yaml`；`studio/state.yaml` 只保留为模板。
-- 不要重新引入逐文件 “May I write?” 提示。
+- Producer coordinates by default.
+- Specialist agents are roles inside the current Codex thread unless the owner explicitly asks to create separate threads.
+- Use `mlgs-unity-mechanics` for gameplay systems, tuning, input feel, performance-sensitive Unity runtime work, object pools, DOD, instancing, QA acceptance, and smoke checks.
+- Do not ask for routine writes under low or medium participation.
+- Always ask before destructive operations, dependencies/packages, Unity settings, broad scene/prefab changes, or core architecture changes.

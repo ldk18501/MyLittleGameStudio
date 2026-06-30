@@ -1,5 +1,5 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)),
+  [string]$Root = "",
   [Parameter(Mandatory = $true)]
   [string]$Command,
   [Parameter(Mandatory = $true)]
@@ -16,6 +16,18 @@ param(
   [string[]]$Verification = @(),
   [string]$Summary = ""
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 function ConvertTo-AgentId {
   param([string]$Name)
@@ -93,6 +105,52 @@ function New-AgentRoster {
   )
 }
 
+function Read-StateValue {
+  param([string]$Content, [string]$Key)
+
+  $match = [regex]::Match($Content, "(?m)^\s*$([regex]::Escape($Key))\s*:\s*[""']?([^""'\r\n#]+)")
+  if ($match.Success) {
+    return $match.Groups[1].Value.Trim()
+  }
+
+  return ""
+}
+
+function Get-ProjectSnapshot {
+  param([string]$RootPath)
+
+  $resolverPath = Join-Path $RootPath "tools/resolve-state.ps1"
+  $snapshot = [pscustomobject]@{
+    name = ""
+    phase = ""
+    participation = ""
+    nextCommand = ""
+    projectRoot = ""
+  }
+
+  if (-not (Test-Path $resolverPath)) {
+    return $snapshot
+  }
+
+  try {
+    $resolved = & powershell -NoProfile -ExecutionPolicy Bypass -File $resolverPath -Root $RootPath -AllowTemplate | ConvertFrom-Json
+    $snapshot.projectRoot = $resolved.project_root
+    if ($resolved.exists -and (Test-Path $resolved.state_path)) {
+      $state = Get-Content -Path $resolved.state_path -Raw -Encoding UTF8
+      $snapshot.name = Read-StateValue $state "name"
+      $snapshot.phase = Read-StateValue $state "current"
+      $snapshot.participation = Read-StateValue $state "level"
+      $snapshot.nextCommand = Read-StateValue $state "command"
+      if ($snapshot.participation -eq "") {
+        $snapshot.participation = "medium"
+      }
+    }
+  } catch {
+  }
+
+  return $snapshot
+}
+
 $studioDir = Join-Path $Root "studio"
 $logsDir = Join-Path $studioDir "logs"
 $dashboardDir = Join-Path $Root "dashboard"
@@ -146,6 +204,9 @@ if (Test-Path $runtimePath) {
   if (-not $runtime.agents) {
     $runtime | Add-Member -MemberType NoteProperty -Name agents -Value (New-AgentRoster)
   }
+  if (-not ($runtime.PSObject.Properties.Name -contains "project")) {
+    $runtime | Add-Member -MemberType NoteProperty -Name project -Value (Get-ProjectSnapshot $Root)
+  }
 } else {
   $runtime = [pscustomobject]@{
     version = "0.1"
@@ -153,6 +214,7 @@ if (Test-Path $runtimePath) {
     activeCommand = ""
     activeTask = ""
     summary = ""
+    project = Get-ProjectSnapshot $Root
     agents = New-AgentRoster
     latestEvents = @()
   }
@@ -203,6 +265,7 @@ $runtime.updated = (Get-Date).ToString("o")
 $runtime.activeCommand = $(if ($Status -eq "started") { $Command } else { "" })
 $runtime.activeTask = $(if ($Status -eq "started") { $Title } else { "" })
 $runtime.summary = $Summary
+$runtime.project = Get-ProjectSnapshot $Root
 $runtime.agents = $agentList
 $runtime.latestEvents = $recentEvents
 

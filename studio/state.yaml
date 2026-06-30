@@ -1,8 +1,8 @@
-version: 0.1
-updated: 2026-06-07
+version: 0.2
+updated: 2026-06-30
 kind: template
 
-# 仅作为模板。实时项目状态应放在：
+# Template only. Live state belongs in:
 # - <UnityProject>/.mlgs/state.yaml
 # - projects/<slug>/.mlgs/state.yaml
 
@@ -13,8 +13,13 @@ active_project:
   workspace_path: ""
   external_path: ""
   engine: Unity
+  language: C#
   engine_version: ""
   approved_write_paths: []
+
+owner_participation:
+  level: medium # low | medium | high
+  notes: ""
 
 automation:
   planning: high
@@ -24,15 +29,15 @@ phase:
   current: not-started
   allowed_values:
     - not-started
-    - idea-alignment
-    - concept-package
-    - design-tech-plan
-    - prototype-validation
+    - intake
+    - concept
+    - plan
+    - prototype
     - production
-    - polish-ship
+    - release
 
 approvals:
-  idea_alignment: false
+  project_selected: false
   concept_package: false
   design_tech_plan: false
   prototype_validation: false
@@ -46,8 +51,16 @@ prototype:
 
 next_action:
   command: start
-  reason: "尚未配置活动项目。"
+  reason: "No active project is configured."
+  options:
+    - "/mlgs start"
+    - "/mlgs adopt <UnityProject>"
+    - "/mlgs help"
 
 assumptions: []
 
 risks: []
+
+staff:
+  last_lead: producer
+  last_agents: []

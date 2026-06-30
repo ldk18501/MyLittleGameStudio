@@ -1,119 +1,130 @@
-version: 0.1
-name: MyLittleGameStudio Guided Onboarding
-updated: 2026-06-22
+version: 0.2
+name: MyLittleGameStudio Codex Onboarding
+updated: 2026-06-30
 
 purpose: >
-  Lower the user's cognitive load during start, status, recovery, and adoption.
-  Commands still stay lightweight, but user-facing entry points must produce one
-  clear next question or one clear next command.
+  Start MLGS from /mlgs start with the least possible friction. Detect context,
+  choose new game vs existing Unity project, set owner participation, and hand
+  off to the next command.
 
 principles:
-  - Detect context before asking.
-  - Ask about the user's situation in plain language, not internal fields.
-  - Present 2-4 choices when the answer changes the route.
-  - Ask exactly one open question when free-form input is required.
-  - Do not auto-run the next command after a recommendation; hand off clearly.
-  - Keep production automation high enough to act, but make onboarding collaborative.
+  - Codex-only, Unity-only.
+  - Detect before asking.
+  - Ask about the owner's situation, not internal fields.
+  - Offer A/B/C/D choices for path and participation.
+  - One next question or one next command.
+  - Low participation means MLGS can act like staff, not a questionnaire.
+  - High participation means the owner gets more visible choices and drafts.
 
 state_signals:
   pointer_valid:
-    meaning: studio/current-project.local.yaml points to an existing .mlgs/state.yaml.
+    meaning: studio/current-project.local.yaml points to an existing project .mlgs/state.yaml.
     next: status
   pointer_stale:
-    meaning: the local pointer exists, but its state_path or project_root is missing.
+    meaning: local pointer exists but state_path or project_root is missing.
     next: repair-pointer
   template_only:
     meaning: no active project exists; studio/state.yaml is only a template.
     next: start
   project_has_mlgs_state:
-    meaning: a provided Unity/project path already contains .mlgs/state.yaml.
+    meaning: provided path contains .mlgs/state.yaml.
     next: status
   project_has_unity_files:
-    meaning: a provided path contains ProjectSettings/ProjectVersion.txt or Assets/.
+    meaning: provided path contains Assets/, ProjectSettings/, or Packages/manifest.json.
     next: adopt
   project_has_design_or_code:
-    meaning: design, prototype, production, src, Assets, or docs files exist.
+    meaning: provided path contains design, docs, prototype, production, src, or C# files.
     next: adopt
   empty_workspace:
-    meaning: no project artifacts were detected.
-    next: guided-new-project
+    meaning: no useful project artifacts detected.
+    next: start
 
 start_paths:
-  no_idea:
-    label: "A) No idea yet"
-    when: "The user wants to explore from zero."
-    first_question: "What kind of feeling, genre, fantasy, or constraint sounds interesting, even vaguely?"
-    recommended_next: concept
-    notes:
-      - Use references only if the user already has games, images, or styles in mind.
-      - Do not require a Unity project path yet unless they want one.
-  vague_idea:
-    label: "B) Vague idea"
-    when: "The user has a theme, mood, genre, mechanic, or reference but no full concept."
-    first_question: "Describe the idea in a few words; rough is enough."
-    recommended_next: concept
-    notes:
-      - Treat the user's hint as source material.
-      - Ask for references only after the hint if they are useful.
-  clear_concept:
-    label: "C) Clear concept"
-    when: "The user can describe genre, fantasy, core loop, or mechanic."
-    first_question: "Give me the one-sentence pitch, then I will turn it into a concept package or setup path."
-    recommended_next: concept
-    alternate_next: references
-    notes:
-      - Offer to formalize the concept before Unity setup.
-      - If they want to continue an existing Unity project, route to adopt.
-  existing_work:
-    label: "D) Existing work"
-    when: "The user has a Unity project, docs, prototype, code, or prior planning."
-    first_question: "Send the project path or describe what already exists; I will inspect and recommend the next step."
+  new_game:
+    label: "A) New game"
+    description: "Start a new Unity game from an idea or blank page."
+    first_question: "What seed should the studio start from: no idea, a rough theme, or a clear one-sentence pitch?"
+    recommended_next: brainstorm
+  adopt_existing:
+    label: "B) Existing Unity project"
+    description: "Attach an existing Unity project and inspect its state."
+    first_question: "What is the Unity project directory?"
     recommended_next: adopt
-    notes:
-      - Summarize detected artifacts before asking for decisions.
-      - If .mlgs/state.yaml exists, route to status.
+  continue_current:
+    label: "C) Continue current project"
+    description: "Use the active project pointer if it is valid."
+    first_question: "Do you want a status report or should the studio pick the next useful task?"
+    recommended_next: status
+  repair_or_switch:
+    label: "D) Repair or switch"
+    description: "Fix a stale pointer or choose a different project."
+    first_question: "Should I repair to a new project path, or clear the pointer and start again?"
+    recommended_next: status
+
+participation_levels:
+  low:
+    label: "A) Low participation"
+    description: "Hands-off owner. MLGS decides, drafts, implements, checks, and only asks at major gates."
+    behavior: "autonomous"
+  medium:
+    label: "B) Medium participation"
+    description: "Balanced. MLGS executes routine work and asks before major direction or architecture changes."
+    behavior: "balanced"
+  high:
+    label: "C) High participation"
+    description: "Hands-on owner. MLGS presents more options and concise plans before meaningful edits."
+    behavior: "collaborative"
 
 guided_start_prompt:
-  text: "Before I set anything up, where are you starting from?"
+  text: "How should MLGS start today?"
   options:
-    - id: no_idea
-      label: "A) No idea yet"
-      description: "You want help discovering what game to make."
-    - id: vague_idea
-      label: "B) Vague idea"
-      description: "You have a theme, genre, reference, or feeling."
-    - id: clear_concept
-      label: "C) Clear concept"
-      description: "You know the basic pitch or core mechanic."
-    - id: existing_work
-      label: "D) Existing work"
-      description: "You have a Unity project, prototype, docs, or code."
+    - id: new_game
+      label: "A) New game"
+      description: "Create or shape a new Unity game idea."
+    - id: adopt_existing
+      label: "B) Existing Unity project"
+      description: "Inspect and attach an existing project directory."
+    - id: continue_current
+      label: "C) Continue current project"
+      description: "Use the active project if one is configured."
+    - id: repair_or_switch
+      label: "D) Repair or switch"
+      description: "Fix a stale pointer or choose another project."
+
+participation_prompt:
+  text: "How much do you want to participate in day-to-day decisions?"
+  options:
+    - id: low
+      label: "A) Low"
+      description: "You want to be mostly hands-off."
+    - id: medium
+      label: "B) Medium"
+      description: "You want balanced collaboration."
+    - id: high
+      label: "C) High"
+      description: "You want to tune details with the studio."
 
 status_response:
   required_sections:
     - active project or recovery issue
+    - owner participation
     - current phase
+    - staff activity
     - completed artifacts
     - missing artifacts
     - risks
-    - recommended next step
-    - next question
-  next_question_rules:
-    pointer_stale: "Ask whether to repair the pointer with a new path or clear it and start again."
-    template_only: "Ask which start path A-D fits the user."
-    missing_references: "Ask for 2-5 references, or offer to draft provisional references."
-    missing_concept: "Ask for a one-sentence pitch, or offer to infer one from references."
-    missing_design_plan: "Ask whether to turn the concept into systems and a technical plan."
-    missing_prototype: "Ask whether to build a focused prototype or skip with recorded risk."
-    production_ready: "Ask which approved production task to implement first."
+    - recommended command
+    - A/B/C/D next options
 
 adoption_report:
   required_checks:
-    - Unity version and Assets/ProjectSettings presence
+    - Unity version and Assets/ProjectSettings/Packages presence
     - existing .mlgs state
-    - design docs
+    - owner participation setting
+    - design docs and concept
     - prototype docs or folders
-    - production plan
+    - production plan and tasks
     - source/code scale
     - tests or QA evidence
-  output_rule: "Report findings first, then ask one question about whether to initialize/adopt, repair, or continue."
+    - approved write path recommendation
+  output_rule: "Findings first, one recommendation, then one question: adopt now, inspect more, or cancel."

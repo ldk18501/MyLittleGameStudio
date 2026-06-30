@@ -1,7 +1,19 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)),
+  [string]$Root = "",
   [int]$Limit = 50
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 $dashboardDir = Join-Path $Root "dashboard"
 $runtimePath = Join-Path $Root "studio/runtime.json"
@@ -21,6 +33,13 @@ if (Test-Path $runtimePath) {
     activeCommand = ""
     activeTask = ""
     summary = "No MLGS runtime file exists yet."
+    project = [pscustomobject]@{
+      name = ""
+      phase = ""
+      participation = ""
+      nextCommand = ""
+      projectRoot = ""
+    }
     agents = @()
     latestEvents = @()
   }

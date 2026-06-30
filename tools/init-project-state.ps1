@@ -1,5 +1,5 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)),
+  [string]$Root = "",
   [Parameter(Mandatory = $true)]
   [string]$ProjectRoot,
   [Parameter(Mandatory = $true)]
@@ -13,8 +13,22 @@ param(
   [string]$PlanningAutomation = "high",
   [ValidateSet("high", "medium", "low")]
   [string]$ProductionAutomation = "medium",
+  [ValidateSet("low", "medium", "high")]
+  [string]$OwnerParticipation = "medium",
   [switch]$SkipPointer
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 function ConvertTo-Slug {
   param([string]$Value)
@@ -64,7 +78,7 @@ if (-not (Test-Path $mlgsDir)) {
 }
 
 $state = @"
-version: 0.1
+version: 0.2
 updated: $now
 kind: project
 
@@ -75,26 +89,31 @@ active_project:
   workspace_path: "$($workspacePath.Replace("\", "/"))"
   external_path: "$($externalPath.Replace("\", "/"))"
   engine: Unity
+  language: C#
   engine_version: "$UnityVersion"
   approved_write_paths: $approved
+
+owner_participation:
+  level: $OwnerParticipation # low | medium | high
+  notes: ""
 
 automation:
   planning: $PlanningAutomation
   production: $ProductionAutomation
 
 phase:
-  current: idea-alignment
+  current: intake
   allowed_values:
     - not-started
-    - idea-alignment
-    - concept-package
-    - design-tech-plan
-    - prototype-validation
+    - intake
+    - concept
+    - plan
+    - prototype
     - production
-    - polish-ship
+    - release
 
 approvals:
-  idea_alignment: false
+  project_selected: true
   concept_package: false
   design_tech_plan: false
   prototype_validation: false
@@ -107,12 +126,20 @@ prototype:
   skip_reason: ""
 
 next_action:
-  command: references
-  reason: "Project state initialized. Collect references or run status."
+  command: status
+  reason: "Project state initialized. Inspect gaps and choose the next MLGS command."
+  options:
+    - "/mlgs status"
+    - "/mlgs brainstorm"
+    - "/mlgs plan"
 
 assumptions: []
 
 risks: []
+
+staff:
+  last_lead: producer
+  last_agents: []
 "@
 
 $project = @"
@@ -124,6 +151,7 @@ $project = @"
 - Slug: $Slug
 - Mode: $Mode
 - Unity version: $UnityVersion
+- Owner participation: $OwnerParticipation
 - Project path: $($resolvedProjectRoot.Replace("\", "/"))
 
 ## Current Goal

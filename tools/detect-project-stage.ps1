@@ -1,9 +1,21 @@
 param(
-  [string]$Root = (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)),
+  [string]$Root = "",
   [string]$ProjectRoot = "",
   [string]$StatePath = "",
   [switch]$AllowTemplate
 )
+
+if ([string]::IsNullOrWhiteSpace($Root)) {
+  $scriptPath = $PSCommandPath
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+  }
+  if ([string]::IsNullOrWhiteSpace($scriptPath)) {
+    $Root = (Get-Location).Path
+  } else {
+    $Root = Split-Path -Parent (Split-Path -Parent $scriptPath)
+  }
+}
 
 function Resolve-ExistingPath {
   param([string]$Base, [string]$Path)
@@ -139,6 +151,14 @@ if ($stateExists) {
   $phaseFromState = Read-StateValue $stateContent "current"
 }
 
+switch ($phaseFromState) {
+  "idea-alignment" { $phaseFromState = "intake" }
+  "concept-package" { $phaseFromState = "concept" }
+  "design-tech-plan" { $phaseFromState = "plan" }
+  "prototype-validation" { $phaseFromState = "prototype" }
+  "polish-ship" { $phaseFromState = "release" }
+}
+
 $gaps = @()
 if (-not $stateExists) { $gaps += "No .mlgs/state.yaml is configured for this project." }
 if (-not $hasReferences) { $gaps += "Missing design references." }
@@ -155,13 +175,13 @@ if (-not $projectExists) {
 } elseif ($hasProductionPlan -and ($sourceFileCount + $assetFileCount) -gt 0) {
   $detectedStage = "production"
 } elseif ($hasPrototype) {
-  $detectedStage = "prototype-validation"
+  $detectedStage = "prototype"
 } elseif ($hasDesignPlan) {
-  $detectedStage = "design-tech-plan"
+  $detectedStage = "plan"
 } elseif ($hasConcept) {
-  $detectedStage = "concept-package"
+  $detectedStage = "concept"
 } elseif ($hasReferences -or $designFileCount -gt 0 -or $docFileCount -gt 0 -or $isUnityProject) {
-  $detectedStage = "idea-alignment"
+  $detectedStage = "intake"
 }
 
 $recommendedCommand = "start"

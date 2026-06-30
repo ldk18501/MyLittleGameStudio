@@ -1,34 +1,36 @@
 # Command: build
 
-## 目的
+## Purpose
 
-准备或产出 Unity 构建，尤其是 Android APK 构建。
+Prepare or produce a Unity build, especially Android APK or desktop smoke builds.
 
-## 主负责人
+## Lead
 
 Unity Architect
 
-## 支持角色
+## Supporting Agents
 
 - QA Lead
 - Gameplay Developer
+- Technical Artist when assets/rendering affect build readiness
 
-## 流程
+## Flow
 
-1. 解析目标平台。
-2. 在可行时检查 Unity 版本、build settings、scenes、packages、Addressables 和 player settings。
-3. 执行预检：
+1. Resolve target platform.
+2. Check Unity version, scenes, packages, build settings, Addressables, player settings, and known issues when possible.
+3. Run preflight:
    - compile errors
    - required scenes
    - target platform
    - Addressables content
-   - development build flag
    - product name/version
-4. 修改项目设置、包或构建配置前先询问。
-5. 当环境和权限允许时执行构建。
-6. 记录构建路径、大小、警告和下一步测试动作。
-7. 记录 trace event，包含 platform、preflight result、build output、warnings 和 blockers。
+   - development build flag
+   - signing/keystore notes for Android
+4. Ask before modifying project settings, packages, build settings, or signing configuration.
+5. Build if environment and approval allow.
+6. Record output path, size, warnings, blockers, and next test action.
+7. Record trace.
 
-## 完成条件
+## Completion
 
-- 构建成功，或列出 blockers 及其精确修复方案。
+Build succeeds, or blockers and exact fixes are listed.

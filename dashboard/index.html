@@ -362,6 +362,11 @@
         </div>
       </section>
 
+      <section class="panel">
+        <h2>项目状态</h2>
+        <div class="summary" id="projectSummary">暂无活动项目。</div>
+      </section>
+
       <section>
         <h2>最近活动</h2>
         <div id="eventList"></div>
@@ -383,6 +388,7 @@
 
     const data = window.MLGS_STUDIO_DATA || {};
     const runtime = data.runtime || {};
+    const project = runtime.project || {};
     const agents = Array.isArray(runtime.agents) && runtime.agents.length ? runtime.agents : defaultAgents;
     const events = Array.isArray(data.events) ? data.events.slice().reverse() : [];
 
@@ -454,6 +460,12 @@
 
     document.getElementById("summaryText").textContent = runtime.summary || "No MLGS activity has been recorded yet.";
     document.getElementById("detailSummary").textContent = runtime.summary || "暂无活动。";
+    document.getElementById("projectSummary").textContent = [
+      project.name ? `Project: ${project.name}` : "Project: none",
+      project.phase ? `Phase: ${project.phase}` : "Phase: -",
+      project.participation ? `Participation: ${project.participation}` : "Participation: -",
+      project.nextCommand ? `Next: /mlgs ${project.nextCommand}` : "Next: -"
+    ].join(" · ");
     document.getElementById("updatedText").textContent = `Updated: ${formatTime(runtime.updated || data.generatedAt)}`;
     document.getElementById("commandText").textContent = `Command: ${runtime.activeCommand || "none"}`;
 

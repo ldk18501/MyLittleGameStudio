@@ -1,35 +1,38 @@
 # Command: fix
 
-## 目的
+## Purpose
 
-诊断并修复 bug、试玩问题、构建失败、UI 问题、编译错误或 QA 失败。
+Diagnose and fix a Unity/C# bug, compile error, playtest issue, build problem, UI issue, or QA failure.
 
-## 主负责人
+## Lead
 
-根据问题类型由 Gameplay Developer 或 UI/UX Developer 负责。
+Gameplay Developer or UI/UX Developer based on issue type.
 
-## 支持角色
+## Supporting Agents
 
-- 架构/构建/包问题由 Unity Architect 支持
-- 复现和验证由 QA Lead 支持
-- 视觉/VFX 问题由 Technical Artist 支持
+- Unity Architect for architecture, package, build, or project setting issues
+- QA Lead for reproduction and verification
+- Technical Artist for visual/VFX issues
+- Producer for scope and trace
 
-## 流程
+## Flow
 
-1. 捕获症状和期望行为。
-2. 复现问题或检查相关证据。
-3. 定位最小责任区域。
-4. 做窄范围修复。
-5. 运行最相关验证。
-6. 在任务或 QA 记录中写明修复和证据。
-7. 记录 trace event，包含 symptom、agent handoff、files read/written、decision 和 verification result。
+1. Capture symptom, expected behavior, and available evidence.
+2. Reproduce or inspect the narrowest relevant evidence.
+3. Identify the smallest responsible area.
+4. Use `mlgs-unity-mechanics` for gameplay feel, timing, feedback, pooling, or performance bugs.
+5. Make a focused fix inside approved paths.
+6. Run the most relevant verification.
+7. Record fix, evidence, remaining risk, and next action.
+8. Record trace.
 
-## 只在以下情况询问
+## Ask Before
 
-- 修复需要改变设计行为。
-- 修复触及大范围架构、包、场景、Prefab 或项目设置。
-- 存在多个有效修复方案，且产品手感不同。
+- changing intended design behavior
+- touching packages, project settings, broad scene/prefab structure, or architecture
+- choosing among fixes with noticeably different product feel
+- editing outside approved paths
 
-## 完成条件
+## Completion
 
-- Bug 已修复并验证，或因具体缺失输入而 blocked。
+The issue is fixed and verified, or blocked with a precise reason.
