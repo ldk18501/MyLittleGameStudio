@@ -1,0 +1,7 @@
+﻿interface:
+  display_name: "/mlgs-test"
+  short_description: "运行或定义 QA 验证"
+  default_prompt: "使用 $mlgs-test 为当前 Unity 任务运行或定义验证。"
+
+policy:
+  allow_implicit_invocation: true

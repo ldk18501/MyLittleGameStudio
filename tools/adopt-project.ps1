@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Root = "",
   [Parameter(Mandatory = $true)]
   [string]$ProjectRoot,
@@ -50,22 +50,22 @@ function Get-NextCommand {
   param($Detection)
 
   if (-not $Detection.state_exists) {
-    return "/mlgs-adopt"
+    return "/mlgs 接管这个项目"
   }
   if (-not $Detection.artifacts.concept) {
-    return "/mlgs-brainstorm"
+    return "/mlgs 头脑风暴并创建概念包"
   }
   if (-not $Detection.artifacts.design_plan) {
-    return "/mlgs-plan"
+    return "/mlgs 规划系统和任务"
   }
   if (-not $Detection.artifacts.prototype) {
-    return "/mlgs-prototype"
+    return "/mlgs 验证核心原型"
   }
   if (-not $Detection.artifacts.tests) {
-    return "/mlgs-test"
+    return "/mlgs 验证当前任务"
   }
 
-  return "/mlgs-status"
+  return "/mlgs 看看当前状态"
 }
 
 $resolvedProjectRoot = Resolve-ExistingPath $Root $ProjectRoot
@@ -90,10 +90,10 @@ if ([string]::IsNullOrWhiteSpace($Name)) {
 }
 
 $recommendation = "start"
-$recommendedAction = "Run /mlgs-start; this folder does not look like a Unity or existing work project."
+$recommendedAction = "Run /mlgs 开始; this folder does not look like a Unity or existing work project."
 if ($detection.state_exists) {
   $recommendation = "repair-pointer"
-  $recommendedAction = "Point MLGS at the existing .mlgs/state.yaml, then run /mlgs-status."
+  $recommendedAction = "Point MLGS at the existing .mlgs/state.yaml, then run /mlgs 看看当前状态."
 } elseif ($detection.is_unity_project) {
   $recommendation = "adopt-unity"
   $recommendedAction = "Initialize .mlgs/state.yaml as an external Unity project."
@@ -123,11 +123,12 @@ if ($Apply) {
   recommended_action = $recommendedAction
   next_command = $(Get-NextCommand $detection)
   next_options = @(
-    [pscustomobject]@{ key = "A"; command = "/mlgs-adopt"; label = "Adopt now"; description = "Create or repair MLGS state for this project." },
-    [pscustomobject]@{ key = "B"; command = "/mlgs-status"; label = "Inspect status"; description = "Use the current or newly attached project state." },
-    [pscustomobject]@{ key = "C"; command = "/mlgs-brainstorm"; label = "Shape concept"; description = "Fill missing concept direction." },
-    [pscustomobject]@{ key = "D"; command = "/mlgs-plan"; label = "Plan systems"; description = "Create systems, tech plan, and tasks." }
+    [pscustomobject]@{ key = "A"; command = "/mlgs 接管这个项目"; label = "Adopt now"; description = "Create or repair MLGS state for this project." },
+    [pscustomobject]@{ key = "B"; command = "/mlgs 看看当前状态"; label = "Inspect status"; description = "Use the current or newly attached project state." },
+    [pscustomobject]@{ key = "C"; command = "/mlgs 头脑风暴并创建概念包"; label = "Shape concept"; description = "Fill missing concept direction." },
+    [pscustomobject]@{ key = "D"; command = "/mlgs 规划系统和任务"; label = "Plan systems"; description = "Create systems, tech plan, and tasks." }
   )
   apply_result = $applyResult
 } | ConvertTo-Json -Depth 12
+
 

@@ -59,10 +59,10 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    - detected phase
    - major gaps
 4. Recommend one action:
-   - existing `.mlgs/state.yaml` -> repair pointer and run `/mlgs-status`
+   - existing `.mlgs/state.yaml` -> repair pointer and run `/mlgs 看看当前状态`
    - Unity project without MLGS state -> initialize as `external-adopted`
    - docs/code without Unity project -> initialize internal workspace or ask for Unity path
-   - empty/unrelated folder -> `/mlgs-start`
+   - empty/unrelated folder -> internal `start`
 5. Ask one A/B/C question:
    - A) Adopt now
    - B) Inspect more before adopting
@@ -73,10 +73,10 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    ```
    Include `-OwnerParticipation low|medium|high` and `-ApprovedWritePaths` when known.
 7. Ask or recommend next work:
-   - missing concept -> `/mlgs-brainstorm`
-   - missing plan -> `/mlgs-plan`
-   - missing prototype or risk unresolved -> `/mlgs-prototype`
-   - production ready -> `/mlgs-status` with task options
+   - missing concept -> `/mlgs 帮我头脑风暴这个游戏概念`
+   - missing plan -> `/mlgs 把当前概念拆成开发计划`
+   - missing prototype or risk unresolved -> `/mlgs 做一个最小原型验证核心风险`
+   - production ready -> `/mlgs 看看当前状态并推荐下一个任务`
 8. Record trace.
 
 ## Completion

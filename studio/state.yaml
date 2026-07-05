@@ -50,12 +50,12 @@ prototype:
   skip_reason: ""
 
 next_action:
-  command: /mlgs-start
+  command: /mlgs 开始
   reason: "No active project is configured."
   options:
-    - "/mlgs-start"
-    - "/mlgs-adopt <UnityProject>"
-    - "/mlgs-help"
+    - "/mlgs 开始一个新的 Unity 游戏"
+    - "/mlgs 接管 <UnityProject>"
+    - "/mlgs 帮助"
 
 assumptions: []
 

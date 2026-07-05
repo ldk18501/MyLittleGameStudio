@@ -1,0 +1,7 @@
+﻿interface:
+  display_name: "/mlgs-build"
+  short_description: "Unity 构建或预检"
+  default_prompt: "使用 $mlgs-build 为当前 Unity 项目做构建预检或打包。"
+
+policy:
+  allow_implicit_invocation: true

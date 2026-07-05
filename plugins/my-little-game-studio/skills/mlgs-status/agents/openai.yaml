@@ -1,5 +1,0 @@
-﻿interface:
-  display_name: "MLGS Status"
-  short_description: "查看状态并推荐下一步"
-  default_prompt: "使用 $mlgs-status 查看 MLGS 当前项目状态并推荐下一步。"
-

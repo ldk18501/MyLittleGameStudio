@@ -1,5 +1,0 @@
-﻿interface:
-  display_name: "MLGS Help"
-  short_description: "显示 MLGS 短命令菜单"
-  default_prompt: "使用 $mlgs-help 显示 MyLittleGameStudio 的短命令菜单。"
-

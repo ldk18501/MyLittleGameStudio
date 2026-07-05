@@ -38,7 +38,7 @@ Game Designer
 
 ## Flow
 
-1. Resolve active project. If no concept exists, draft minimal assumptions from the request or route to `/mlgs-brainstorm`.
+1. Resolve active project. If no concept exists, draft minimal assumptions from the request or route to internal `brainstorm`.
 2. Use `mlgs-unity-mechanics` for gameplay systems, input feel, tuning, feedback, or performance-sensitive runtime behavior.
 3. Identify MVP systems and skip non-MVP systems.
 4. For each MVP system, write:

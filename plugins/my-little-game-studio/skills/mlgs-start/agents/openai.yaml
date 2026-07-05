@@ -1,5 +1,0 @@
-﻿interface:
-  display_name: "MLGS Start"
-  short_description: "启动或接管 Unity 游戏项目"
-  default_prompt: "使用 $mlgs-start 启动 MyLittleGameStudio 并判断今天该从哪里开始。"
-

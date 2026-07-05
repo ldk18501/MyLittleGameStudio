@@ -12,9 +12,9 @@
 
 ## Product Goals
 
-- Start through `/mlgs-start`; keep `/mlgs start` as a compatibility alias.
+- Start through `/mlgs` followed by natural language; keep `/mlgs start` and older `/mlgs-start` text as compatibility aliases.
 - Guide the owner into either a new Unity game or adoption of an existing project.
-- Keep commands short, memorable, and directly autocompletable.
+- Keep one memorable entry point and let the Producer route natural-language requests.
 - Let specialist agents handle their domains without making the owner manage internal process.
 - Preserve a visible dashboard of staff activity.
 - Prefer autonomy by default, with configurable owner participation.

@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Root = ""
 )
 
@@ -61,7 +61,7 @@ foreach ($requiredPath in @($resolverPath, $onboardingPath, $detectPath, $repair
 $resolved = & powershell -ExecutionPolicy Bypass -File $resolverPath -Root $Root -AllowTemplate | ConvertFrom-Json
 if (-not $resolved.exists) {
   if ($resolved.needs_repair -and $resolved.template_exists) {
-    Write-Output "State check warning: local project pointer needs repair ($($resolved.repair_reason)). Template state is available; run /mlgs-start or /mlgs-status to repair."
+    Write-Output "State check warning: local project pointer needs repair ($($resolved.repair_reason)). Template state is available; run /mlgs 看看当前状态 to repair."
     exit 0
   }
 
@@ -78,3 +78,4 @@ if ((Test-Path $pointerPath) -and $resolved.mode -eq "local-pointer") {
 }
 
 Write-Output "State check passed: root state is a template; project state resolves via rules/state.md."
+

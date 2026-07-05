@@ -7,7 +7,7 @@ It is inspired by Claude Code Game Studios, but intentionally simplified:
 - Codex plugin entry instead of Claude Code hooks/settings.
 - Unity + C# only.
 - A compact specialist staff instead of dozens of agents.
-- Autocompletable MLGS-prefixed commands such as `/mlgs-brainstorm`, `/mlgs-plan`, and `/mlgs-implement`; `/mlgs ...` remains as a compatibility router. Codex skill names use hyphen-case, so MLGS uses `/mlgs-start` rather than `/mlgs_start`.
+- A single `/mlgs` entry; describe the work in natural language and the studio routes it to start, brainstorm, plan, implement, fix, test, build, or review.
 - Owner participation levels so the studio can be either autonomous or collaborative.
 - A dashboard that shows staff activity and project state.
 
@@ -23,7 +23,7 @@ codex plugin add my-little-game-studio@my-little-game-studio-local
 Open a new Codex thread and run:
 
 ```text
-/mlgs-start
+/mlgs I want to start a new Unity game with low participation
 ```
 
 MLGS will ask whether you want to:
@@ -39,32 +39,33 @@ It will also ask your owner participation level:
 - B) Medium: balanced collaboration, the default
 - C) High: hands-on owner, more options and draft review
 
-## Core Commands
+## Common Phrases
 
-You only need to memorize four entry commands first:
+You only need to memorize one entry:
 
-- `/mlgs-start`: first run, empty project, new project, pointer recovery.
-- `/mlgs-adopt <path>`: existing Unity project or existing materials.
-- `/mlgs-status`: when you do not know what to do next.
-- `/mlgs-help`: command menu.
+```text
+/mlgs your request
+```
 
-| Command | Purpose |
+Examples:
+
+| Phrase | Purpose |
 |---|---|
-| `/mlgs-start` | Guided start, adoption, participation, or pointer recovery |
-| `/mlgs-brainstorm` | Explore ideas, references, pitch, pillars, concept package |
-| `/mlgs-adopt <path>` | Inspect and attach an existing Unity project |
-| `/mlgs-status` | Project state, staff activity, risks, next options |
-| `/mlgs-plan` | Systems, Unity tech plan, tasks, prototype policy |
-| `/mlgs-prototype` | Build/evaluate a focused prototype or skip with risk |
-| `/mlgs-implement` | Implement an approved Unity/C# task |
-| `/mlgs-fix` | Diagnose and fix a bug, compile issue, or QA failure |
-| `/mlgs-review` | Review code, design, task, phase, build, or workflow |
-| `/mlgs-test` | Run or define verification |
-| `/mlgs-build` | Unity build or build preflight |
-| `/mlgs-dashboard` | Refresh dashboard data |
-| `/mlgs-help` | Compact command menu |
+| `/mlgs start a new Unity game with low participation` | Guided start, participation, or pointer recovery |
+| `/mlgs adopt D:\path\to\YourUnityGame` | Inspect and attach an existing Unity project |
+| `/mlgs show current status and next step` | Project state, staff activity, risks, next options |
+| `/mlgs brainstorm a cozy roguelite farming game` | Explore ideas, references, pitch, pillars, concept package |
+| `/mlgs turn the current concept into a plan` | Systems, Unity tech plan, tasks, prototype policy |
+| `/mlgs build a small prototype for the core feel` | Build/evaluate a focused prototype or skip with risk |
+| `/mlgs implement the next task` | Implement an approved Unity/C# task |
+| `/mlgs fix this compile error` | Diagnose and fix a bug, compile issue, or QA failure |
+| `/mlgs review whether this task is ready` | Review code, design, task, phase, build, or workflow |
+| `/mlgs run verification` | Run or define verification |
+| `/mlgs do a build preflight` | Unity build or build preflight |
+| `/mlgs open dashboard` | Refresh dashboard data |
+| `/mlgs help` | Compact menu |
 
-See `workflow/command-index.md` for the grouped command index.
+See `workflow/command-index.md` for the grouped intent index.
 
 ## Studio Staff
 

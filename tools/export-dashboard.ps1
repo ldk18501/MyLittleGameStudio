@@ -191,12 +191,12 @@ function Get-AgentInsights {
 }
 
 $phaseChecklist = @(
-  (New-ChecklistItem "project" "已选择项目" ((Get-ApprovalValue $status "project_selected") -eq "true") "/mlgs-start" "配置项目状态、指针、可写路径和参与度。"),
-  (New-ChecklistItem "concept" "概念包" ((Get-ApprovalValue $status "concept_package") -eq "true" -or (Get-ArtifactValue $status "concept")) "/mlgs-brainstorm" "明确卖点、支柱、目标玩家、反目标和 MVP 范围。"),
-  (New-ChecklistItem "plan" "系统与任务计划" ((Get-ApprovalValue $status "design_tech_plan") -eq "true" -or (Get-ArtifactValue $status "design_plan")) "/mlgs-plan" "生成系统设计、技术计划、任务看板和原型策略。"),
-  (New-ChecklistItem "prototype" "原型证据" ((Get-ApprovalValue $status "prototype_validation") -match "pass|skipped" -or (Get-ArtifactValue $status "prototype")) "/mlgs-prototype" "记录可玩证据，或记录跳过原型的风险决策。"),
-  (New-ChecklistItem "tests" "验证证据" (Get-ArtifactValue $status "tests") "/mlgs-test" "记录编译、smoke、QA 或试玩证据。"),
-  (New-ChecklistItem "production" "生产解锁" ((Get-ApprovalValue $status "production_unblocked") -eq "true") "/mlgs-implement" "在计划和原型证据齐备后解锁生产任务。")
+  (New-ChecklistItem "project" "已选择项目" ((Get-ApprovalValue $status "project_selected") -eq "true") "/mlgs 开始或接管项目" "配置项目状态、指针、可写路径和参与度。"),
+  (New-ChecklistItem "concept" "概念包" ((Get-ApprovalValue $status "concept_package") -eq "true" -or (Get-ArtifactValue $status "concept")) "/mlgs 头脑风暴并创建概念包" "明确卖点、支柱、目标玩家、反目标和 MVP 范围。"),
+  (New-ChecklistItem "plan" "系统与任务计划" ((Get-ApprovalValue $status "design_tech_plan") -eq "true" -or (Get-ArtifactValue $status "design_plan")) "/mlgs 规划系统和任务" "生成系统设计、技术计划、任务看板和原型策略。"),
+  (New-ChecklistItem "prototype" "原型证据" ((Get-ApprovalValue $status "prototype_validation") -match "pass|skipped" -or (Get-ArtifactValue $status "prototype")) "/mlgs 验证核心原型" "记录可玩证据，或记录跳过原型的风险决策。"),
+  (New-ChecklistItem "tests" "验证证据" (Get-ArtifactValue $status "tests") "/mlgs 验证当前任务" "记录编译、smoke、QA 或试玩证据。"),
+  (New-ChecklistItem "production" "生产解锁" ((Get-ApprovalValue $status "production_unblocked") -eq "true") "/mlgs 继续实现下一个任务" "在计划和原型证据齐备后解锁生产任务。")
 )
 
 $blockedEvents = @($events | Where-Object { $_.status -eq "blocked" -or $_.status -eq "partial" } | Sort-Object timestamp -Descending | Select-Object -First 5)
@@ -232,4 +232,5 @@ $content = "window.MLGS_STUDIO_DATA = $json;"
 Set-Content -Path $outputPath -Value $content -Encoding UTF8
 
 Write-Output "Dashboard data exported: $outputPath"
+
 

@@ -1,6 +1,6 @@
-# MLGS Command Router
+# MLGS Natural Language Router
 
-Routes direct MLGS slash commands, `/mlgs ...` compatibility requests, and natural-language requests to the closest Codex-first Unity workflow command.
+Routes `/mlgs ...` natural-language requests to the closest Codex-first Unity workflow command. MLGS intentionally exposes only one user-facing slash entry: `/mlgs`.
 
 ## Before Any Command
 
@@ -16,7 +16,7 @@ Read:
 
 Resolve:
 
-- command name
+- internal command name
 - lead agent
 - supporting agents
 - external skills
@@ -33,34 +33,35 @@ Resolve:
 
 ## User Experience
 
-- `start`, `status`, and `adopt` must produce one clear next question or one clear next command.
+- `start`, `status`, and `adopt` must produce one clear next question or one clear natural-language `/mlgs ...` follow-up.
 - Present A/B/C/D choices when choosing a path or participation level.
 - Do not expose internal field names as the first question.
 - Do not auto-run a recommended next command unless the user's current request asks for execution.
 - Under low participation, ask fewer questions and record assumptions.
 - Under high participation, offer more concise options before substantial changes.
 
-## Command Table
+## Internal Command Table
 
 | Command | File | Use When |
 |---|---|---|
-| `/mlgs-start` (`/mlgs start`) | `commands/start.md` | Start, recover pointer, choose new/existing project, set participation |
-| `/mlgs-help` (`/mlgs help`) | `commands/help.md` | Show compact command menu and current recommendation |
-| `/mlgs-brainstorm` (`/mlgs brainstorm`) | `commands/brainstorm.md` | Explore ideas, references, pitch, pillars, concept package |
-| `/mlgs-adopt` (`/mlgs adopt`) | `commands/adopt.md` | Analyze and attach existing Unity/docs/code project |
-| `/mlgs-status` (`/mlgs status`) | `commands/status.md` | Show project state, staff activity, risks, next options |
-| `/mlgs-plan` (`/mlgs plan`) | `commands/plan.md` | Systems, Unity tech plan, task plan, prototype policy |
-| `/mlgs-prototype` (`/mlgs prototype`) | `commands/prototype.md` | Build/evaluate prototype or skip with risk |
-| `/mlgs-implement` (`/mlgs implement`) | `commands/implement.md` | Implement an approved Unity task |
-| `/mlgs-fix` (`/mlgs fix`) | `commands/fix.md` | Diagnose and fix bug, compile issue, QA failure |
-| `/mlgs-review` (`/mlgs review`) | `commands/review.md` | Review code, design, task, phase, or build readiness |
-| `/mlgs-test` (`/mlgs test`) | `commands/test.md` | Run or define verification |
-| `/mlgs-build` (`/mlgs build`) | `commands/build.md` | Unity build or build preflight |
-| `/mlgs-dashboard` (`/mlgs dashboard`) | `commands/dashboard.md` | Refresh/open dashboard guidance |
-| `/mlgs-generate-art` (`/mlgs generate-art`) | `commands/generate-art.md` | Generate or specify placeholder/concept art |
+| `start` | `commands/start.md` | Start, recover pointer, choose new/existing project, set participation |
+| `help` | `commands/help.md` | Show natural-language examples and current recommendation |
+| `brainstorm` | `commands/brainstorm.md` | Explore ideas, references, pitch, pillars, concept package |
+| `adopt` | `commands/adopt.md` | Analyze and attach existing Unity/docs/code project |
+| `status` | `commands/status.md` | Show project state, staff activity, risks, next options |
+| `plan` | `commands/plan.md` | Systems, Unity tech plan, task plan, prototype policy |
+| `prototype` | `commands/prototype.md` | Build/evaluate prototype or skip with risk |
+| `implement` | `commands/implement.md` | Implement an approved Unity task |
+| `fix` | `commands/fix.md` | Diagnose and fix bug, compile issue, QA failure |
+| `review` | `commands/review.md` | Review code, design, task, phase, or build readiness |
+| `test` | `commands/test.md` | Run or define verification |
+| `build` | `commands/build.md` | Unity build or build preflight |
+| `dashboard` | `commands/dashboard.md` | Refresh/open dashboard guidance |
+| `generate-art` | `commands/generate-art.md` | Generate or specify placeholder/concept art |
 
 ## Aliases
 
+- `/mlgs-start` and other old `/mlgs-*` strings are compatibility aliases only; do not recommend them.
 - "开始" -> `start`
 - "头脑风暴" / "想点子" / "生成概念" -> `brainstorm`
 - "接管项目" / "已有项目" -> `adopt`
@@ -74,6 +75,16 @@ Resolve:
 - "打包" / "构建 APK" -> `build`
 - "看板" / "dashboard" -> `dashboard`
 - "生成美术" -> `generate-art`
+
+## Recommended User Phrases
+
+- `/mlgs 开始一个新的 Unity 游戏，低参与度`
+- `/mlgs 接管 <UnityProject>`
+- `/mlgs 看看当前状态`
+- `/mlgs 头脑风暴并创建概念包`
+- `/mlgs 规划系统和任务`
+- `/mlgs 继续实现下一个任务`
+- `/mlgs 修一下这个错误`
 
 ## Trace
 

@@ -1,134 +1,146 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio Codex 总入口和兼容路由。用于用户输入 /mlgs、MLGS、MyLittleGameStudio，或需要把 Unity/C# 游戏开发请求路由到 /mlgs-start、/mlgs-brainstorm、/mlgs-adopt、/mlgs-status、/mlgs-plan、/mlgs-prototype、/mlgs-implement、/mlgs-fix、/mlgs-review、/mlgs-test、/mlgs-build、/mlgs-dashboard、/mlgs-generate-art 等短指令。"
+description: "MyLittleGameStudio 单入口智能路由。用于用户输入 /mlgs 后用自然语言描述 Unity/C# 游戏开发需求，例如开始新项目、接管项目、头脑风暴、规划、实现、修 bug、测试、构建、看状态或打开 dashboard。"
 ---
 
-# MLGS Codex Entry
+# MLGS 单入口
 
-This skill is the compatibility router for MyLittleGameStudio.
+这是 MyLittleGameStudio 唯一暴露给用户的 Codex skill。不要把内部工作流包装成多个 slash 指令；Codex 插件的斜杠菜单只负责选择 `/mlgs`，后面的内容由自然语言路由器判断。
 
-Prefer direct commands for normal use because Codex can autocomplete them:
-
-```text
-/mlgs-brainstorm [idea]
-/mlgs-plan
-/mlgs-implement next task
-```
-
-The compatibility syntax remains:
+推荐用户这样说：
 
 ```text
-/mlgs <command> [details]
+/mlgs 我想开始一个新的 Unity 游戏，低参与度
+/mlgs 接管 E:\Projects\MyUnityGame
+/mlgs 帮我头脑风暴一个休闲割草游戏
+/mlgs 看看现在项目状态，告诉我下一步
+/mlgs 继续实现下一个任务
+/mlgs 修一下这个编译错误
 ```
 
-Also accept `mlgs <command>` and natural-language Chinese/English aliases.
+兼容旧写法，例如 `/mlgs start`、`/mlgs plan`、`/mlgs implement`，但不要主动推荐 `/mlgs-start` 这类子指令。
 
-## Scope
+## 范围
 
-- Codex only.
-- Unity + C# only.
-- Do not load or preserve Claude Code hooks, `.claude` settings, or Claude-specific slash skill behavior.
-- Do not ask the owner to repeat "use AGENTS.md"; load the workflow automatically.
+- Codex only。
+- Unity + C# only。
+- 用户是 studio owner，Codex 默认扮演 Producer。
+- 不保留 Claude Code hooks、`.claude` settings 或 Claude 专属 slash 行为。
+- 不让用户管理内部流程；先理解意图，再选择内部 command。
 
-## Find The MLGS Root
+## 找到 MLGS 根目录
 
-Before routing, find the MyLittleGameStudio checkout root:
+路由前先找到 MyLittleGameStudio checkout root：
 
-1. Prefer the repository that contains this plugin source.
-2. Otherwise find the nearest accessible directory containing:
+1. 优先使用包含当前 plugin source 的仓库。
+2. 否则查找最近的可访问目录，要求包含：
    - `AGENTS.md`
    - `studio/state.yaml`
    - `workflow/command-router.md`
-3. If unavailable, ask once for the MyLittleGameStudio directory path.
+3. 如果找不到，只问一次 MyLittleGameStudio 目录路径。
 
-Do not use machine-specific paths from another user's environment.
+不要使用其他机器上的绝对路径。
 
-## Required Reads
+## 必读文件
 
-Before routing any command, read:
+每次路由前读取：
 
 1. `<MyLittleGameStudio>/AGENTS.md`
 2. `<MyLittleGameStudio>/studio/config.md`
 3. `<MyLittleGameStudio>/rules/state.md`
 4. `<MyLittleGameStudio>/workflow/command-router.md`
 5. `<MyLittleGameStudio>/workflow/onboarding.yaml`
+6. `<MyLittleGameStudio>/workflow/phases.yaml`
 
-Then read only the selected command and relevant agent files.
+然后只读取选中的 command 文件、相关 agent 文件和必要 reference。
 
-## Guide Kernel
+## 路由内核
 
-`/mlgs-start`, `/mlgs-status`, and `/mlgs-adopt` are guide entries:
+先运行或等价执行：
 
-1. Resolve project state with `tools/resolve-state.ps1 -AllowTemplate`.
-2. If pointer is stale, enter recovery.
-3. If only template state exists, route to `/mlgs-start`.
-4. If the owner provides a project path, inspect it with `tools/detect-project-stage.ps1`.
-5. Each guide response gives one next question or one next command.
+```powershell
+tools/resolve-state.ps1 -AllowTemplate
+```
 
-Do not ask for internal fields first. Ask the owner's situation and participation preference, then map to state fields.
+路由规则：
 
-## Command Routing
+- 指针损坏：进入 `status` 或 `start` 的恢复流程。
+- 只有模板状态：如果用户没有给想法或路径，路由到 `start`；如果给了想法，路由到 `brainstorm`；如果给了项目路径，路由到 `adopt`。
+- 用户给出路径：运行 `tools/detect-project-stage.ps1 -ProjectRoot <path>`，再按结果路由。
+- 未解锁生产但用户要开发：路由到 `status`、`plan` 或 `prototype`；只有用户明确接受风险才进入 `implement`。
+- 低参与度：合理推断并继续，记录 assumptions；只在重大创意、依赖、架构、破坏性或阶段门决策时询问。
 
-| Owner Says | Route |
+## 自然语言到内部 command
+
+| 用户意图 | 内部 command 文件 |
 |---|---|
-| `/mlgs-start`, `/mlgs start`, `开始` | `commands/start.md` |
-| `/mlgs-brainstorm`, `/mlgs brainstorm`, `头脑风暴`, `想点子`, `生成概念` | `commands/brainstorm.md` |
-| `/mlgs-adopt`, `/mlgs adopt`, `接管项目`, `已有项目` | `commands/adopt.md` |
-| `/mlgs-status`, `/mlgs status`, `看状态`, `下一步` | `commands/status.md` |
-| `/mlgs-plan`, `/mlgs plan`, `设计方案`, `技术方案`, `拆系统`, `design-plan` | `commands/plan.md` |
-| `/mlgs-prototype`, `/mlgs prototype`, `做原型` | `commands/prototype.md` |
-| `/mlgs-implement`, `/mlgs implement`, `实现`, `继续开发` | `commands/implement.md` |
-| `/mlgs-fix`, `/mlgs fix`, `修复`, `修 bug` | `commands/fix.md` |
-| `/mlgs-review`, `/mlgs review`, `审查`, `review` | `commands/review.md` |
-| `/mlgs-test`, `/mlgs test`, `测试`, `验证` | `commands/test.md` |
-| `/mlgs-build`, `/mlgs build`, `打包`, `构建 APK` | `commands/build.md` |
-| `/mlgs-dashboard`, `/mlgs dashboard`, `看板` | `commands/dashboard.md` |
-| `/mlgs-help`, `/mlgs help`, `帮助` | `commands/help.md` |
-| `/mlgs-generate-art`, `/mlgs generate-art`, `生成美术` | `commands/generate-art.md` |
+| 开始、新游戏、空项目、设置参与度、修复指针、继续当前项目 | `commands/start.md` |
+| 头脑风暴、想点子、玩法主题、参考、pitch、核心幻想、概念包 | `commands/brainstorm.md` |
+| 接管项目、已有 Unity 项目、已有资料目录、项目路径 | `commands/adopt.md` |
+| 状态、下一步、卡住了、现在该做什么、员工动态 | `commands/status.md` |
+| 规划、设计方案、技术方案、拆系统、任务计划、原型策略 | `commands/plan.md` |
+| 原型、验证玩法、验证风险、跳过原型 | `commands/prototype.md` |
+| 实现、继续开发、下一个任务、写代码、做功能 | `commands/implement.md` |
+| 修 bug、修复、编译错误、测试失败、回归 | `commands/fix.md` |
+| 审查、review、代码审查、设计评审、阶段评审、工作流评审 | `commands/review.md` |
+| 测试、验证、smoke、QA、验收 | `commands/test.md` |
+| 打包、构建、构建预检、APK、发布检查 | `commands/build.md` |
+| dashboard、看板、刷新看板、员工状态页面 | `commands/dashboard.md` |
+| 帮助、菜单、不知道怎么说、支持什么 | `commands/help.md` |
+| 生成美术、概念图、占位图、素材提示词 | `commands/generate-art.md` |
 
-If ambiguous, ask one short clarification question.
+如果意图仍然模糊，只问一个短问题。
 
-## Preferred Tools
+## 内部资料
 
-- Status: `tools/get-project-status.ps1 -AllowTemplate`
-- Adoption report: `tools/adopt-project.ps1 -ProjectRoot <path>`
-- Adoption apply after owner confirmation: `tools/adopt-project.ps1 -ProjectRoot <path> -Apply`
-- State resolve: `tools/resolve-state.ps1 -AllowTemplate`
-- Smoke test: `tools/run-smoke-tests.ps1`
+`plugins/my-little-game-studio/internal/skills/` 保存旧的拆分 skill 文档和 `mlgs-unity-mechanics` 机制资料。它们是内部参考，不是用户入口。
+
+玩法手感、调参、对象池、DOD、instancing、弹幕、大量对象、输入反馈、性能预算或 QA 验收相关任务，应读取：
+
+```text
+plugins/my-little-game-studio/internal/skills/mlgs-unity-mechanics/SKILL.md
+```
+
+并在 trace 的 `skillsUsed` 中记录 `mlgs-unity-mechanics`。
+
+## 常用工具
+
+- 状态：`tools/get-project-status.ps1 -AllowTemplate`
+- 接管分析：`tools/adopt-project.ps1 -ProjectRoot <path>`
+- 接管应用：`tools/adopt-project.ps1 -ProjectRoot <path> -Apply`
+- 状态解析：`tools/resolve-state.ps1 -AllowTemplate`
+- 烟测：`tools/run-smoke-tests.ps1`
 
 ## Owner Participation
 
-Use `owner_participation.level` from project state:
+读取项目状态里的 `owner_participation.level`：
 
-- `low`: act like a trusted staff. Decide routine details, write drafts, run checks, record assumptions.
-- `medium`: balanced default. Ask before major creative, architecture, dependency, scope, or phase changes.
-- `high`: hands-on owner. Offer A/B/C/D options and concise plans more often.
+- `low`：像可信员工一样工作。日常细节自行决定，写草稿、执行、检查、记录 assumptions。
+- `medium`：默认平衡模式。常规工作直接做，重大方向、架构、依赖、范围或阶段变化前询问。
+- `high`：owner 深度参与。更常给 A/B/C/D 选项，并在重要编辑前给简短方案。
 
-If unset, assume `medium`.
+未设置时按 `medium`。
 
 ## Trace
 
-Every routed MLGS task must record trace before the final reply when possible:
+每个 MLGS 路由任务结束前尽量记录 trace：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/trace.ps1
 ```
 
-Record command, title, status, lead agent, agents used, skills used, files read/written, assumptions, decisions, and verification.
+记录 command、title、status、lead agent、agents used、skills used、files read/written、assumptions、decisions、verification。
 
-Trace updates:
+Trace 会更新：
 
 - `studio/logs/activity.jsonl`
 - `studio/runtime.json`
 - `dashboard/studio-data.js`
 
-## Behavior
+## 行为原则
 
-- Producer coordinates by default.
-- Specialist agents are roles inside the current Codex thread unless the owner explicitly asks to create separate threads.
-- Use `mlgs-unity-mechanics` for gameplay systems, tuning, input feel, performance-sensitive Unity runtime work, object pools, DOD, instancing, QA acceptance, and smoke checks.
-- Prefer direct next-step suggestions like `/mlgs-plan`, not `/mlgs plan`.
-- Do not ask for routine writes under low or medium participation.
-- Always ask before destructive operations, dependencies/packages, Unity settings, broad scene/prefab changes, or core architecture changes.
-
-
+- Producer 默认协调。
+- Specialist agents 是当前 Codex 线程内的角色，除非 owner 明确要求创建多个线程。
+- 回答时推荐下一步用自然语言，例如“继续让我实现下一个任务”，不要把用户导向一堆子 slash 指令。
+- 低/中参与度下不要为例行写文档、聚焦代码编辑、trace、dashboard、状态检查反复询问。
+- 破坏性操作、依赖/包、Unity 项目设置、大范围 scene/prefab、build settings、核心架构变化必须先问。

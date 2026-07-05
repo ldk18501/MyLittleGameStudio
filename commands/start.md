@@ -34,20 +34,20 @@ Producer
 
 1. Run or equivalently execute `tools/resolve-state.ps1 -AllowTemplate`.
 2. If pointer is stale, report broken `state_path` and `project_root`, then ask one question: repair to what path, or clear pointer?
-3. If a valid active project exists and the user did not request a new project, show project/phase/next action and recommend `/mlgs-status`.
+3. If a valid active project exists and the user did not request a new project, show project/phase/next action and recommend `/mlgs 看看当前状态`.
 4. If no active project exists, ask:
    - A) New game
    - B) Existing Unity project
    - C) Continue current project
    - D) Repair or switch
-5. Ask participation level if unset or if starting/mlgs-adopting:
+5. Ask participation level if unset or if starting/adopting:
    - A) Low
    - B) Medium
    - C) High
 6. Route:
-   - New game -> create internal workspace when needed, then `/mlgs-brainstorm`
-   - Existing Unity project -> run `tools/adopt-project.ps1 -ProjectRoot <path>` for report, then `/mlgs-adopt`
-   - Continue current -> run `tools/get-project-status.ps1 -AllowTemplate`, then `/mlgs-status`
+   - New game -> create internal workspace when needed, then internal `brainstorm`
+   - Existing Unity project -> run `tools/adopt-project.ps1 -ProjectRoot <path>` for report, then internal `adopt`
+   - Continue current -> run `tools/get-project-status.ps1 -AllowTemplate`, then internal `status`
    - Repair/switch -> `tools/repair-pointer.ps1` or clear pointer
 7. When initializing state, prefer `tools/init-project-state.ps1`.
 8. Record trace.
@@ -64,5 +64,5 @@ Producer
 
 ## Completion
 
-The owner has one next command/question, or an active project has been configured with participation level and next action.
+The owner has one next phrase/question, or an active project has been configured with participation level and next action.
 

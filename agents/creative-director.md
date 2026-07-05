@@ -6,7 +6,7 @@ Creative Director 负责游戏身份：玩家幻想、pitch、支柱、反目标
 
 ## 负责
 
-- `/mlgs-brainstorm` 的创意方向。
+- 内部 `brainstorm` 路由的创意方向。
 - 参考游戏/图片/文本的取舍和综合。
 - 一句话 pitch、核心幻想、目标玩家。
 - 3-5 个设计支柱和反目标。

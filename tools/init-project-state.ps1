@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Root = "",
   [Parameter(Mandatory = $true)]
   [string]$ProjectRoot,
@@ -126,12 +126,12 @@ prototype:
   skip_reason: ""
 
 next_action:
-  command: /mlgs-status
-  reason: "Project state initialized. Inspect gaps and choose the next MLGS command."
+  command: /mlgs 看看当前状态
+  reason: "Project state initialized. Inspect gaps and choose the next MLGS action."
   options:
-    - "/mlgs-status"
-    - "/mlgs-brainstorm"
-    - "/mlgs-plan"
+    - "/mlgs 看看当前状态"
+    - "/mlgs 头脑风暴并创建概念包"
+    - "/mlgs 规划系统和任务"
 
 assumptions: []
 
@@ -186,4 +186,5 @@ if (-not $SkipPointer) {
   project_path = $projectPath
   pointer_path = $(if ($SkipPointer) { "" } else { $pointerPath })
 } | ConvertTo-Json -Depth 5
+
 
