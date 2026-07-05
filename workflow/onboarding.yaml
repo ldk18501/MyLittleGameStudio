@@ -3,7 +3,7 @@ name: MyLittleGameStudio Codex Onboarding
 updated: 2026-06-30
 
 purpose: >
-  Start MLGS from /mlgs start with the least possible friction. Detect context,
+  Start MLGS from /mlgs-start with the least possible friction. Detect context,
   choose new game vs existing Unity project, set owner participation, and hand
   off to the next command.
 
@@ -128,3 +128,4 @@ adoption_report:
     - tests or QA evidence
     - approved write path recommendation
   output_rule: "Findings first, one recommendation, then one question: adopt now, inspect more, or cancel."
+

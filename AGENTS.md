@@ -22,29 +22,34 @@ Only read the selected command file, agent files, templates, or extra rules when
 
 ## Command Entry
 
-The preferred user-facing syntax is:
+The preferred user-facing syntax is direct slash commands:
 
 ```text
-/mlgs <command> [details]
+/mlgs-brainstorm [details]
+/mlgs-plan
+/mlgs-implement next task
 ```
 
-Natural language remains valid, but every routed task should map to one MLGS command.
+`/mlgs <command> [details]` remains valid as a compatibility router, but ordinary recommendations should use the direct command form so Codex slash autocomplete exposes each workflow step. Natural language remains valid, but every routed task should map to one MLGS command.
+
+Codex skill names use hyphen-case for compatibility, so MLGS commands use `/mlgs-start` rather than `/mlgs_start`.
+For a grouped user-facing command list, read `workflow/command-index.md`.
 
 Core commands:
 
-- `/mlgs start` - guided start, new game or existing project
-- `/mlgs brainstorm` - idea exploration and concept shaping
-- `/mlgs adopt <path>` - inspect and attach an existing Unity project
-- `/mlgs status` - current state, staff activity, next choices
-- `/mlgs plan` - system design, technical plan, and task plan
-- `/mlgs prototype` - focused prototype or recorded skip
-- `/mlgs implement` - implement an approved Unity task
-- `/mlgs fix` - diagnose and fix a bug
-- `/mlgs review` - code, design, task, phase, or build review
-- `/mlgs test` - run or define verification
-- `/mlgs build` - Unity build or build preflight
-- `/mlgs dashboard` - refresh/open dashboard guidance
-- `/mlgs help` - compact command menu
+- `/mlgs-start` - guided start, new game or existing project
+- `/mlgs-brainstorm` - idea exploration and concept shaping
+- `/mlgs-adopt <path>` - inspect and attach an existing Unity project
+- `/mlgs-status` - current state, staff activity, next choices
+- `/mlgs-plan` - system design, technical plan, and task plan
+- `/mlgs-prototype` - focused prototype or recorded skip
+- `/mlgs-implement` - implement an approved Unity task
+- `/mlgs-fix` - diagnose and fix a bug
+- `/mlgs-review` - code, design, task, phase, or build review
+- `/mlgs-test` - run or define verification
+- `/mlgs-build` - Unity build or build preflight
+- `/mlgs-dashboard` - refresh/open dashboard guidance
+- `/mlgs-help` - compact command menu
 
 Legacy aliases may continue to work: `concept` routes to `brainstorm` or `plan` based on context; `design-plan` routes to `plan`; `references` routes to `brainstorm` unless the user specifically asks for reference analysis.
 
@@ -54,13 +59,13 @@ Before ordinary project work:
 
 1. Run or equivalently execute `tools/resolve-state.ps1 -AllowTemplate`.
 2. If the local pointer is stale, enter recovery: ask for a new project/state path or permission to clear the pointer.
-3. If only the template state exists, route to `/mlgs start`.
+3. If only the template state exists, route to `/mlgs-start`, unless the current request already contains enough seed/path information to start or adopt directly.
 4. If the user provides an existing project path, run `tools/detect-project-stage.ps1 -ProjectRoot <path>` and route:
-   - `.mlgs/state.yaml` exists -> `/mlgs status` or pointer repair
-   - Unity project without MLGS state -> `/mlgs adopt`
-   - non-Unity folder with docs/code/prototype -> `/mlgs adopt`
-   - empty folder -> `/mlgs start`
-5. If production work is requested before the project is unblocked, route to `/mlgs status`, `/mlgs plan`, or `/mlgs prototype` unless the user explicitly accepts the risk.
+   - `.mlgs/state.yaml` exists -> `/mlgs-status` or pointer repair
+   - Unity project without MLGS state -> `/mlgs-adopt`
+   - non-Unity folder with docs/code/prototype -> `/mlgs-adopt`
+   - empty folder -> `/mlgs-start`
+5. If production work is requested before the project is unblocked, route to `/mlgs-status`, `/mlgs-plan`, or `/mlgs-prototype` unless the user explicitly accepts the risk.
 
 ## Participation Levels
 
@@ -70,7 +75,7 @@ Every active project records `owner_participation.level`.
 - `medium`: balanced collaboration. MLGS drafts and executes normal work, but asks before major direction, architecture, phase, or scope changes.
 - `high`: hands-on owner. MLGS gives A/B/C/D options more often, presents concise plans before meaningful edits, and invites detailed tuning.
 
-If unset, default to `medium`. The user may change this at any time with `/mlgs start`, `/mlgs status`, or a direct request.
+If unset, default to `medium`. The user may change this at any time with `/mlgs-start`, `/mlgs-status`, or a direct request.
 
 ## Asking Policy
 
@@ -137,3 +142,4 @@ Each game project has one canonical state file:
 `studio/state.yaml` is only a template. `studio/current-project.local.yaml` is local-only and must stay ignored by git.
 
 Do not create extra root-level active-project or stage files. Project notes may exist in the project folder, but `.mlgs/state.yaml` is the source of truth for identity, phase, approvals, participation level, risks, next action, and approved write paths.
+

@@ -1,0 +1,12 @@
+version: 0.1
+updated: ""
+risks:
+  - id: RISK-001
+    title: ""
+    owner: producer
+    probability: medium # high | medium | low
+    impact: medium # high | medium | low
+    status: open # open | watching | mitigated | accepted
+    mitigation: ""
+    trigger: ""
+    next_review: ""

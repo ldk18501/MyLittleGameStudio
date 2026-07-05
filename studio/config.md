@@ -12,9 +12,9 @@
 
 ## Product Goals
 
-- Start through `/mlgs start`.
+- Start through `/mlgs-start`; keep `/mlgs start` as a compatibility alias.
 - Guide the owner into either a new Unity game or adoption of an existing project.
-- Keep commands short and memorable.
+- Keep commands short, memorable, and directly autocompletable.
 - Let specialist agents handle their domains without making the owner manage internal process.
 - Preserve a visible dashboard of staff activity.
 - Prefer autonomy by default, with configurable owner participation.
@@ -45,3 +45,4 @@ Production can start when either:
 
 1. concept and plan are approved, and prototype passed; or
 2. concept and plan are approved, and prototype was explicitly skipped with recorded risk.
+

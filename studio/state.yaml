@@ -50,12 +50,12 @@ prototype:
   skip_reason: ""
 
 next_action:
-  command: start
+  command: /mlgs-start
   reason: "No active project is configured."
   options:
-    - "/mlgs start"
-    - "/mlgs adopt <UnityProject>"
-    - "/mlgs help"
+    - "/mlgs-start"
+    - "/mlgs-adopt <UnityProject>"
+    - "/mlgs-help"
 
 assumptions: []
 
@@ -64,3 +64,4 @@ risks: []
 staff:
   last_lead: producer
   last_agents: []
+

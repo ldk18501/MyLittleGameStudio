@@ -1,0 +1,5 @@
+﻿interface:
+  display_name: "MLGS Plan"
+  short_description: "生成系统设计和任务计划"
+  default_prompt: "使用 $mlgs-plan 把当前游戏概念拆成 Unity 技术方案和任务计划。"
+

@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Root = "",
   [string]$ProjectRoot = "",
   [string]$StatePath = "",
@@ -65,41 +65,41 @@ function Get-NextOptions {
 
   if ($Mode -eq "template") {
     return @(
-      [pscustomobject]@{ key = "A"; command = "/mlgs start"; label = "New game"; description = "Start from a blank or rough idea." },
-      [pscustomobject]@{ key = "B"; command = "/mlgs adopt <path>"; label = "Existing Unity project"; description = "Attach and inspect a project folder." },
-      [pscustomobject]@{ key = "C"; command = "/mlgs help"; label = "Command menu"; description = "Show available commands." }
+      [pscustomobject]@{ key = "A"; command = "/mlgs-start"; label = "新游戏"; description = "从空项目或粗略想法开始。" },
+      [pscustomobject]@{ key = "B"; command = "/mlgs-adopt <path>"; label = "接入现有 Unity 项目"; description = "检查并挂接一个项目目录。" },
+      [pscustomobject]@{ key = "C"; command = "/mlgs-help"; label = "指令菜单"; description = "查看可用指令。" }
     )
   }
 
   if (-not $Detection.artifacts.concept) {
     return @(
-      [pscustomobject]@{ key = "A"; command = "/mlgs brainstorm"; label = "Create concept"; description = "Pitch, fantasy, pillars, MVP scope." },
-      [pscustomobject]@{ key = "B"; command = "/mlgs adopt"; label = "Inspect adoption gaps"; description = "Re-run project gap analysis." },
-      [pscustomobject]@{ key = "C"; command = "/mlgs dashboard"; label = "Open dashboard"; description = "See staff activity." }
+      [pscustomobject]@{ key = "A"; command = "/mlgs-brainstorm"; label = "创建概念包"; description = "整理卖点、幻想、支柱和 MVP 范围。" },
+      [pscustomobject]@{ key = "B"; command = "/mlgs-adopt"; label = "复查接入缺口"; description = "重新执行项目差距分析。" },
+      [pscustomobject]@{ key = "C"; command = "/mlgs-dashboard"; label = "打开 Dashboard"; description = "查看工作室活动。" }
     )
   }
 
   if (-not $Detection.artifacts.design_plan) {
     return @(
-      [pscustomobject]@{ key = "A"; command = "/mlgs plan"; label = "Plan systems"; description = "Create systems, tech plan, and tasks." },
-      [pscustomobject]@{ key = "B"; command = "/mlgs review design"; label = "Review concept"; description = "Check concept before planning." },
-      [pscustomobject]@{ key = "C"; command = "/mlgs dashboard"; label = "Open dashboard"; description = "See staff activity." }
+      [pscustomobject]@{ key = "A"; command = "/mlgs-plan"; label = "规划系统"; description = "生成系统设计、技术计划和任务。" },
+      [pscustomobject]@{ key = "B"; command = "/mlgs-review design"; label = "审查概念"; description = "在规划前检查概念包。" },
+      [pscustomobject]@{ key = "C"; command = "/mlgs-dashboard"; label = "打开 Dashboard"; description = "查看工作室活动。" }
     )
   }
 
   if (-not $Detection.artifacts.prototype) {
     return @(
-      [pscustomobject]@{ key = "A"; command = "/mlgs prototype"; label = "Validate prototype"; description = "Build or skip with recorded risk." },
-      [pscustomobject]@{ key = "B"; command = "/mlgs implement"; label = "Implement with risk"; description = "Proceed only if the owner accepts prototype risk." },
-      [pscustomobject]@{ key = "C"; command = "/mlgs test"; label = "Define checks"; description = "Prepare QA before production." }
+      [pscustomobject]@{ key = "A"; command = "/mlgs-prototype"; label = "验证原型"; description = "制作可玩原型，或记录跳过风险。" },
+      [pscustomobject]@{ key = "B"; command = "/mlgs-implement"; label = "带风险实现"; description = "仅在 owner 接受原型风险后继续。" },
+      [pscustomobject]@{ key = "C"; command = "/mlgs-test"; label = "定义检查"; description = "在生产前准备 QA 证据。" }
     )
   }
 
   return @(
-    [pscustomobject]@{ key = "A"; command = "/mlgs implement"; label = "Implement next task"; description = "Pick or execute a production task." },
-    [pscustomobject]@{ key = "B"; command = "/mlgs test"; label = "Verify"; description = "Run compile/smoke/QA checks." },
-    [pscustomobject]@{ key = "C"; command = "/mlgs build"; label = "Build"; description = "Run build preflight or produce a build." },
-    [pscustomobject]@{ key = "D"; command = "/mlgs review"; label = "Review"; description = "Review readiness or code health." }
+    [pscustomobject]@{ key = "A"; command = "/mlgs-implement"; label = "实现下一任务"; description = "选择或执行一个生产任务。" },
+    [pscustomobject]@{ key = "B"; command = "/mlgs-test"; label = "验证"; description = "运行编译、smoke 或 QA 检查。" },
+    [pscustomobject]@{ key = "C"; command = "/mlgs-build"; label = "构建"; description = "执行构建预检或产出构建。" },
+    [pscustomobject]@{ key = "D"; command = "/mlgs-review"; label = "审查"; description = "检查发布准备度或代码健康。" }
   )
 }
 
@@ -142,7 +142,7 @@ if ([string]::IsNullOrWhiteSpace($participation)) {
 
 $nextCommand = Read-StateValue $stateContent "command"
 if ([string]::IsNullOrWhiteSpace($nextCommand)) {
-  $nextCommand = "start"
+  $nextCommand = "/mlgs-start"
 }
 
 $detection = $null
@@ -160,7 +160,7 @@ if ($null -eq $detection) {
       production_plan = $false
       tests = $false
     }
-    gaps = @("No active project is configured.")
+    gaps = @("还没有配置活动项目。")
     counts = [pscustomobject]@{
       design_files = 0
       docs_files = 0
@@ -238,3 +238,5 @@ foreach ($property in $detection.artifacts.PSObject.Properties) {
   latest_activity = $latestEvents
   runtime_summary = $(if ($runtime) { $runtime.summary } else { "" })
 } | ConvertTo-Json -Depth 12
+
+

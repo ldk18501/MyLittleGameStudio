@@ -36,6 +36,7 @@ Producer
    - B) Existing Unity project
    - C) Help/menu
    - D) Clear/repair pointer
+   If the user already provided an idea seed or project path, route directly to `/mlgs-brainstorm` or `/mlgs-adopt` instead of asking again.
 4. If active project exists, report from the structured status object:
    - active project
    - owner participation
@@ -48,8 +49,10 @@ Producer
    - risks
    - recommended command
 5. Offer the status object's A/B/C/D next options.
+   Prefer direct commands such as `/mlgs-plan`; keep `/mlgs plan` only as an alias.
 6. Record trace.
 
 ## Completion
 
 The owner knows the true state and has actionable next options.
+

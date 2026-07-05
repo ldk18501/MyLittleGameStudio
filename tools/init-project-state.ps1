@@ -126,12 +126,12 @@ prototype:
   skip_reason: ""
 
 next_action:
-  command: status
+  command: /mlgs-status
   reason: "Project state initialized. Inspect gaps and choose the next MLGS command."
   options:
-    - "/mlgs status"
-    - "/mlgs brainstorm"
-    - "/mlgs plan"
+    - "/mlgs-status"
+    - "/mlgs-brainstorm"
+    - "/mlgs-plan"
 
 assumptions: []
 
@@ -186,3 +186,4 @@ if (-not $SkipPointer) {
   project_path = $projectPath
   pointer_path = $(if ($SkipPointer) { "" } else { $pointerPath })
 } | ConvertTo-Json -Depth 5
+

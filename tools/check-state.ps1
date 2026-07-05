@@ -61,7 +61,7 @@ foreach ($requiredPath in @($resolverPath, $onboardingPath, $detectPath, $repair
 $resolved = & powershell -ExecutionPolicy Bypass -File $resolverPath -Root $Root -AllowTemplate | ConvertFrom-Json
 if (-not $resolved.exists) {
   if ($resolved.needs_repair -and $resolved.template_exists) {
-    Write-Output "State check warning: local project pointer needs repair ($($resolved.repair_reason)). Template state is available; run start/status to repair."
+    Write-Output "State check warning: local project pointer needs repair ($($resolved.repair_reason)). Template state is available; run /mlgs-start or /mlgs-status to repair."
     exit 0
   }
 

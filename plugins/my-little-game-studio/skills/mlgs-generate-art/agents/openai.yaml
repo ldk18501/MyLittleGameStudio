@@ -1,0 +1,5 @@
+﻿interface:
+  display_name: "MLGS Generate Art"
+  short_description: "生成或规划游戏美术资产"
+  default_prompt: "使用 $mlgs-generate-art 为当前 Unity 游戏生成或规划概念美术。"
+

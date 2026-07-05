@@ -1,0 +1,5 @@
+﻿interface:
+  display_name: "MLGS Dashboard"
+  short_description: "刷新或打开工作室看板"
+  default_prompt: "使用 $mlgs-dashboard 刷新并打开 MyLittleGameStudio 看板。"
+

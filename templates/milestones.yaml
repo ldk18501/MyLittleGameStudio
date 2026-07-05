@@ -1,0 +1,15 @@
+version: 0.1
+updated: ""
+milestones:
+  - id: M1
+    name: ""
+    status: planned # planned | active | blocked | done
+    target_date: ""
+    goals:
+      - ""
+    deliverables:
+      - path: ""
+        status: missing # missing | draft | approved
+    exit_criteria:
+      - ""
+    risks: []

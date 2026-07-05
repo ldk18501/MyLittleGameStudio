@@ -50,22 +50,22 @@ function Get-NextCommand {
   param($Detection)
 
   if (-not $Detection.state_exists) {
-    return "/mlgs adopt"
+    return "/mlgs-adopt"
   }
   if (-not $Detection.artifacts.concept) {
-    return "/mlgs brainstorm"
+    return "/mlgs-brainstorm"
   }
   if (-not $Detection.artifacts.design_plan) {
-    return "/mlgs plan"
+    return "/mlgs-plan"
   }
   if (-not $Detection.artifacts.prototype) {
-    return "/mlgs prototype"
+    return "/mlgs-prototype"
   }
   if (-not $Detection.artifacts.tests) {
-    return "/mlgs test"
+    return "/mlgs-test"
   }
 
-  return "/mlgs status"
+  return "/mlgs-status"
 }
 
 $resolvedProjectRoot = Resolve-ExistingPath $Root $ProjectRoot
@@ -90,10 +90,10 @@ if ([string]::IsNullOrWhiteSpace($Name)) {
 }
 
 $recommendation = "start"
-$recommendedAction = "Run /mlgs start; this folder does not look like a Unity or existing work project."
+$recommendedAction = "Run /mlgs-start; this folder does not look like a Unity or existing work project."
 if ($detection.state_exists) {
   $recommendation = "repair-pointer"
-  $recommendedAction = "Point MLGS at the existing .mlgs/state.yaml, then run /mlgs status."
+  $recommendedAction = "Point MLGS at the existing .mlgs/state.yaml, then run /mlgs-status."
 } elseif ($detection.is_unity_project) {
   $recommendation = "adopt-unity"
   $recommendedAction = "Initialize .mlgs/state.yaml as an external Unity project."
@@ -123,10 +123,11 @@ if ($Apply) {
   recommended_action = $recommendedAction
   next_command = $(Get-NextCommand $detection)
   next_options = @(
-    [pscustomobject]@{ key = "A"; command = "/mlgs adopt"; label = "Adopt now"; description = "Create or repair MLGS state for this project." },
-    [pscustomobject]@{ key = "B"; command = "/mlgs status"; label = "Inspect status"; description = "Use the current or newly attached project state." },
-    [pscustomobject]@{ key = "C"; command = "/mlgs brainstorm"; label = "Shape concept"; description = "Fill missing concept direction." },
-    [pscustomobject]@{ key = "D"; command = "/mlgs plan"; label = "Plan systems"; description = "Create systems, tech plan, and tasks." }
+    [pscustomobject]@{ key = "A"; command = "/mlgs-adopt"; label = "Adopt now"; description = "Create or repair MLGS state for this project." },
+    [pscustomobject]@{ key = "B"; command = "/mlgs-status"; label = "Inspect status"; description = "Use the current or newly attached project state." },
+    [pscustomobject]@{ key = "C"; command = "/mlgs-brainstorm"; label = "Shape concept"; description = "Fill missing concept direction." },
+    [pscustomobject]@{ key = "D"; command = "/mlgs-plan"; label = "Plan systems"; description = "Create systems, tech plan, and tasks." }
   )
   apply_result = $applyResult
 } | ConvertTo-Json -Depth 12
+

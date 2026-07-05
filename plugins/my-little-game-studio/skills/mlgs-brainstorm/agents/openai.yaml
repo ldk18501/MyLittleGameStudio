@@ -1,0 +1,5 @@
+﻿interface:
+  display_name: "MLGS Brainstorm"
+  short_description: "头脑风暴游戏概念和 MVP"
+  default_prompt: "使用 $mlgs-brainstorm 帮我把一个 Unity 游戏想法发展成概念包。"
+

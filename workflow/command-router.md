@@ -1,6 +1,6 @@
 # MLGS Command Router
 
-Routes `/mlgs ...` and natural-language requests to the closest Codex-first Unity workflow command.
+Routes direct MLGS slash commands, `/mlgs ...` compatibility requests, and natural-language requests to the closest Codex-first Unity workflow command.
 
 ## Before Any Command
 
@@ -27,7 +27,7 @@ Resolve:
 
 1. Run or equivalently execute `tools/resolve-state.ps1 -AllowTemplate`.
 2. If `needs_repair: true`, route to recovery through `start` or `status`.
-3. If only the template exists, route to `start`.
+3. If only the template exists, route to `start`, unless the current request already provides enough seed/path context to start or adopt directly.
 4. If the user provides a project path, run `tools/detect-project-stage.ps1 -ProjectRoot <path>`.
 5. If production is requested before `approvals.production_unblocked: true`, route to `status`, `plan`, or `prototype` unless the user explicitly accepts risk.
 
@@ -44,20 +44,20 @@ Resolve:
 
 | Command | File | Use When |
 |---|---|---|
-| `/mlgs start` | `commands/start.md` | Start, recover pointer, choose new/existing project, set participation |
-| `/mlgs help` | `commands/help.md` | Show compact command menu and current recommendation |
-| `/mlgs brainstorm` | `commands/brainstorm.md` | Explore ideas, references, pitch, pillars, concept package |
-| `/mlgs adopt` | `commands/adopt.md` | Analyze and attach existing Unity/docs/code project |
-| `/mlgs status` | `commands/status.md` | Show project state, staff activity, risks, next options |
-| `/mlgs plan` | `commands/plan.md` | Systems, Unity tech plan, task plan, prototype policy |
-| `/mlgs prototype` | `commands/prototype.md` | Build/evaluate prototype or skip with risk |
-| `/mlgs implement` | `commands/implement.md` | Implement an approved Unity task |
-| `/mlgs fix` | `commands/fix.md` | Diagnose and fix bug, compile issue, QA failure |
-| `/mlgs review` | `commands/review.md` | Review code, design, task, phase, or build readiness |
-| `/mlgs test` | `commands/test.md` | Run or define verification |
-| `/mlgs build` | `commands/build.md` | Unity build or build preflight |
-| `/mlgs dashboard` | `commands/dashboard.md` | Refresh/open dashboard guidance |
-| `/mlgs generate-art` | `commands/generate-art.md` | Generate or specify placeholder/concept art |
+| `/mlgs-start` (`/mlgs start`) | `commands/start.md` | Start, recover pointer, choose new/existing project, set participation |
+| `/mlgs-help` (`/mlgs help`) | `commands/help.md` | Show compact command menu and current recommendation |
+| `/mlgs-brainstorm` (`/mlgs brainstorm`) | `commands/brainstorm.md` | Explore ideas, references, pitch, pillars, concept package |
+| `/mlgs-adopt` (`/mlgs adopt`) | `commands/adopt.md` | Analyze and attach existing Unity/docs/code project |
+| `/mlgs-status` (`/mlgs status`) | `commands/status.md` | Show project state, staff activity, risks, next options |
+| `/mlgs-plan` (`/mlgs plan`) | `commands/plan.md` | Systems, Unity tech plan, task plan, prototype policy |
+| `/mlgs-prototype` (`/mlgs prototype`) | `commands/prototype.md` | Build/evaluate prototype or skip with risk |
+| `/mlgs-implement` (`/mlgs implement`) | `commands/implement.md` | Implement an approved Unity task |
+| `/mlgs-fix` (`/mlgs fix`) | `commands/fix.md` | Diagnose and fix bug, compile issue, QA failure |
+| `/mlgs-review` (`/mlgs review`) | `commands/review.md` | Review code, design, task, phase, or build readiness |
+| `/mlgs-test` (`/mlgs test`) | `commands/test.md` | Run or define verification |
+| `/mlgs-build` (`/mlgs build`) | `commands/build.md` | Unity build or build preflight |
+| `/mlgs-dashboard` (`/mlgs dashboard`) | `commands/dashboard.md` | Refresh/open dashboard guidance |
+| `/mlgs-generate-art` (`/mlgs generate-art`) | `commands/generate-art.md` | Generate or specify placeholder/concept art |
 
 ## Aliases
 
@@ -78,3 +78,5 @@ Resolve:
 ## Trace
 
 After any routed command, use `tools/trace.ps1` when possible. Include command, title, status, lead agent, agents used, skills used, files read/written, assumptions, decisions, and verification.
+
+

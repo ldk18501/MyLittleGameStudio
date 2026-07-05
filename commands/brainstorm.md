@@ -35,7 +35,7 @@ Creative Director
 
 ## Flow
 
-1. Resolve active project. If none exists, route to `/mlgs start`.
+1. Resolve active project. If none exists and the user gave an idea seed, create or propose the smallest internal project workspace and continue drafting. If none exists and there is no seed at all, route to `/mlgs-start`.
 2. Read owner participation.
 3. If the owner gives no idea, present A/B/C/D ideation options:
    - A) genre-first
@@ -57,9 +57,10 @@ Creative Director
 6. Under low participation, write a reasonable draft and mark approval pending.
 7. Under medium participation, write the draft and ask for approve/revise.
 8. Under high participation, show 2-4 direction options before finalizing major creative choices.
-9. Set next action to `/mlgs plan` when the concept is ready enough.
+9. Set next action to `/mlgs-plan` when the concept is ready enough.
 10. Record trace.
 
 ## Completion
 
 The concept package exists or the owner has one clear next ideation question.
+

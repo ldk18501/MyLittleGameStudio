@@ -3,31 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MyLittleGameStudio Office</title>
+  <title>MyLittleGameStudio Dashboard</title>
   <script src="./studio-data.js"></script>
   <style>
     :root {
       color-scheme: light;
-      --ink: #1d2433;
+      --ink: #172033;
       --muted: #667085;
-      --line: #d7dde8;
-      --paper: #f7f8fb;
+      --line: #d6dce8;
+      --paper: #f5f7fb;
       --panel: #ffffff;
+      --soft: #eef2f7;
       --blue: #2563eb;
       --green: #16855b;
       --amber: #a15c07;
       --red: #b42318;
-      --violet: #6f3cc3;
       --teal: #087d8f;
-      --desk: #e8edf5;
-      --desk-edge: #a7b2c5;
-      --floor: #eef2f7;
+      --violet: #6f3cc3;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -38,135 +34,191 @@
 
     .app {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-columns: minmax(0, 1fr) 380px;
       min-height: 100vh;
     }
 
     .main {
-      padding: 24px;
+      min-width: 0;
+      padding: 22px;
       display: grid;
-      grid-template-rows: auto minmax(420px, 1fr);
-      gap: 16px;
+      gap: 18px;
+      align-content: start;
     }
 
     .side {
+      min-width: 0;
       border-left: 1px solid var(--line);
       background: var(--panel);
-      padding: 24px;
-      overflow: auto;
+      padding: 22px;
       max-height: 100vh;
+      overflow: auto;
     }
 
     .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 16px;
-      border-bottom: 1px solid var(--line);
+      align-items: start;
       padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
     }
 
+    h1, h2, h3, p { margin: 0; }
+
     h1 {
-      margin: 0;
       font-size: 24px;
       line-height: 1.2;
       letter-spacing: 0;
     }
 
     h2 {
-      margin: 0 0 12px;
       font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      font-size: 13px;
+      line-height: 1.25;
       letter-spacing: 0;
     }
 
     p {
-      margin: 6px 0 0;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
     }
 
     .meta {
+      min-width: 220px;
       text-align: right;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-      min-width: 180px;
-    }
-
-    .office {
-      position: relative;
-      min-height: 520px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-      background:
-        linear-gradient(90deg, rgba(29, 36, 51, 0.045) 1px, transparent 1px),
-        linear-gradient(180deg, rgba(29, 36, 51, 0.045) 1px, transparent 1px),
-        var(--floor);
-      background-size: 34px 34px;
-    }
-
-    .room-label {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-      padding: 5px 8px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.88);
       font-size: 12px;
-      color: var(--muted);
+      line-height: 1.5;
     }
 
-    .desk-grid {
-      position: absolute;
-      inset: 58px 22px 22px;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(130px, 1fr));
-      grid-auto-rows: minmax(150px, 1fr);
-      gap: 18px;
-    }
-
-    .desk {
-      position: relative;
-      min-width: 0;
-      border: 1px solid var(--desk-edge);
+    .band {
+      border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
-      box-shadow: 0 10px 24px rgba(29, 36, 51, 0.08);
-      padding: 12px;
+      padding: 16px;
+    }
+
+    .health-grid {
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
       gap: 10px;
     }
 
-    .desk::before {
-      content: "";
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: -10px;
-      height: 10px;
-      border: 1px solid var(--desk-edge);
-      border-top: 0;
-      border-radius: 0 0 6px 6px;
-      background: var(--desk);
+    .metric {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      padding: 12px;
     }
 
-    .agent-head {
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
+      gap: 18px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .step {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .step[data-status="done"] { border-color: rgba(22, 133, 91, 0.4); }
+    .step[data-status="missing"] { border-color: rgba(161, 92, 7, 0.42); }
+
+    .step-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .agent {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .agent-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      min-width: 0;
     }
 
     .agent-name {
       font-weight: 700;
       font-size: 14px;
-      white-space: nowrap;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .agent-role {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      min-height: 32px;
+    }
+
+    .agent-task {
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 38px;
+      overflow-wrap: anywhere;
+    }
+
+    .agent-foot {
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .badge {
@@ -182,81 +234,37 @@
     }
 
     .status-idle { color: var(--muted); }
-    .status-active { color: var(--blue); }
-    .status-completed { color: var(--green); }
-    .status-partial { color: var(--amber); }
+    .status-active, .status-started { color: var(--blue); }
+    .status-completed, .status-done { color: var(--green); }
+    .status-partial, .status-missing { color: var(--amber); }
     .status-blocked { color: var(--red); }
 
-    .role {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.4;
+    .list {
+      display: grid;
+      gap: 8px;
     }
 
-    .task {
-      min-height: 38px;
+    .row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcff;
+      min-width: 0;
+    }
+
+    .row-title {
       font-size: 13px;
-      line-height: 1.45;
-      color: var(--ink);
+      font-weight: 700;
+      line-height: 1.35;
       overflow-wrap: anywhere;
     }
 
-    .last {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .signal {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-      height: 6px;
-    }
-
-    .signal span {
-      border-radius: 4px;
-      background: var(--line);
-    }
-
-    .desk[data-status="active"] .signal span { background: var(--blue); }
-    .desk[data-status="completed"] .signal span { background: var(--green); }
-    .desk[data-status="partial"] .signal span { background: var(--amber); }
-    .desk[data-status="blocked"] .signal span { background: var(--red); }
-
-    .panel {
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 18px;
-      margin-bottom: 18px;
-    }
-
-    .summary {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      background: #fbfcff;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .event {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: var(--panel);
-    }
-
-    .event-title {
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-
-    .event-meta {
-      margin-top: 6px;
+    .row-meta {
+      margin-top: 5px;
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.4;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
     }
 
     .chips {
@@ -272,26 +280,44 @@
       padding: 3px 6px;
       font-size: 11px;
       color: var(--muted);
-      background: #fbfcff;
+      background: var(--panel);
       max-width: 100%;
       overflow-wrap: anywhere;
     }
 
+    .command {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      color: var(--blue);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .panel {
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
     .empty {
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 13px;
+      line-height: 1.45;
     }
 
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
+    @media (max-width: 1180px) {
+      .health-grid,
+      .agent-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+
+      .checklist {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
     }
 
-    @media (max-width: 1020px) {
-      .app {
+    @media (max-width: 920px) {
+      .app,
+      .split {
         grid-template-columns: 1fr;
       }
 
@@ -302,29 +328,21 @@
       }
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 640px) {
       .main,
       .side {
-        padding: 16px;
+        padding: 14px;
       }
 
-      .topbar {
-        display: block;
+      .topbar,
+      .health-grid,
+      .agent-grid,
+      .checklist {
+        grid-template-columns: 1fr;
       }
 
       .meta {
         text-align: left;
-        margin-top: 10px;
-      }
-
-      .desk-grid {
-        position: static;
-        padding: 58px 14px 18px;
-        grid-template-columns: 1fr;
-      }
-
-      .office {
-        min-height: auto;
       }
     }
   </style>
@@ -334,71 +352,90 @@
     <main class="main">
       <header class="topbar">
         <div>
-          <h1>MyLittleGameStudio Office</h1>
+          <h1>MyLittleGameStudio Dashboard</h1>
           <p id="summaryText">加载中</p>
         </div>
         <div class="meta">
           <div id="updatedText">Updated: -</div>
-          <div id="commandText">Command: -</div>
+          <div id="activeCommandText">Command: -</div>
         </div>
       </header>
 
-      <section class="office" aria-label="Agent office activity">
-        <div class="room-label">Agent Office</div>
-        <div class="desk-grid" id="deskGrid"></div>
+      <section class="band">
+          <h2>项目健康</h2>
+        <div class="health-grid" id="healthGrid"></div>
+      </section>
+
+      <section class="split">
+        <section class="band">
+          <h2>阶段清单</h2>
+          <div class="checklist" id="phaseChecklist"></div>
+        </section>
+
+        <section class="band">
+          <h2>下一步</h2>
+          <div class="list" id="nextOptions"></div>
+        </section>
+      </section>
+
+      <section class="band">
+        <h2>Agent 看板</h2>
+        <div class="agent-grid" id="agentGrid"></div>
       </section>
     </main>
 
     <aside class="side">
       <section class="panel">
-        <h2>当前摘要</h2>
-        <div class="summary" id="detailSummary">暂无活动。</div>
-        <div class="legend">
-          <span class="badge status-active">active</span>
-          <span class="badge status-completed">completed</span>
-          <span class="badge status-partial">partial</span>
-          <span class="badge status-blocked">blocked</span>
-          <span class="badge status-idle">idle</span>
-        </div>
+        <h2>制作人控制台</h2>
+        <div class="list" id="producerControl"></div>
       </section>
 
       <section class="panel">
-        <h2>项目状态</h2>
-        <div class="summary" id="projectSummary">暂无活动项目。</div>
+        <h2>风险与假设</h2>
+        <div class="list" id="riskList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>决策记录</h2>
+        <div class="list" id="decisionList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>验证证据</h2>
+        <div class="list" id="verificationList"></div>
       </section>
 
       <section>
         <h2>最近活动</h2>
-        <div id="eventList"></div>
+        <div class="list" id="eventList"></div>
       </section>
     </aside>
   </div>
 
   <script>
     const defaultAgents = [
-      ["producer", "Producer", "Coordination, routing, scope, state"],
-      ["creative-director", "Creative Director", "Game vision, references, creative direction"],
-      ["game-designer", "Game Designer", "Rules, systems, tuning, acceptance criteria"],
-      ["unity-architect", "Unity Architect", "Unity structure, technical plan, build risk"],
-      ["gameplay-developer", "Gameplay Developer", "Gameplay code and production implementation"],
-      ["ui-ux-developer", "UI/UX Developer", "Interface, interaction, readability"],
-      ["technical-artist", "Technical Artist", "Visual systems, VFX, generated art, performance"],
-      ["qa-lead", "QA Lead", "Verification, risks, release checks"]
+      ["producer", "Producer", "Production, routing, scope, state"],
+      ["creative-director", "Creative Director", "Vision, references, pillars"],
+      ["game-designer", "Game Designer", "Rules, systems, tuning"],
+      ["unity-architect", "Unity Architect", "Unity architecture, build risk"],
+      ["gameplay-developer", "Gameplay Developer", "Gameplay code"],
+      ["ui-ux-developer", "UI/UX Developer", "Runtime UI and input"],
+      ["technical-artist", "Technical Artist", "Visual systems and performance"],
+      ["qa-lead", "QA Lead", "Verification and readiness"]
     ].map(([id, name, role]) => ({ id, name, role, status: "idle", lastEvent: "", currentTask: "" }));
 
     const data = window.MLGS_STUDIO_DATA || {};
     const runtime = data.runtime || {};
-    const project = runtime.project || {};
-    const agents = Array.isArray(runtime.agents) && runtime.agents.length ? runtime.agents : defaultAgents;
+    const operations = data.operations || {};
+    const status = operations.status || {};
+    const project = runtime.project || status.active_project || {};
     const events = Array.isArray(data.events) ? data.events.slice().reverse() : [];
+    const agents = Array.isArray(runtime.agents) && runtime.agents.length ? runtime.agents : defaultAgents;
+    const agentInsights = Array.isArray(operations.agentInsights) ? operations.agentInsights : [];
 
-    const statusLabels = {
-      idle: "idle",
-      active: "active",
-      completed: "completed",
-      partial: "partial",
-      blocked: "blocked"
-    };
+    function normalizeStatus(value) {
+      return ["idle", "active", "started", "completed", "done", "partial", "missing", "blocked"].includes(value) ? value : "idle";
+    }
 
     function formatTime(value) {
       if (!value) return "-";
@@ -407,77 +444,149 @@
       return date.toLocaleString();
     }
 
-    function normalizeStatus(value) {
-      return statusLabels[value] ? value : "idle";
+    function text(value, fallback = "-") {
+      if (value === null || value === undefined || value === "") return fallback;
+      return String(value);
     }
 
-    function createDesk(agent) {
-      const status = normalizeStatus(agent.status);
-      const desk = document.createElement("article");
-      desk.className = `desk status-${status}`;
-      desk.dataset.status = status;
-
-      desk.innerHTML = `
-        <div class="agent-head">
-          <div class="agent-name" title="${agent.name || agent.id}">${agent.name || agent.id}</div>
-          <span class="badge status-${status}">${status}</span>
-        </div>
-        <div>
-          <div class="role">${agent.role || ""}</div>
-          <div class="task">${agent.currentTask || "Waiting for routed work."}</div>
-        </div>
-        <div>
-          <div class="signal" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div class="last">Last event: ${formatTime(agent.lastEvent)}</div>
-        </div>
-      `;
-      return desk;
+    function array(value) {
+      return Array.isArray(value) ? value : [];
     }
 
-    function createEvent(event) {
-      const status = normalizeStatus(event.status);
+    function row(title, meta = "", extra = "") {
       const item = document.createElement("article");
-      item.className = "event";
-
-      const agentsUsed = Array.isArray(event.agentsUsed) ? event.agentsUsed : [];
-      const skillsUsed = Array.isArray(event.skillsUsed) ? event.skillsUsed : [];
-      const filesWritten = Array.isArray(event.filesWritten) ? event.filesWritten : [];
-
+      item.className = "row";
       item.innerHTML = `
-        <div class="event-title">${event.title || "Untitled activity"}</div>
-        <div class="event-meta">
-          ${formatTime(event.timestamp)} · ${event.command || "unknown"} · <span class="status-${status}">${status}</span>
-        </div>
-        <p>${event.summary || ""}</p>
-        <div class="chips">
-          ${agentsUsed.map(value => `<span class="chip">agent: ${value}</span>`).join("")}
-          ${skillsUsed.map(value => `<span class="chip">skill: ${value}</span>`).join("")}
-          ${filesWritten.map(value => `<span class="chip">write: ${value}</span>`).join("")}
-        </div>
+        <div class="row-title">${title}</div>
+        ${meta ? `<div class="row-meta">${meta}</div>` : ""}
+        ${extra}
       `;
       return item;
     }
 
-    document.getElementById("summaryText").textContent = runtime.summary || "No MLGS activity has been recorded yet.";
-    document.getElementById("detailSummary").textContent = runtime.summary || "暂无活动。";
-    document.getElementById("projectSummary").textContent = [
-      project.name ? `Project: ${project.name}` : "Project: none",
-      project.phase ? `Phase: ${project.phase}` : "Phase: -",
-      project.participation ? `Participation: ${project.participation}` : "Participation: -",
-      project.nextCommand ? `Next: /mlgs ${project.nextCommand}` : "Next: -"
-    ].join(" · ");
-    document.getElementById("updatedText").textContent = `Updated: ${formatTime(runtime.updated || data.generatedAt)}`;
-    document.getElementById("commandText").textContent = `Command: ${runtime.activeCommand || "none"}`;
-
-    const deskGrid = document.getElementById("deskGrid");
-    agents.forEach(agent => deskGrid.appendChild(createDesk(agent)));
-
-    const eventList = document.getElementById("eventList");
-    if (events.length) {
-      events.forEach(event => eventList.appendChild(createEvent(event)));
-    } else {
-      eventList.innerHTML = `<div class="empty">还没有活动记录。运行一次 MLGS 任务后，这里会显示被调用的 agent、skill 和写入文件。</div>`;
+    function empty(label) {
+      const item = document.createElement("div");
+      item.className = "empty";
+      item.textContent = label;
+      return item;
     }
+
+    function metric(label, value) {
+      const item = document.createElement("div");
+      item.className = "metric";
+      item.innerHTML = `<div class="metric-label">${label}</div><div class="metric-value">${value}</div>`;
+      return item;
+    }
+
+    function renderList(targetId, values, emptyText, formatter) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = "";
+      if (!values.length) {
+        target.appendChild(empty(emptyText));
+        return;
+      }
+      values.forEach(value => target.appendChild(formatter(value)));
+    }
+
+    const activeProject = status.active_project || {};
+    const approvals = status.approvals || {};
+    const prototype = status.prototype || {};
+    const nextCommand = project.nextCommand || status.next_command || "";
+    const health = [
+      ["项目", text(project.name || activeProject.name, "none")],
+      ["阶段", text(project.phase || activeProject.phase, "not-started")],
+      ["参与度", text(project.participation || activeProject.owner_participation, "medium")],
+      ["下一指令", nextCommand ? `<span class="command">${nextCommand}</span>` : "-"],
+      ["生产状态", approvals.production_unblocked === "true" ? "unblocked" : "locked"],
+      ["原型", text(prototype.verdict, "pending")],
+      ["模式", text(activeProject.mode, "none")],
+      ["更新时间", formatTime(runtime.updated || data.generatedAt)]
+    ];
+
+    const healthGrid = document.getElementById("healthGrid");
+    health.forEach(([label, value]) => healthGrid.appendChild(metric(label, value)));
+
+    const checklist = array(operations.phaseChecklist);
+    renderList("phaseChecklist", checklist, "还没有阶段清单数据。", item => {
+      const state = normalizeStatus(item.status);
+      const step = document.createElement("article");
+      step.className = "step";
+      step.dataset.status = state;
+      step.innerHTML = `
+        <div class="step-head">
+          <h3>${text(item.label)}</h3>
+          <span class="badge status-${state}">${state}</span>
+        </div>
+        <p>${text(item.detail, "")}</p>
+        <div class="command">${text(item.command, "")}</div>
+      `;
+      return step;
+    });
+
+    renderList("nextOptions", array(operations.nextOptions), "还没有推荐的下一步。", option => {
+      return row(`${text(option.key)}. ${text(option.label)}`, `${text(option.description)} · <span class="command">${text(option.command)}</span>`);
+    });
+
+    const insightsById = new Map(agentInsights.map(item => [item.id, item]));
+    const agentGrid = document.getElementById("agentGrid");
+    agents.forEach(agent => {
+      const statusName = normalizeStatus(agent.status);
+      const insight = insightsById.get(agent.id) || {};
+      const latestStatus = normalizeStatus(insight.latestStatus || statusName);
+      const item = document.createElement("article");
+      item.className = "agent";
+      item.innerHTML = `
+        <div class="agent-top">
+          <div class="agent-name" title="${text(agent.name || agent.id)}">${text(agent.name || agent.id)}</div>
+          <span class="badge status-${statusName}">${statusName}</span>
+        </div>
+        <div class="agent-role">${text(agent.role, "")}</div>
+        <div class="agent-task">${text(agent.currentTask || insight.latestTitle, "等待路由任务。")}</div>
+        <div class="chips">
+          <span class="chip">events: ${text(insight.recentCount, "0")}</span>
+          <span class="chip">latest: <span class="status-${latestStatus}">${text(insight.latestCommand || statusName)}</span></span>
+        </div>
+        <div class="agent-foot">
+          <span>${formatTime(agent.lastEvent)}</span>
+          <span>${text(agent.id)}</span>
+        </div>
+      `;
+      agentGrid.appendChild(item);
+    });
+
+    const blockers = array(operations.blockers);
+    const producerRows = [];
+    producerRows.push(row("当前阻塞", blockers.length ? blockers[0] : "没有记录阻塞。"));
+    if (nextCommand) {
+      producerRows.push(row("推荐指令", `<span class="command">${nextCommand}</span>`));
+    }
+    producerRows.push(row("运行摘要", text(runtime.summary, "没有摘要记录。")));
+    const control = document.getElementById("producerControl");
+    producerRows.forEach(item => control.appendChild(item));
+
+    const risks = array(operations.risks);
+    const assumptions = array(operations.assumptions);
+    const riskValues = risks.map(value => ({ label: "风险", value })).concat(assumptions.map(value => ({ label: "假设", value })));
+    renderList("riskList", riskValues, "没有记录风险或假设。", item => row(item.label, text(item.value)));
+
+    renderList("decisionList", array(operations.recentDecisions), "没有记录决策。", value => row("决策", text(value)));
+    renderList("verificationList", array(operations.recentVerification), "没有记录验证证据。", value => row("验证", text(value)));
+
+    renderList("eventList", events.slice(0, 12), "还没有 trace 事件。", event => {
+      const statusName = normalizeStatus(event.status);
+      const chips = array(event.agentsUsed).map(value => `<span class="chip">agent: ${value}</span>`)
+        .concat(array(event.filesWritten).slice(0, 3).map(value => `<span class="chip">write: ${value}</span>`))
+        .join("");
+      return row(
+        text(event.title, "Untitled activity"),
+        `${formatTime(event.timestamp)} · ${text(event.command, "unknown")} · <span class="status-${statusName}">${statusName}</span>`,
+        chips ? `<div class="chips">${chips}</div>` : ""
+      );
+    });
+
+    document.getElementById("summaryText").textContent = runtime.summary || "还没有记录 MLGS 活动。";
+    document.getElementById("updatedText").textContent = `Updated: ${formatTime(runtime.updated || data.generatedAt)}`;
+    document.getElementById("activeCommandText").textContent = `Command: ${runtime.activeCommand || "none"}`;
   </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.1.1",
-  "description": "Codex-first Unity/C# 独立游戏工作室工作流。使用 /mlgs 将游戏开发请求路由给 MyLittleGameStudio 的 agents 和 commands。",
+  "version": "0.3.0",
+  "description": "Codex-first Unity/C# 独立游戏工作室工作流。支持 /mlgs-start、/mlgs-brainstorm、/mlgs-plan 等直接指令，也兼容 /mlgs 路由。",
   "author": {
     "name": "MyLittleGameStudio"
   },
@@ -16,8 +16,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "MyLittleGameStudio",
-    "shortDescription": "Unity 独立游戏工作室工作流",
-    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室工作流。它会把 /mlgs 请求路由给 Producer、Creative Director、Game Designer、Unity Architect、Gameplay Developer、UI/UX Developer、Technical Artist 和 QA Lead，并支持 owner participation 参与度。",
+    "shortDescription": "Unity 独立游戏工作室短指令工作流",
+    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室工作流。它提供 /mlgs-start、/mlgs-brainstorm、/mlgs-adopt、/mlgs-status、/mlgs-plan、/mlgs-prototype、/mlgs-implement、/mlgs-fix、/mlgs-review、/mlgs-test、/mlgs-build、/mlgs-dashboard 等可补全直接指令，也保留 /mlgs 作为总入口，并支持 owner participation 参与度。",
     "developerName": "MyLittleGameStudio",
     "category": "Engineering",
     "capabilities": [
@@ -26,11 +26,12 @@
       "Interactive"
     ],
     "defaultPrompt": [
-      "/mlgs start",
-      "/mlgs status",
-      "/mlgs implement 下一个任务"
+      "/mlgs-start",
+      "/mlgs-status",
+      "/mlgs-implement 下一个任务"
     ],
     "brandColor": "#2563EB",
     "screenshots": []
   }
 }
+

@@ -94,14 +94,14 @@ function Normalize-TextList {
 
 function New-AgentRoster {
   return @(
-    [pscustomobject]@{ id = "producer"; name = "Producer"; role = "Coordination, routing, scope, state"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "creative-director"; name = "Creative Director"; role = "Game vision, references, creative direction"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "game-designer"; name = "Game Designer"; role = "Rules, systems, tuning, acceptance criteria"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "unity-architect"; name = "Unity Architect"; role = "Unity structure, technical plan, build risk"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "gameplay-developer"; name = "Gameplay Developer"; role = "Gameplay code and production implementation"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "ui-ux-developer"; name = "UI/UX Developer"; role = "Interface, interaction, readability"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "technical-artist"; name = "Technical Artist"; role = "Visual systems, VFX, generated art, performance"; status = "idle"; lastEvent = ""; currentTask = "" },
-    [pscustomobject]@{ id = "qa-lead"; name = "QA Lead"; role = "Verification, risks, release checks"; status = "idle"; lastEvent = ""; currentTask = "" }
+    [pscustomobject]@{ id = "producer"; name = "Producer"; role = "Production, scope, risk, task flow"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "creative-director"; name = "Creative Director"; role = "Vision, pillars, references, scope focus"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "game-designer"; name = "Game Designer"; role = "Systems, rules, tuning, acceptance"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "unity-architect"; name = "Unity Architect"; role = "Unity architecture, packages, build risk"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "gameplay-developer"; name = "Gameplay Developer"; role = "Focused Unity/C# gameplay tasks"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "ui-ux-developer"; name = "UI/UX Developer"; role = "Runtime UI, HUD, input ergonomics"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "technical-artist"; name = "Technical Artist"; role = "Shaders, VFX, assets, visual perf"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "qa-lead"; name = "QA Lead"; role = "Verification, evidence, readiness"; status = "idle"; lastEvent = ""; currentTask = "" }
   )
 }
 
@@ -222,7 +222,11 @@ if (Test-Path $runtimePath) {
 
 $agentList = @($runtime.agents)
 foreach ($known in (New-AgentRoster)) {
-  if (-not ($agentList | Where-Object { $_.id -eq $known.id })) {
+  $existing = $agentList | Where-Object { $_.id -eq $known.id } | Select-Object -First 1
+  if ($existing) {
+    $existing.name = $known.name
+    $existing.role = $known.role
+  } else {
     $agentList += $known
   }
 }
