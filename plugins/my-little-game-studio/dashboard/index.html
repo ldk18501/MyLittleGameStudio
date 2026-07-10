@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyLittleGameStudio Dashboard</title>
+  <script src="./studio-data.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d6dce8;
+      --paper: #f5f7fb;
+      --panel: #ffffff;
+      --soft: #eef2f7;
+      --blue: #2563eb;
+      --green: #16855b;
+      --amber: #a15c07;
+      --red: #b42318;
+      --teal: #087d8f;
+      --violet: #6f3cc3;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      min-height: 100vh;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .side {
+      min-width: 0;
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+      padding: 22px;
+      max-height: 100vh;
+      overflow: auto;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      font-size: 13px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .meta {
+      min-width: 220px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .band {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 16px;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      padding: 12px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
+      gap: 18px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .step {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .step[data-status="done"] { border-color: rgba(22, 133, 91, 0.4); }
+    .step[data-status="missing"] { border-color: rgba(161, 92, 7, 0.42); }
+
+    .step-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .agent {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .agent-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .agent-name {
+      font-weight: 700;
+      font-size: 14px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .agent-role {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      min-height: 32px;
+    }
+
+    .agent-task {
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 38px;
+      overflow-wrap: anywhere;
+    }
+
+    .agent-foot {
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: 1px solid currentColor;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .status-idle { color: var(--muted); }
+    .status-active, .status-started { color: var(--blue); }
+    .status-completed, .status-done { color: var(--green); }
+    .status-partial, .status-missing { color: var(--amber); }
+    .status-blocked { color: var(--red); }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcff;
+      min-width: 0;
+    }
+
+    .row-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .row-meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--panel);
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .command {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      color: var(--blue);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .panel {
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1180px) {
+      .health-grid,
+      .agent-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+
+      .checklist {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 920px) {
+      .app,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        max-height: none;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main,
+      .side {
+        padding: 14px;
+      }
+
+      .topbar,
+      .health-grid,
+      .agent-grid,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .meta {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>MyLittleGameStudio Dashboard</h1>
+          <p id="summaryText">加载中</p>
+        </div>
+        <div class="meta">
+          <div id="updatedText">Updated: -</div>
+          <div id="activeCommandText">Command: -</div>
+        </div>
+      </header>
+
+      <section class="band">
+          <h2>项目健康</h2>
+        <div class="health-grid" id="healthGrid"></div>
+      </section>
+
+      <section class="split">
+        <section class="band">
+          <h2>阶段清单</h2>
+          <div class="checklist" id="phaseChecklist"></div>
+        </section>
+
+        <section class="band">
+          <h2>下一步</h2>
+          <div class="list" id="nextOptions"></div>
+        </section>
+      </section>
+
+      <section class="band">
+        <h2>Agent 看板</h2>
+        <div class="agent-grid" id="agentGrid"></div>
+      </section>
+    </main>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>制作人控制台</h2>
+        <div class="list" id="producerControl"></div>
+      </section>
+
+      <section class="panel">
+        <h2>风险与假设</h2>
+        <div class="list" id="riskList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>决策记录</h2>
+        <div class="list" id="decisionList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>验证证据</h2>
+        <div class="list" id="verificationList"></div>
+      </section>
+
+      <section>
+        <h2>最近活动</h2>
+        <div class="list" id="eventList"></div>
+      </section>
+    </aside>
+  </div>
+
+  <script>
+    const defaultAgents = [
+      ["producer", "Producer", "Production, routing, scope, state"],
+      ["creative-director", "Creative Director", "Vision, references, pillars"],
+      ["game-designer", "Game Designer", "Rules, systems, tuning"],
+      ["unity-architect", "Unity Architect", "Unity architecture, build risk"],
+      ["gameplay-developer", "Gameplay Developer", "Gameplay code"],
+      ["ui-ux-developer", "UI/UX Developer", "Runtime UI and input"],
+      ["technical-artist", "Technical Artist", "Visual systems and performance"],
+      ["qa-lead", "QA Lead", "Verification and readiness"]
+    ].map(([id, name, role]) => ({ id, name, role, status: "idle", lastEvent: "", currentTask: "" }));
+
+    const data = window.MLGS_STUDIO_DATA || {};
+    const runtime = data.runtime || {};
+    const operations = data.operations || {};
+    const status = operations.status || {};
+    const project = runtime.project || status.active_project || {};
+    const events = Array.isArray(data.events) ? data.events.slice().reverse() : [];
+    const agents = Array.isArray(runtime.agents) && runtime.agents.length ? runtime.agents : defaultAgents;
+    const agentInsights = Array.isArray(operations.agentInsights) ? operations.agentInsights : [];
+
+    function normalizeStatus(value) {
+      return ["idle", "active", "started", "completed", "done", "partial", "missing", "blocked"].includes(value) ? value : "idle";
+    }
+
+    function formatTime(value) {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString();
+    }
+
+    function text(value, fallback = "-") {
+      if (value === null || value === undefined || value === "") return fallback;
+      return String(value);
+    }
+
+    function array(value) {
+      return Array.isArray(value) ? value : [];
+    }
+
+    function row(title, meta = "", extra = "") {
+      const item = document.createElement("article");
+      item.className = "row";
+      item.innerHTML = `
+        <div class="row-title">${title}</div>
+        ${meta ? `<div class="row-meta">${meta}</div>` : ""}
+        ${extra}
+      `;
+      return item;
+    }
+
+    function empty(label) {
+      const item = document.createElement("div");
+      item.className = "empty";
+      item.textContent = label;
+      return item;
+    }
+
+    function metric(label, value) {
+      const item = document.createElement("div");
+      item.className = "metric";
+      item.innerHTML = `<div class="metric-label">${label}</div><div class="metric-value">${value}</div>`;
+      return item;
+    }
+
+    function renderList(targetId, values, emptyText, formatter) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = "";
+      if (!values.length) {
+        target.appendChild(empty(emptyText));
+        return;
+      }
+      values.forEach(value => target.appendChild(formatter(value)));
+    }
+
+    const activeProject = status.active_project || {};
+    const approvals = status.approvals || {};
+    const prototype = status.prototype || {};
+    const nextCommand = project.nextCommand || status.next_command || "";
+    const health = [
+      ["项目", text(project.name || activeProject.name, "none")],
+      ["阶段", text(project.phase || activeProject.phase, "not-started")],
+      ["参与度", text(project.participation || activeProject.owner_participation, "medium")],
+      ["下一指令", nextCommand ? `<span class="command">${nextCommand}</span>` : "-"],
+      ["生产状态", approvals.production_unblocked === "true" ? "unblocked" : "locked"],
+      ["原型", text(prototype.verdict, "pending")],
+      ["模式", text(activeProject.mode, "none")],
+      ["更新时间", formatTime(runtime.updated || data.generatedAt)]
+    ];
+
+    const healthGrid = document.getElementById("healthGrid");
+    health.forEach(([label, value]) => healthGrid.appendChild(metric(label, value)));
+
+    const checklist = array(operations.phaseChecklist);
+    renderList("phaseChecklist", checklist, "还没有阶段清单数据。", item => {
+      const state = normalizeStatus(item.status);
+      const step = document.createElement("article");
+      step.className = "step";
+      step.dataset.status = state;
+      step.innerHTML = `
+        <div class="step-head">
+          <h3>${text(item.label)}</h3>
+          <span class="badge status-${state}">${state}</span>
+        </div>
+        <p>${text(item.detail, "")}</p>
+        <div class="command">${text(item.command, "")}</div>
+      `;
+      return step;
+    });
+
+    renderList("nextOptions", array(operations.nextOptions), "还没有推荐的下一步。", option => {
+      return row(`${text(option.key)}. ${text(option.label)}`, `${text(option.description)} · <span class="command">${text(option.command)}</span>`);
+    });
+
+    const insightsById = new Map(agentInsights.map(item => [item.id, item]));
+    const agentGrid = document.getElementById("agentGrid");
+    agents.forEach(agent => {
+      const statusName = normalizeStatus(agent.status);
+      const insight = insightsById.get(agent.id) || {};
+      const latestStatus = normalizeStatus(insight.latestStatus || statusName);
+      const item = document.createElement("article");
+      item.className = "agent";
+      item.innerHTML = `
+        <div class="agent-top">
+          <div class="agent-name" title="${text(agent.name || agent.id)}">${text(agent.name || agent.id)}</div>
+          <span class="badge status-${statusName}">${statusName}</span>
+        </div>
+        <div class="agent-role">${text(agent.role, "")}</div>
+        <div class="agent-task">${text(agent.currentTask || insight.latestTitle, "等待路由任务。")}</div>
+        <div class="chips">
+          <span class="chip">events: ${text(insight.recentCount, "0")}</span>
+          <span class="chip">latest: <span class="status-${latestStatus}">${text(insight.latestCommand || statusName)}</span></span>
+        </div>
+        <div class="agent-foot">
+          <span>${formatTime(agent.lastEvent)}</span>
+          <span>${text(agent.id)}</span>
+        </div>
+      `;
+      agentGrid.appendChild(item);
+    });
+
+    const blockers = array(operations.blockers);
+    const producerRows = [];
+    producerRows.push(row("当前阻塞", blockers.length ? blockers[0] : "没有记录阻塞。"));
+    if (nextCommand) {
+      producerRows.push(row("推荐指令", `<span class="command">${nextCommand}</span>`));
+    }
+    producerRows.push(row("运行摘要", text(runtime.summary, "没有摘要记录。")));
+    const control = document.getElementById("producerControl");
+    producerRows.forEach(item => control.appendChild(item));
+
+    const risks = array(operations.risks);
+    const assumptions = array(operations.assumptions);
+    const riskValues = risks.map(value => ({ label: "风险", value })).concat(assumptions.map(value => ({ label: "假设", value })));
+    renderList("riskList", riskValues, "没有记录风险或假设。", item => row(item.label, text(item.value)));
+
+    renderList("decisionList", array(operations.recentDecisions), "没有记录决策。", value => row("决策", text(value)));
+    renderList("verificationList", array(operations.recentVerification), "没有记录验证证据。", value => row("验证", text(value)));
+
+    renderList("eventList", events.slice(0, 12), "还没有 trace 事件。", event => {
+      const statusName = normalizeStatus(event.status);
+      const chips = array(event.agentsUsed).map(value => `<span class="chip">agent: ${value}</span>`)
+        .concat(array(event.filesWritten).slice(0, 3).map(value => `<span class="chip">write: ${value}</span>`))
+        .join("");
+      return row(
+        text(event.title, "Untitled activity"),
+        `${formatTime(event.timestamp)} · ${text(event.command, "unknown")} · <span class="status-${statusName}">${statusName}</span>`,
+        chips ? `<div class="chips">${chips}</div>` : ""
+      );
+    });
+
+    document.getElementById("summaryText").textContent = runtime.summary || "还没有记录 MLGS 活动。";
+    document.getElementById("updatedText").textContent = `Updated: ${formatTime(runtime.updated || data.generatedAt)}`;
+    document.getElementById("activeCommandText").textContent = `Command: ${runtime.activeCommand || "none"}`;
+  </script>
+</body>
+</html>

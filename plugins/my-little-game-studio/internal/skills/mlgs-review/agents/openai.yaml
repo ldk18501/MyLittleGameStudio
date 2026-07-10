@@ -1,7 +1,0 @@
-﻿interface:
-  display_name: "/mlgs-review"
-  short_description: "审查代码、设计或工作流"
-  default_prompt: "使用 $mlgs-review 审查当前 Unity 项目的代码、设计或阶段状态。"
-
-policy:
-  allow_implicit_invocation: true

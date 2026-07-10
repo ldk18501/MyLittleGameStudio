@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyLittleGameStudio Trace 事件",
+  "type": "object",
+  "required": [
+    "id",
+    "timestamp",
+    "command",
+    "title",
+    "status",
+    "leadAgent",
+    "agentsUsed",
+    "summary"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "command": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["started", "completed", "partial", "blocked"]
+    },
+    "leadAgent": {
+      "type": "string"
+    },
+    "agentsUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skillsUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "filesRead": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "filesWritten": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phase": { "type": "string" },
+        "participation": { "type": "string" },
+        "nextCommand": { "type": "string" },
+        "projectRoot": { "type": "string" }
+      }
+    }
+  }
+}

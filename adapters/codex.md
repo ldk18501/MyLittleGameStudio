@@ -21,13 +21,13 @@ Natural language remains valid, but `/mlgs ...` is the stable mental model.
 
 ## Runtime Behavior
 
-- Read `AGENTS.md`.
-- Route through `workflow/command-router.md`.
+- Read `studio/config.md`, `rules/state.md`, and `workflow/catalog.json`.
+- Use `workflow/command-router.md` only as the routing procedure.
 - Use `workflow/onboarding.yaml` for start/adopt/status.
 - Resolve active project through `rules/state.md`.
-- Keep `studio/state.yaml` as template only.
+- Keep `studio/state.json` as template only; runtime data belongs under `$CODEX_HOME/mlgs/` for installed plugins.
 - Record every routed task through `tools/trace.ps1`.
-- Refresh `dashboard/studio-data.js`.
+- Refresh the resolved runtime dashboard data.
 
 ## Checks
 

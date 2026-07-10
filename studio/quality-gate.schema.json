@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/quality-gate.schema.json",
+  "title": "MLGS product quality gate report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "stage", "verdict", "ownerApproval", "updated", "checks", "blockers", "acceptedRisks", "notes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "stage": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
+    "verdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "ownerApproval": { "type": "boolean" },
+    "updated": { "type": "string", "minLength": 1 },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence", "notes"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["pending", "pass", "fail"] },
+          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "acceptedRisks": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "notes": { "type": "string" }
+  }
+}

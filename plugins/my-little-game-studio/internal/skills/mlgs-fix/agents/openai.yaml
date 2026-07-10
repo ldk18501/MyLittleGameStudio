@@ -1,7 +1,0 @@
-﻿interface:
-  display_name: "/mlgs-fix"
-  short_description: "诊断并修复 Unity 问题"
-  default_prompt: "使用 $mlgs-fix 诊断并修复这个 Unity/C# 错误。"
-
-policy:
-  allow_implicit_invocation: true

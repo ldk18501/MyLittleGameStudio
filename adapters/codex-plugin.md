@@ -24,8 +24,9 @@ From the MyLittleGameStudio repository root:
 
 ```powershell
 codex plugin marketplace add .
-codex plugin add my-little-game-studio@my-little-game-studio-local
 ```
+
+Install the plugin from the Codex app plugin page. Only use `codex plugin add my-little-game-studio@my-little-game-studio-local` when `codex plugin --help` confirms that subcommand exists.
 
 Pass the repository root. Do not pass `.agents/plugins` or `marketplace.json`.
 
@@ -40,18 +41,20 @@ plugins/my-little-game-studio/
 
 Open a new Codex thread after installation so the skill list refreshes.
 
+The published plugin is self-contained: it includes the workflow catalog, commands, agents, tools, schemas, templates, and dashboard shell. Mutable state is never written into the plugin cache.
+
 ## Dashboard
 
 Every routed `/mlgs` task should update:
 
 ```text
-studio/logs/activity.jsonl
-studio/runtime.json
-dashboard/studio-data.js
+$CODEX_HOME/mlgs/logs/activity.jsonl
+$CODEX_HOME/mlgs/runtime.json
+$CODEX_HOME/mlgs/dashboard/studio-data.js
 ```
 
 Open:
 
 ```text
-dashboard/index.html
+$CODEX_HOME/mlgs/dashboard/index.html
 ```

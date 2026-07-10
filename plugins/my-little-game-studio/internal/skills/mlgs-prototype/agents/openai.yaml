@@ -1,7 +1,0 @@
-﻿interface:
-  display_name: "/mlgs-prototype"
-  short_description: "验证核心玩法或风险"
-  default_prompt: "使用 $mlgs-prototype 为当前 Unity 游戏验证最小核心玩法风险。"
-
-policy:
-  allow_implicit_invocation: true

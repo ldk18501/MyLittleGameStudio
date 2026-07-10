@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyLittleGameStudio current project pointer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updated", "statePath", "projectRoot"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "updated": { "type": "string", "minLength": 1 },
+    "statePath": { "type": "string", "minLength": 1 },
+    "projectRoot": { "type": "string", "minLength": 1 }
+  }
+}

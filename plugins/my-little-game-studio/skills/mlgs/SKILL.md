@@ -1,146 +1,69 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio 单入口智能路由。用于用户输入 /mlgs 后用自然语言描述 Unity/C# 游戏开发需求，例如开始新项目、接管项目、头脑风暴、规划、实现、修 bug、测试、构建、看状态或打开 dashboard。"
+description: "MyLittleGameStudio 单入口智能路由。用于 /mlgs 后以自然语言执行 Unity/C# 游戏工作室流程，包括新项目、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建、状态和 dashboard。"
 ---
 
-# MLGS 单入口
+# MLGS
 
-这是 MyLittleGameStudio 唯一暴露给用户的 Codex skill。不要把内部工作流包装成多个 slash 指令；Codex 插件的斜杠菜单只负责选择 `/mlgs`，后面的内容由自然语言路由器判断。
+把当前 skill 目录向上两级解析为插件根目录。插件根必须包含 `workflow/catalog.json`、`commands/`、`agents/`、`tools/` 和 `studio/state.json`；这些资源随插件一起发布，不依赖外部 MyLittleGameStudio checkout。
 
-推荐用户这样说：
+## 路由
 
-```text
-/mlgs 我想开始一个新的 Unity 游戏，低参与度
-/mlgs 接管 E:\Projects\MyUnityGame
-/mlgs 帮我头脑风暴一个休闲割草游戏
-/mlgs 看看现在项目状态，告诉我下一步
-/mlgs 继续实现下一个任务
-/mlgs 修一下这个编译错误
-```
+1. 读取插件根下的 `studio/config.md`、`rules/state.md` 和 `workflow/catalog.json`。
+2. 运行：
 
-兼容旧写法，例如 `/mlgs start`、`/mlgs plan`、`/mlgs implement`，但不要主动推荐 `/mlgs-start` 这类子指令。
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/resolve-state.ps1 -Root <plugin-root> -AllowTemplate
+   ```
 
-## 范围
+3. 从 catalog 的 `commands[].intents` 选择一个内部 route。
+4. 只读取对应 command 文件、lead agent 和必要 supporting agents。
+5. `start`、`adopt`、`status` 才额外读取 `workflow/onboarding.yaml`；阶段评审才读取 catalog 的 phases/gates。
+6. 意图仍然模糊时只问一个短问题。
 
-- Codex only。
-- Unity + C# only。
-- 用户是 studio owner，Codex 默认扮演 Producer。
-- 不保留 Claude Code hooks、`.claude` settings 或 Claude 专属 slash 行为。
-- 不让用户管理内部流程；先理解意图，再选择内部 command。
+用户只需记住 `/mlgs`；不要推荐隐藏内部 skill 或一组子 slash 命令。
 
-## 找到 MLGS 根目录
+涉及正式美术、切图、导入或引用时路由 `generate-art`；涉及 Vertical Slice、Content Complete、Alpha、Beta 或去 Demo 化时路由 `productize`；涉及图标、本地化、崩溃/错误检查或 Release Candidate 时路由 `release`。
 
-路由前先找到 MyLittleGameStudio checkout root：
+## 状态与兼容
 
-1. 优先使用包含当前 plugin source 的仓库。
-2. 否则查找最近的可访问目录，要求包含：
-   - `AGENTS.md`
-   - `studio/state.yaml`
-   - `workflow/command-router.md`
-3. 如果找不到，只问一次 MyLittleGameStudio 目录路径。
+- 新状态：`<UnityProject>/.mlgs/state.json`。
+- 旧 `.mlgs/state.yaml` 可读，但状态输出必须提示可运行 `tools/migrate-state.ps1`；不要未经 owner 允许迁移真实项目。
+- 用户级当前项目指针和 dashboard runtime 默认写入 `$CODEX_HOME/mlgs/`，未设置 `CODEX_HOME` 时使用 `~/.codex/mlgs/`。
+- 插件安装目录视为只读；不要把 pointer、日志或 dashboard 数据写进插件缓存。
 
-不要使用其他机器上的绝对路径。
+## 生产安全
 
-## 必读文件
-
-每次路由前读取：
-
-1. `<MyLittleGameStudio>/AGENTS.md`
-2. `<MyLittleGameStudio>/studio/config.md`
-3. `<MyLittleGameStudio>/rules/state.md`
-4. `<MyLittleGameStudio>/workflow/command-router.md`
-5. `<MyLittleGameStudio>/workflow/onboarding.yaml`
-6. `<MyLittleGameStudio>/workflow/phases.yaml`
-
-然后只读取选中的 command 文件、相关 agent 文件和必要 reference。
-
-## 路由内核
-
-先运行或等价执行：
+在 `implement` 或 `fix` 写入前运行：
 
 ```powershell
-tools/resolve-state.ps1 -AllowTemplate
+powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/preflight-task.ps1 -Root <plugin-root> -Command implement
 ```
 
-路由规则：
+生产未解锁时停止；只有 owner 明确接受风险后才传 `-AcceptRisk`。完成写入后运行 `tools/validate-changes.ps1`，拒绝 approved write paths 之外的 Unity 改动。
 
-- 指针损坏：进入 `status` 或 `start` 的恢复流程。
-- 只有模板状态：如果用户没有给想法或路径，路由到 `start`；如果给了想法，路由到 `brainstorm`；如果给了项目路径，路由到 `adopt`。
-- 用户给出路径：运行 `tools/detect-project-stage.ps1 -ProjectRoot <path>`，再按结果路由。
-- 未解锁生产但用户要开发：路由到 `status`、`plan` 或 `prototype`；只有用户明确接受风险才进入 `implement`。
-- 低参与度：合理推断并继续，记录 assumptions；只在重大创意、依赖、架构、破坏性或阶段门决策时询问。
+## Unity 机制资料
 
-## 自然语言到内部 command
-
-| 用户意图 | 内部 command 文件 |
-|---|---|
-| 开始、新游戏、空项目、设置参与度、修复指针、继续当前项目 | `commands/start.md` |
-| 头脑风暴、想点子、玩法主题、参考、pitch、核心幻想、概念包 | `commands/brainstorm.md` |
-| 接管项目、已有 Unity 项目、已有资料目录、项目路径 | `commands/adopt.md` |
-| 状态、下一步、卡住了、现在该做什么、员工动态 | `commands/status.md` |
-| 规划、设计方案、技术方案、拆系统、任务计划、原型策略 | `commands/plan.md` |
-| 原型、验证玩法、验证风险、跳过原型 | `commands/prototype.md` |
-| 实现、继续开发、下一个任务、写代码、做功能 | `commands/implement.md` |
-| 修 bug、修复、编译错误、测试失败、回归 | `commands/fix.md` |
-| 审查、review、代码审查、设计评审、阶段评审、工作流评审 | `commands/review.md` |
-| 测试、验证、smoke、QA、验收 | `commands/test.md` |
-| 打包、构建、构建预检、APK、发布检查 | `commands/build.md` |
-| dashboard、看板、刷新看板、员工状态页面 | `commands/dashboard.md` |
-| 帮助、菜单、不知道怎么说、支持什么 | `commands/help.md` |
-| 生成美术、概念图、占位图、素材提示词 | `commands/generate-art.md` |
-
-如果意图仍然模糊，只问一个短问题。
-
-## 内部资料
-
-`plugins/my-little-game-studio/internal/skills/` 保存旧的拆分 skill 文档和 `mlgs-unity-mechanics` 机制资料。它们是内部参考，不是用户入口。
-
-玩法手感、调参、对象池、DOD、instancing、弹幕、大量对象、输入反馈、性能预算或 QA 验收相关任务，应读取：
+玩法手感、调参、对象池、DOD、instancing、弹幕、大量对象、输入反馈或性能预算任务，读取：
 
 ```text
-plugins/my-little-game-studio/internal/skills/mlgs-unity-mechanics/SKILL.md
+<plugin-root>/internal/skills/mlgs-unity-mechanics/SKILL.md
 ```
 
-并在 trace 的 `skillsUsed` 中记录 `mlgs-unity-mechanics`。
+并在 trace 中记录 `mlgs-unity-mechanics`。
 
-## 常用工具
+## 成品化门禁
+
+- Prototype 之后的生产代码必须读取 `rules/production-code.md`。
+- 正式美术使用 `production/assets/asset-manifest.json`，生成预览只有经过处理、Unity 导入、真实引用和游戏内证据后才能标记 `approved`。
+- Vertical Slice、Content Complete、Alpha、Beta、Release Candidate 和 Release 使用 `tools/test-quality-gate.ps1`；不得用文件存在代替质量证据。
+- MLGS 发布范围仅含图标、本地化、崩溃/错误检查和最终构建证据。
+
+## 验证与 Trace
 
 - 状态：`tools/get-project-status.ps1 -AllowTemplate`
-- 接管分析：`tools/adopt-project.ps1 -ProjectRoot <path>`
-- 接管应用：`tools/adopt-project.ps1 -ProjectRoot <path> -Apply`
-- 状态解析：`tools/resolve-state.ps1 -AllowTemplate`
-- 烟测：`tools/run-smoke-tests.ps1`
+- 接管：`tools/adopt-project.ps1 -ProjectRoot <path>`
+- 隔离 smoke：`tools/run-smoke-tests.ps1`
+- trace：`tools/trace.ps1`
 
-## Owner Participation
-
-读取项目状态里的 `owner_participation.level`：
-
-- `low`：像可信员工一样工作。日常细节自行决定，写草稿、执行、检查、记录 assumptions。
-- `medium`：默认平衡模式。常规工作直接做，重大方向、架构、依赖、范围或阶段变化前询问。
-- `high`：owner 深度参与。更常给 A/B/C/D 选项，并在重要编辑前给简短方案。
-
-未设置时按 `medium`。
-
-## Trace
-
-每个 MLGS 路由任务结束前尽量记录 trace：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/trace.ps1
-```
-
-记录 command、title、status、lead agent、agents used、skills used、files read/written、assumptions、decisions、verification。
-
-Trace 会更新：
-
-- `studio/logs/activity.jsonl`
-- `studio/runtime.json`
-- `dashboard/studio-data.js`
-
-## 行为原则
-
-- Producer 默认协调。
-- Specialist agents 是当前 Codex 线程内的角色，除非 owner 明确要求创建多个线程。
-- 回答时推荐下一步用自然语言，例如“继续让我实现下一个任务”，不要把用户导向一堆子 slash 指令。
-- 低/中参与度下不要为例行写文档、聚焦代码编辑、trace、dashboard、状态检查反复询问。
-- 破坏性操作、依赖/包、Unity 项目设置、大范围 scene/prefab、build settings、核心架构变化必须先问。
+每个 route 记录 command、lead/support agents、skills、读写文件、假设、决策和验证。低/中参与度下直接执行常规工作；依赖、包、Unity 设置、大范围 scene/prefab、build settings 和核心架构变化仍需 owner 确认。

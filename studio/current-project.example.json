@@ -1,0 +1,7 @@
+{
+  "$schema": "./pointer.schema.json",
+  "schemaVersion": "1.0",
+  "updated": "2026-07-10T00:00:00+08:00",
+  "statePath": "E:/path/to/YourUnityGame/.mlgs/state.json",
+  "projectRoot": "E:/path/to/YourUnityGame"
+}

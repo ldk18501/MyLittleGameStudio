@@ -1,0 +1,56 @@
+{
+  "$schema": "./state.schema.json",
+  "schemaVersion": "0.3",
+  "updated": "2026-07-10T00:00:00+08:00",
+  "kind": "template",
+  "activeProject": {
+    "name": "",
+    "slug": "",
+    "mode": "none",
+    "workspacePath": "",
+    "externalPath": "",
+    "engine": "Unity",
+    "language": "C#",
+    "engineVersion": "",
+    "approvedWritePaths": []
+  },
+  "ownerParticipation": {
+    "level": "medium",
+    "notes": ""
+  },
+  "automation": {
+    "planning": "high",
+    "production": "medium"
+  },
+  "phase": {
+    "current": "not-started"
+  },
+  "approvals": {
+    "projectSelected": false,
+    "conceptPackage": false,
+    "designTechPlan": false,
+    "prototypeValidation": false,
+    "productionUnblocked": false
+  },
+  "prototype": {
+    "policy": "recommended",
+    "type": "html-or-unity-greybox",
+    "verdict": "pending",
+    "skipReason": ""
+  },
+  "nextAction": {
+    "command": "/mlgs 开始",
+    "reason": "No active project is configured.",
+    "options": [
+      "/mlgs 开始一个新的 Unity 游戏",
+      "/mlgs 接管 <UnityProject>",
+      "/mlgs 帮助"
+    ]
+  },
+  "assumptions": [],
+  "risks": [],
+  "staff": {
+    "lastLead": "producer",
+    "lastAgents": []
+  }
+}

@@ -13,6 +13,7 @@ temp/
 
 # Generated MLGS runtime data
 studio/current-project.local.yaml
+studio/current-project.local.json
 studio/runtime.json
 studio/logs/*
 !studio/logs/.gitkeep

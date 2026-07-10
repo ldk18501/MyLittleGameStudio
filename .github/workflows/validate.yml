@@ -1,0 +1,35 @@
+name: Validate MLGS
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $errors = @()
+          Get-ChildItem tools -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            $errors += $parseErrors
+          }
+          if ($errors.Count) { $errors | Format-List; exit 1 }
+      - name: Generated workflow is current
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/generate-workflow.ps1 -Check
+      - name: Plugin package is current
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-plugin-package.ps1 -Check
+      - name: Validate plugin package
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/validate-package.ps1
+      - name: Isolated smoke tests
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
+

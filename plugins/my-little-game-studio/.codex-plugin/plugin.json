@@ -1,7 +1,7 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.4.0+codex.20260705163941",
-  "description": "Codex-first Unity/C# \u72ec\u7acb\u6e38\u620f\u5de5\u4f5c\u5ba4\u5de5\u4f5c\u6d41\u3002\u53ea\u66b4\u9732 /mlgs \u4e00\u4e2a\u5165\u53e3\uff0c\u540e\u7eed\u7528\u81ea\u7136\u8bed\u8a00\u63cf\u8ff0\u9700\u6c42\uff0c\u7531\u5de5\u4f5c\u5ba4\u81ea\u52a8\u8def\u7531\u5230\u5f00\u59cb\u3001\u63a5\u7ba1\u3001\u5934\u8111\u98ce\u66b4\u3001\u89c4\u5212\u3001\u5b9e\u73b0\u3001\u4fee\u590d\u3001\u6d4b\u8bd5\u3001\u6784\u5efa\u6216\u770b\u677f\u6d41\u7a0b\u3002",
+  "version": "0.5.0+codex.20260710173137",
+  "description": "Codex-first Unity/C# 独立游戏工作室流程。通过 /mlgs 自然语言入口推进规划、正式美术、模块化实现、成品阶段、质量门禁、图标、本地化、崩溃检查和构建。",
   "author": {
     "name": "MyLittleGameStudio"
   },
@@ -16,8 +16,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "MyLittleGameStudio",
-    "shortDescription": "Unity \u72ec\u7acb\u6e38\u620f\u5de5\u4f5c\u5ba4\u5355\u5165\u53e3\u5de5\u4f5c\u6d41",
-    "longDescription": "\u4e00\u4e2a Codex-first\u3001Unity/C# only \u7684\u8f7b\u91cf AI \u6e38\u620f\u5de5\u4f5c\u5ba4\u5de5\u4f5c\u6d41\u3002\u5b83\u53ea\u66b4\u9732 /mlgs \u4e00\u4e2a\u5165\u53e3\uff0cowner \u7528\u81ea\u7136\u8bed\u8a00\u8bf4\u660e\u76ee\u6807\uff0c\u4f8b\u5982\u5f00\u59cb\u65b0\u9879\u76ee\u3001\u63a5\u7ba1 Unity \u5de5\u7a0b\u3001\u5934\u8111\u98ce\u66b4\u3001\u89c4\u5212\u3001\u5b9e\u73b0\u3001\u4fee\u590d\u3001\u6d4b\u8bd5\u3001\u6784\u5efa\u6216\u67e5\u770b dashboard\u3002Producer \u4f1a\u8bfb\u53d6\u9879\u76ee\u72b6\u6001\u3001\u53c2\u4e0e\u5ea6\u548c\u5de5\u4f5c\u6d41\u89c4\u5219\uff0c\u81ea\u52a8\u9009\u62e9\u5185\u90e8\u6d41\u7a0b\u5e76\u534f\u8c03 specialist agents\u3002",
+    "shortDescription": "Unity 游戏从概念、正式美术到 Release Candidate 的单入口工作室",
+    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室。只暴露 /mlgs 一个入口，由 Producer 根据项目状态自动路由到开始、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建或 dashboard。结构化质量门禁和资产清单避免项目长期停留在 Demo 状态。",
     "developerName": "MyLittleGameStudio",
     "category": "Engineering",
     "capabilities": [
@@ -26,9 +26,9 @@
       "Interactive"
     ],
     "defaultPrompt": [
-      "/mlgs \u6211\u60f3\u5f00\u59cb\u4e00\u4e2a\u65b0\u7684 Unity \u6e38\u620f\uff0c\u4f4e\u53c2\u4e0e\u5ea6",
-      "/mlgs \u63a5\u7ba1 E:\\path\\to\\UnityProject",
-      "/mlgs \u770b\u770b\u5f53\u524d\u72b6\u6001\u5e76\u7ee7\u7eed\u4e0b\u4e00\u6b65"
+      "/mlgs 我想开始一个新的 Unity 游戏，低参与度",
+      "/mlgs 接管 E:\\path\\to\\UnityProject",
+      "/mlgs 把当前项目推进到 Vertical Slice 并补齐正式美术"
     ],
     "brandColor": "#2563EB",
     "screenshots": []

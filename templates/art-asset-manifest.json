@@ -1,0 +1,25 @@
+{
+  "$schema": "../../.mlgs/art-asset-manifest.schema.json",
+  "schemaVersion": "1.0",
+  "updated": "",
+  "assets": [
+    {
+      "id": "example-player-idle",
+      "kind": "sprite",
+      "usage": "Player idle presentation",
+      "requiredFor": "vertical-slice",
+      "sourceType": "generated",
+      "source": "provider/model or source file",
+      "license": "project-owned/generated",
+      "promptMetadata": "production/assets/prompts/example-player-idle.json",
+      "sourceFile": "Assets/Game/Art/Source/example-player-idle.png",
+      "outputPath": "Assets/Game/Art/Sprites/example-player-idle.png",
+      "status": "planned",
+      "placeholder": false,
+      "importRecipe": "production/assets/import-recipes/example-player-idle.json",
+      "references": [],
+      "evidence": []
+    }
+  ]
+}
+

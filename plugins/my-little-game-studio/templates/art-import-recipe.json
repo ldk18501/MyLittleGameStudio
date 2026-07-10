@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "assetId": "",
+  "texturePath": "Assets/",
+  "textureType": "Sprite",
+  "spriteMode": "Single",
+  "pixelsPerUnit": 100,
+  "pivot": [0.5, 0.5],
+  "border": [0, 0, 0, 0],
+  "meshType": "Tight",
+  "alphaIsTransparency": true,
+  "mipmaps": false,
+  "filterMode": "Bilinear",
+  "wrapMode": "Clamp",
+  "maxSize": 2048,
+  "compression": "Compressed",
+  "slicing": {
+    "mode": "none",
+    "cellSize": [0, 0],
+    "offset": [0, 0],
+    "padding": [0, 0],
+    "rects": []
+  },
+  "atlas": "",
+  "addressable": false,
+  "platformOverrides": []
+}
+

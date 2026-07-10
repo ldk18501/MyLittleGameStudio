@@ -1,0 +1,16 @@
+version: 0.1
+updated: ""
+tasks:
+  - id: TASK-001
+    title: ""
+    owner: producer
+    status: todo # todo | in-progress | blocked | review | done
+    estimate: "1d"
+    priority: medium # high | medium | low
+    dependencies: []
+    acceptance:
+      - ""
+    verification:
+      - ""
+    blocker: ""
+    notes: ""

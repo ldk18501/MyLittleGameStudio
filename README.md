@@ -17,8 +17,9 @@ Install the local Codex plugin from this repository root:
 
 ```powershell
 codex plugin marketplace add .
-codex plugin add my-little-game-studio@my-little-game-studio-local
 ```
+
+Then install **my-little-game-studio** from the Codex app plugin page. CLI builds that expose `codex plugin add` may instead run `codex plugin add my-little-game-studio@my-little-game-studio-local`; check `codex plugin --help` first because current desktop builds do not all expose the same subcommands.
 
 Open a new Codex thread and run:
 
@@ -58,6 +59,10 @@ Examples:
 | `/mlgs turn the current concept into a plan` | Systems, Unity tech plan, tasks, prototype policy |
 | `/mlgs build a small prototype for the core feel` | Build/evaluate a focused prototype or skip with risk |
 | `/mlgs implement the next task` | Implement an approved Unity/C# task |
+| `/mlgs generate and integrate the next final art assets` | Generate, process, slice/import, reference, and approve art in Unity |
+| `/mlgs move the game to Vertical Slice` | Enforce final-look, integration, architecture, performance, and art-pipeline evidence |
+| `/mlgs review Content Complete readiness` | Reject placeholders, unwired features, missing references, and production-code blockers |
+| `/mlgs prepare icon localization and crash checks` | Validate the MLGS-owned game-content release subset |
 | `/mlgs fix this compile error` | Diagnose and fix a bug, compile issue, or QA failure |
 | `/mlgs review whether this task is ready` | Review code, design, task, phase, build, or workflow |
 | `/mlgs run verification` | Run or define verification |
@@ -75,24 +80,26 @@ See `workflow/command-index.md` for the grouped intent index.
 - Unity Architect: Unity architecture, packages, scenes, build risk
 - Gameplay Developer: C# gameplay implementation
 - UI/UX Developer: HUD, runtime UI, input ergonomics
-- Technical Artist: shaders, VFX, generated art integration
+- Technical Artist: shaders, VFX, formal generated-art lifecycle, Unity import/slicing/references
 - QA Lead: verification, smoke checks, build readiness
 
 ## Project State
 
-The root `studio/state.yaml` is only a template.
+The root `studio/state.json` is only a validated template.
 
 Live project state belongs in:
 
 ```text
-<UnityProject>/.mlgs/state.yaml
+<UnityProject>/.mlgs/state.json
 ```
 
 The local pointer is:
 
 ```text
-studio/current-project.local.yaml
+$CODEX_HOME/mlgs/current-project.json
 ```
+
+Legacy `.mlgs/state.yaml` and `studio/current-project.local.yaml` remain readable until explicitly migrated.
 
 It is ignored by git.
 
@@ -101,9 +108,9 @@ It is ignored by git.
 MLGS records routed work in:
 
 ```text
-studio/logs/activity.jsonl
-studio/runtime.json
-dashboard/studio-data.js
+$CODEX_HOME/mlgs/logs/activity.jsonl
+$CODEX_HOME/mlgs/runtime.json
+$CODEX_HOME/mlgs/dashboard/studio-data.js
 ```
 
 Open:
@@ -127,6 +134,9 @@ powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -ProjectRoot E
 powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -Clear
 powershell -ExecutionPolicy Bypass -File tools/check-state.ps1
 powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
+powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement
+powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1
+powershell -ExecutionPolicy Bypass -File tools/migrate-state.ps1 -ProjectRoot E:/path/to/project
 ```
 
 ## Design Position

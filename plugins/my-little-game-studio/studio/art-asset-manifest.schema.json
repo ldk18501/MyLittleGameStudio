@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/art-asset-manifest.schema.json",
+  "title": "MLGS art asset manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updated", "assets"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "updated": { "type": "string" },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "usage", "requiredFor", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "references", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "minLength": 1 },
+          "usage": { "type": "string", "minLength": 1 },
+          "requiredFor": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
+          "sourceType": { "enum": ["generated", "original", "licensed", "commissioned", "derived"] },
+          "source": { "type": "string", "minLength": 1 },
+          "license": { "type": "string", "minLength": 1 },
+          "promptMetadata": { "type": "string" },
+          "sourceFile": { "type": "string", "minLength": 1 },
+          "outputPath": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved"] },
+          "placeholder": { "type": "boolean" },
+          "importRecipe": { "type": "string", "minLength": 1 },
+          "references": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    }
+  }
+}
+

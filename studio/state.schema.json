@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/state.schema.json",
+  "title": "MyLittleGameStudio project state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "updated",
+    "kind",
+    "activeProject",
+    "ownerParticipation",
+    "automation",
+    "phase",
+    "approvals",
+    "prototype",
+    "nextAction",
+    "assumptions",
+    "risks",
+    "staff"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "0.3" },
+    "updated": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["template", "project"] },
+    "activeProject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug", "mode", "workspacePath", "externalPath", "engine", "language", "engineVersion", "approvedWritePaths"],
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "mode": { "enum": ["none", "internal", "external-adopted", "embedded"] },
+        "workspacePath": { "type": "string" },
+        "externalPath": { "type": "string" },
+        "engine": { "const": "Unity" },
+        "language": { "const": "C#" },
+        "engineVersion": { "type": "string" },
+        "approvedWritePaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "ownerParticipation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "notes"],
+      "properties": {
+        "level": { "enum": ["low", "medium", "high"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planning", "production"],
+      "properties": {
+        "planning": { "enum": ["low", "medium", "high"] },
+        "production": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["current"],
+      "properties": {
+        "current": { "enum": ["not-started", "intake", "concept", "plan", "prototype", "vertical-slice", "production", "alpha", "beta", "release-candidate", "release"] }
+      }
+    },
+    "approvals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectSelected", "conceptPackage", "designTechPlan", "prototypeValidation", "productionUnblocked"],
+      "properties": {
+        "projectSelected": { "type": "boolean" },
+        "conceptPackage": { "type": "boolean" },
+        "designTechPlan": { "type": "boolean" },
+        "prototypeValidation": { "type": "boolean" },
+        "productionUnblocked": { "type": "boolean" }
+      }
+    },
+    "prototype": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "type", "verdict", "skipReason"],
+      "properties": {
+        "policy": { "enum": ["recommended", "required", "skipped-with-risk", "not-needed"] },
+        "type": { "type": "string" },
+        "verdict": { "enum": ["pending", "pass", "revise", "skipped"] },
+        "skipReason": { "type": "string" }
+      }
+    },
+    "nextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "reason", "options"],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "staff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lastLead", "lastAgents"],
+      "properties": {
+        "lastLead": { "type": "string" },
+        "lastAgents": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
