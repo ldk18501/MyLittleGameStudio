@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/game-profile.schema.json",
+  "title": "MLGS Unity game profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "displayName", "engine", "genres", "coreLoop", "releaseScopeRequirements", "requiredUiScreens", "onboardingBeats", "configurationSources", "artSets", "audioSets", "performanceBudgets", "unityChecks", "selectedAt", "projectOverrides"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "engine": { "const": "Unity" },
+    "genres": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "coreLoop": { "type": "array", "minItems": 3, "items": { "type": "string", "minLength": 1 } },
+    "releaseScopeRequirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "description", "minimumPlannedCount", "requiredFor"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["feature", "content", "tutorial", "ui-screen", "configuration", "audio", "art", "localization", "operations", "build"] },
+          "description": { "type": "string", "minLength": 1 },
+          "minimumPlannedCount": { "type": "integer", "minimum": 1 },
+          "requiredFor": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] }
+        }
+      }
+    },
+    "requiredUiScreens": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "onboardingBeats": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "configurationSources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "artSets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "audioSets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "performanceBudgets": { "type": "object" },
+    "unityChecks": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "selectedAt": { "type": "string" },
+    "projectOverrides": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+  }
+}

@@ -39,3 +39,9 @@ Review code, design, task readiness, phase readiness, build readiness, or studio
 ## Completion
 
 Findings are clear, prioritized, and actionable.
+## Dual-verdict review
+
+Task and phase reviews report two signals separately: the implementer/model declaration and objective evidence. Run work-package or quality-report objective checks before issuing findings. Any disagreement, skipped command check, missing evidence, parser error, or exhausted attempt budget is blocking. Art reviews are led by the Art Director and validated fail-closed.
+## Contract review
+
+Design and product reviews include three machine checks: `validate-game-profile-coverage.ps1`, `test-design-baseline.ps1`, and `validate-ui-screen-contract.ps1`. Report the exact profile minimum, changed design source, affected scope/work, or missing UI state rather than a general completeness opinion.

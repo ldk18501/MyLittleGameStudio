@@ -9,7 +9,7 @@ $generateArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Pat
 if ($Check) { $generateArgs += "-Check" }
 & powershell @generateArgs | Out-Null
 
-$mirrorDirs = @("agents", "commands", "workflow", "rules", "templates", "tools")
+$mirrorDirs = @("agents", "commands", "workflow", "rules", "templates", "tools", "profiles")
 $files = @([pscustomobject]@{ source = Join-Path $Root "AGENTS.md"; relative = "AGENTS.md" })
 foreach ($dir in $mirrorDirs) {
   foreach ($file in Get-ChildItem -LiteralPath (Join-Path $Root $dir) -Recurse -File) {
@@ -17,7 +17,7 @@ foreach ($dir in $mirrorDirs) {
     $files += [pscustomobject]@{ source = $file.FullName; relative = ($dir + "/" + $relativeWithin.Replace("\", "/")) }
   }
 }
-foreach ($relative in @("dashboard/index.html", "studio/config.md", "studio/state.json", "studio/state.schema.json", "studio/art-asset-manifest.schema.json", "studio/quality-gate.schema.json", "studio/pointer.schema.json", "studio/trace.schema.json", "studio/runtime.example.json", "studio/image-generation.config.example.json", "studio/current-project.example.json")) {
+foreach ($relative in @("dashboard/index.html", "studio/config.md", "studio/state.json", "studio/state.schema.json", "studio/art-asset-manifest.schema.json", "studio/art-review.schema.json", "studio/visual-target.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/ui-screen-contract.schema.json", "studio/design-baseline.schema.json", "studio/change-impact.schema.json", "studio/capability-manifest.schema.json", "studio/execution-strategy.schema.json", "studio/quality-gate.schema.json", "studio/pointer.schema.json", "studio/trace.schema.json", "studio/runtime.example.json", "studio/image-generation.config.example.json", "studio/current-project.example.json")) {
   $files += [pscustomobject]@{ source = Join-Path $Root $relative; relative = $relative }
 }
 

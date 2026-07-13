@@ -48,6 +48,7 @@ if ($resolved.mode -eq "template" -or $null -eq $detection) {
     active_project = $null
     approvals = $null
     prototype = $null
+    productization = $null
     artifacts = [pscustomobject]@{}
     gates = $null
     gaps = @("No active project is configured.")
@@ -67,6 +68,45 @@ if ($resolved.mode -eq "template" -or $null -eq $detection) {
 }
 
 $gate = $detection.gates
+$productization = [ordered]@{
+  target_version = ""
+  release_scope_items = 0
+  scope_by_type = [pscustomobject]@{}
+  scope_by_status = [pscustomobject]@{}
+  planned_count = 0
+  implemented_count = 0
+  verified_count = 0
+  scope_count_gap = 0
+  visual_targets_total = 0
+  visual_targets_approved = 0
+}
+$scopePath = Join-Path $resolved.project_root "production/scope/release-scope.json"
+if (Test-Path $scopePath) {
+  try {
+    $scope = Get-Content -LiteralPath $scopePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $productization.target_version = [string]$scope.targetVersion
+    $items = @($scope.items)
+    $productization.release_scope_items = $items.Count
+    $typeCounts = [ordered]@{}
+    foreach ($group in @($items | Group-Object type)) { $typeCounts[$group.Name] = $group.Count }
+    $statusCounts = [ordered]@{}
+    foreach ($group in @($items | Group-Object status)) { $statusCounts[$group.Name] = $group.Count }
+    $productization.scope_by_type = [pscustomobject]$typeCounts
+    $productization.scope_by_status = [pscustomobject]$statusCounts
+    $productization.planned_count = [int](($items | Measure-Object plannedCount -Sum).Sum)
+    $productization.implemented_count = [int](($items | Measure-Object implementedCount -Sum).Sum)
+    $productization.verified_count = [int](($items | Measure-Object verifiedCount -Sum).Sum)
+    $productization.scope_count_gap = [Math]::Max(0, $productization.planned_count - $productization.verified_count)
+  } catch { }
+}
+$visualTargetPath = Join-Path $resolved.project_root "design/art/visual-target.json"
+if (Test-Path $visualTargetPath) {
+  try {
+    $visualTarget = Get-Content -LiteralPath $visualTargetPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $productization.visual_targets_total = @($visualTarget.targets).Count
+    $productization.visual_targets_approved = @($visualTarget.targets | Where-Object { [bool]$_.approved }).Count
+  } catch { }
+}
 $keys = @("A", "B", "C", "D")
 $nextOptions = @()
 for ($i = 0; $i -lt @($gate.options).Count; $i++) {
@@ -91,6 +131,7 @@ for ($i = 0; $i -lt @($gate.options).Count; $i++) {
   }
   approvals = $state.approvals
   prototype = $state.prototype
+  productization = [pscustomobject]$productization
   artifacts = $detection.artifacts
   gates = $gate.gates
   counts = $detection.counts

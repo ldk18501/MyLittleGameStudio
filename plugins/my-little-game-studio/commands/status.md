@@ -43,6 +43,8 @@ Producer
    - prototype policy/verdict
    - observed productization stage and the earliest incomplete quality gate
    - art manifest totals, placeholders, and assets below the required lifecycle status when available
+   - target product version and release-scope totals by type/status, including planned-vs-implemented-vs-verified count gaps
+   - visual-target approval/linkage gaps, onboarding gaps, and configuration/data-source gaps
    - quality report blockers and evidence gaps
    - latest staff activity
    - completed artifacts

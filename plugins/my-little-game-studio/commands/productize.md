@@ -34,23 +34,32 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
    ```
 
 4. Convert every failed or missing check into a bounded task with acceptance criteria and evidence path.
-5. For production code, read `rules/production-code.md`; run `tools/test-production-code.ps1` and attach the report at Content Complete or earlier.
-6. For art, run the formal `generate-art` route and validate the required manifest scope.
-7. Complete the stage definition:
+5. Validate the explicit release scope with `tools/validate-release-scope.ps1`; never infer completeness from implemented files alone. Missing planned counts, tutorial beats, UI screens, configuration sources, audio, or art are blockers.
+6. For production code, read `rules/production-code.md`; run `tools/test-production-code.ps1` and attach the report at Content Complete or earlier.
+7. For art, run the formal `generate-art` route and validate both visual-target linkage and the required manifest scope.
+8. Complete the stage definition:
    - Vertical Slice: one representative final-quality player journey, final-look target, production architecture, performance budget, and asset pipeline all proven together.
-   - Content Complete: all release-scope features and content exist; placeholders, unfinished flows, temporary code, and missing references are removed.
-   - Alpha: full playthrough works; blockers are fixed; performance, localization integrity, missing references, and crash-free smoke are verified.
+   - Content Complete: every enumerated release-scope feature, planned content quantity, tutorial beat, UI screen, production configuration, audio set, and formal art item is integrated; placeholders, unfinished flows, temporary code, and missing references are removed.
+   - Alpha: a new player can complete the first-session journey without developer guidance; all release-scope items are verified; blockers are fixed; performance, localization integrity, missing references, and crash-free smoke are verified.
    - Beta: target-device regression passes; icon, localization, crash/error check, and known-issues review are complete.
-8. Put concrete evidence on every required check, keep `blockers` empty, set `ownerApproval: true` only after the owner approves the major gate, then validate:
+9. Put existing project-relative evidence files on every required check, keep `blockers` empty, set `ownerApproval: true` only after the owner approves the major gate, then validate:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-quality-gate.ps1 -ProjectRoot <UnityProject> -Stage <stage>
    ```
 
-9. Update state phase from the unified gate evaluator, not from intention.
-10. Record trace and the next incomplete check.
+10. Update state phase from the unified gate evaluator, not from intention or a version string.
+11. Record trace and the next incomplete check.
 
 ## Completion
 
 The current productization gate passes with evidence, or its blockers are converted into actionable tasks.
+## Objective gate enforcement
 
+For each failed stage check, create or update a bounded work package. Before a quality report can pass, set its declared verdict, run `tools/run-objective-checks.ps1` over the report, and require both `declaredVerdict: pass` and `objectiveVerdict: pass`. Formal art additionally requires fail-closed Art Director and QA review records.
+## Profile, baseline, and UI enforcement
+
+At every product gate, validate profile coverage, the frozen design baseline, and the UI screen contract before evaluating content quantity or polish. Profile minimums cannot be waived by calling a smaller result ?1.0?. A stale baseline invalidates mapped stages; an unlisted, placeholder, target-unlinked, or demo-only UI screen is incomplete.
+## Capability readiness gate
+
+Product gates derive required capabilities from the stage-scoped asset manifest. Every required provider must be `ready` with evidence; Unity validation and visual comparison must explicitly support verification. Missing capability readiness is a production blocker, not permission to ship placeholders or waive formal review.

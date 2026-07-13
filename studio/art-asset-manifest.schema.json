@@ -4,22 +4,24 @@
   "title": "MLGS art asset manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "updated", "assets"],
+  "required": ["schemaVersion", "updated", "visualTargetPath", "assets"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.2" },
     "updated": { "type": "string" },
+    "visualTargetPath": { "type": "string", "minLength": 1 },
     "assets": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "usage", "requiredFor", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "references", "evidence"],
+        "required": ["id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "references", "evidence", "reviewPath"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "kind": { "type": "string", "minLength": 1 },
           "usage": { "type": "string", "minLength": 1 },
           "requiredFor": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
+          "visualTargets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
           "sourceType": { "enum": ["generated", "original", "licensed", "commissioned", "derived"] },
           "source": { "type": "string", "minLength": 1 },
           "license": { "type": "string", "minLength": 1 },
@@ -30,10 +32,10 @@
           "placeholder": { "type": "boolean" },
           "importRecipe": { "type": "string", "minLength": 1 },
           "references": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
-          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "reviewPath": { "type": "string" }
         }
       }
     }
   }
 }
-

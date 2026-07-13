@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/change-impact.schema.json",
+  "title": "MLGS design change impact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "baselineVersion", "verdict", "checkedAt", "changedSources", "affectedScopeIds", "affectedAssetIds", "affectedWorkPackageIds", "invalidatedStages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "baselineVersion": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["current", "stale", "error"] },
+    "checkedAt": { "type": "string", "minLength": 1 },
+    "changedSources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "affectedScopeIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "affectedAssetIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "affectedWorkPackageIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "invalidatedStages": { "type": "array", "items": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] }, "uniqueItems": true }
+  }
+}

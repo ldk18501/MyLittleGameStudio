@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/capability-manifest.schema.json",
+  "title": "MLGS production capability manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updated", "capabilities"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "updated": { "type": "string", "minLength": 1 },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "provider", "status", "source", "cost", "credentialSource", "supportsVerification", "outputs", "constraints", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["image-generation", "sprite-processing", "mesh-production", "animation-production", "audio-production", "video-production", "unity-import", "unity-validation", "visual-comparison"] },
+          "provider": { "type": "string" },
+          "status": { "enum": ["ready", "manual", "missing", "blocked"] },
+          "source": { "enum": ["detected", "manual"] },
+          "cost": { "enum": ["free", "paid", "mixed", "unknown"] },
+          "credentialSource": { "type": "string" },
+          "supportsVerification": { "type": "boolean" },
+          "outputs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "constraints": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    }
+  }
+}

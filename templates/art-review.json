@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../.mlgs/art-review.schema.json",
+  "schemaVersion": "1.0",
+  "assetId": "replace-me",
+  "visualTargetIds": ["VT-001"],
+  "targetImages": [],
+  "candidateSource": "",
+  "processedAsset": "",
+  "unityReferences": [],
+  "inGameScreenshots": [],
+  "scores": { "targetMatch": 0, "composition": 0, "palette": 0, "value": 0, "material": 0, "detail": 0, "readability": 0 },
+  "automatedVerdict": "pending",
+  "artDirectorVerdict": "pending",
+  "qaVerdict": "pending",
+  "finalVerdict": "pending",
+  "attempt": 1,
+  "maxAttempts": 3,
+  "blockers": [],
+  "notes": "",
+  "updated": ""
+}

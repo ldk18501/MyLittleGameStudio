@@ -1,0 +1,33 @@
+{
+  "$schema": "../../.mlgs/work-package.schema.json",
+  "schemaVersion": "1.0",
+  "id": "replace-me",
+  "title": "Replace me",
+  "objective": "Describe one verifiable production outcome.",
+  "scopeIds": [],
+  "nonGoals": [],
+  "owner": "gameplay-developer",
+  "support": ["qa-lead"],
+  "dependencies": [],
+  "strategy": "direct",
+  "executionPlanPath": "",
+  "status": "ready",
+  "successCriteria": [
+    {
+      "id": "criterion-1",
+      "statement": "The production artifact exists and is verified.",
+      "evidence": [],
+      "objectiveVerdict": "pending",
+      "objectiveChecks": [
+        { "id": "artifact-exists", "kind": "file-exists", "path": "", "contains": "", "command": "", "status": "pending", "detail": "" }
+      ]
+    }
+  ],
+  "budget": { "maxAttempts": 3, "currentAttempt": 0 },
+  "attempts": [],
+  "declaredVerdict": "pending",
+  "objectiveVerdict": "pending",
+  "gaps": [],
+  "blockers": [],
+  "updated": ""
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../.mlgs/visual-target.schema.json",
+  "schemaVersion": "1.0",
+  "updated": "",
+  "targets": [
+    {
+      "id": "VT-001",
+      "usage": "Representative final gameplay view",
+      "imagePath": "design/art/targets/final-gameplay-target.png",
+      "source": "owner-approved concept image or MLGS-generated target",
+      "approved": false,
+      "nonNegotiables": ["Replace with concrete composition, palette, material, UI, and detail rules"],
+      "forbidden": ["Prototype HTML styling", "generic solid-color placeholder panels"],
+      "targetResolution": "target device resolution"
+    }
+  ]
+}

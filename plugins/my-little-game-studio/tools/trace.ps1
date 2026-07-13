@@ -49,6 +49,7 @@ function New-AgentRoster {
   return @(
     [pscustomobject]@{ id = "producer"; name = "Producer"; role = "Production, scope, risk, task flow"; status = "idle"; lastEvent = ""; currentTask = "" },
     [pscustomobject]@{ id = "creative-director"; name = "Creative Director"; role = "Vision, pillars, references, scope focus"; status = "idle"; lastEvent = ""; currentTask = "" },
+    [pscustomobject]@{ id = "art-director"; name = "Art Director"; role = "Visual target, style consistency, final visual approval"; status = "idle"; lastEvent = ""; currentTask = "" },
     [pscustomobject]@{ id = "game-designer"; name = "Game Designer"; role = "Systems, rules, tuning, acceptance"; status = "idle"; lastEvent = ""; currentTask = "" },
     [pscustomobject]@{ id = "unity-architect"; name = "Unity Architect"; role = "Unity architecture, packages, build risk"; status = "idle"; lastEvent = ""; currentTask = "" },
     [pscustomobject]@{ id = "gameplay-developer"; name = "Gameplay Developer"; role = "Focused Unity/C# gameplay tasks"; status = "idle"; lastEvent = ""; currentTask = "" },

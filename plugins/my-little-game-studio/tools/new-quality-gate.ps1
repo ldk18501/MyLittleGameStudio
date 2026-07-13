@@ -9,6 +9,8 @@ if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Pat
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
 $ProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
+$initArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/init-production-pipeline.ps1"), "-Root", $Root, "-ProjectRoot", $ProjectRoot)
+& powershell @initArgs | Out-Null
 $catalog = Get-Content -LiteralPath (Join-Path $Root "workflow/catalog.json") -Raw -Encoding UTF8 | ConvertFrom-Json
 $definition = $null
 foreach ($gateProperty in $catalog.gates.PSObject.Properties) {
@@ -28,13 +30,15 @@ $reportPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -Relativ
 if ((Test-Path $reportPath) -and -not $Force) { throw "Quality report already exists: $reportPath" }
 $checks = @()
 foreach ($id in @($definition.requiredChecks)) {
-  $checks += [ordered]@{ id = [string]$id; status = "pending"; evidence = @(); notes = "" }
+  $checks += [ordered]@{ id = [string]$id; status = "pending"; objectiveVerdict = "pending"; evidence = @(); objectiveChecks = @([ordered]@{ id = "evidence-exists"; kind = "file-exists"; path = ""; contains = ""; command = ""; status = "pending"; detail = "" }); notes = "" }
 }
 $report = [ordered]@{
   '$schema' = "../../.mlgs/quality-gate.schema.json"
-  schemaVersion = "1.0"
+  schemaVersion = "1.1"
   stage = $Stage
   verdict = "pending"
+  declaredVerdict = "pending"
+  objectiveVerdict = "pending"
   ownerApproval = $false
   updated = (Get-Date).ToString("o")
   checks = $checks
@@ -81,4 +85,3 @@ switch ($Stage) {
 }
 
 [pscustomobject]@{ created = $true; stage = $Stage; report_path = $reportPath; required_checks = @($definition.requiredChecks) } | ConvertTo-Json -Depth 8
-

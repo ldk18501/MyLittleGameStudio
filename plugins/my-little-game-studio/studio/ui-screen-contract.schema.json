@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/ui-screen-contract.schema.json",
+  "title": "MLGS UI screen inventory and contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "profileId", "updated", "screens"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "profileId": { "type": "string" },
+    "updated": { "type": "string", "minLength": 1 },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "scopeId", "purpose", "visualTargetIds", "prefabOrDocument", "states", "controls", "artAssetIds", "audioIds", "status", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "scopeId": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "visualTargetIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "prefabOrDocument": { "type": "string" },
+          "states": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "controls": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "artAssetIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "audioIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "status": { "enum": ["planned", "specified", "implemented", "integrated", "approved"] },
+          "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    }
+  }
+}

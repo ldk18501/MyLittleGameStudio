@@ -1,0 +1,151 @@
+﻿{
+    "$schema":  "../../studio/game-profile.schema.json",
+    "schemaVersion":  "1.0",
+    "id":  "action-roguelite",
+    "displayName":  "Action Roguelite",
+    "engine":  "Unity",
+    "genres":  [
+                   "action",
+                   "roguelite"
+               ],
+    "coreLoop":  [
+                     "Fight enemies",
+                     "Choose upgrades",
+                     "Clear rooms",
+                     "Defeat boss",
+                     "Unlock meta progression"
+                 ],
+    "releaseScopeRequirements":  [
+                                     {
+                                         "id":  "vertical-content",
+                                         "type":  "content",
+                                         "description":  "Representative final-quality vertical-slice content",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "enemy-roster",
+                                         "type":  "content",
+                                         "description":  "Enemy archetypes with readable attacks and rewards",
+                                         "minimumPlannedCount":  8,
+                                         "requiredFor":  "content-complete"
+                                     },
+                                     {
+                                         "id":  "upgrade-pool",
+                                         "type":  "content",
+                                         "description":  "Distinct upgrade choices with feedback and tuning",
+                                         "minimumPlannedCount":  24,
+                                         "requiredFor":  "content-complete"
+                                     },
+                                     {
+                                         "id":  "combat-loop",
+                                         "type":  "feature",
+                                         "description":  "Combat, rooms, rewards, fail/restart, and meta loop",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "tutorial-first-session",
+                                         "type":  "tutorial",
+                                         "description":  "First-session guided journey",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "ui-production",
+                                         "type":  "ui-screen",
+                                         "description":  "Complete production UI inventory",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "config-production",
+                                         "type":  "configuration",
+                                         "description":  "Designer-editable production configuration",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "art-production",
+                                         "type":  "art",
+                                         "description":  "Formal in-game approved art sets",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "audio-production",
+                                         "type":  "audio",
+                                         "description":  "Music, SFX, and feedback audio sets",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "operations-readiness",
+                                         "type":  "operations",
+                                         "description":  "Game-side operations and publishing handoffs",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "release-candidate"
+                                     },
+                                     {
+                                         "id":  "release-build",
+                                         "type":  "build",
+                                         "description":  "Verified target-platform release build",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "release"
+                                     }
+                                 ],
+    "requiredUiScreens":  [
+                              "main-menu",
+                              "combat-hud",
+                              "upgrade-choice",
+                              "pause",
+                              "meta-progression",
+                              "settings",
+                              "results"
+                          ],
+    "onboardingBeats":  [
+                            "Move and aim",
+                            "First attack",
+                            "Take damage and recover",
+                            "Choose first upgrade",
+                            "First failure and restart"
+                        ],
+    "configurationSources":  [
+                                 "player-stats",
+                                 "enemies",
+                                 "spawns",
+                                 "upgrades",
+                                 "difficulty",
+                                 "localization"
+                             ],
+    "artSets":  [
+                    "player",
+                    "enemies",
+                    "environments",
+                    "combat-ui",
+                    "meta-ui",
+                    "vfx"
+                ],
+    "audioSets":  [
+                      "music",
+                      "ui-sfx",
+                      "weapons-sfx",
+                      "enemy-sfx",
+                      "impact-sfx"
+                  ],
+    "performanceBudgets":  {
+                               "targetFps":  60,
+                               "maxFrameMs":  16.67,
+                               "maxMemoryMb":  1024
+                           },
+    "unityChecks":  [
+                        "Unity compile passes",
+                        "Combat readability review passes",
+                        "No missing references",
+                        "Target-device performance smoke passes"
+                    ],
+    "selectedAt":  "",
+    "projectOverrides":  [
+
+                         ]
+}

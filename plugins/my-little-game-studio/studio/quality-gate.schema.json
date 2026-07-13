@@ -4,12 +4,14 @@
   "title": "MLGS product quality gate report",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "stage", "verdict", "ownerApproval", "updated", "checks", "blockers", "acceptedRisks", "notes"],
+  "required": ["schemaVersion", "stage", "verdict", "declaredVerdict", "objectiveVerdict", "ownerApproval", "updated", "checks", "blockers", "acceptedRisks", "notes"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "stage": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
     "verdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "declaredVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "objectiveVerdict": { "enum": ["pending", "pass", "fail", "blocked", "unknown"] },
     "ownerApproval": { "type": "boolean" },
     "updated": { "type": "string", "minLength": 1 },
     "checks": {
@@ -17,11 +19,30 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "status", "evidence", "notes"],
+        "required": ["id", "status", "objectiveVerdict", "evidence", "objectiveChecks", "notes"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "status": { "enum": ["pending", "pass", "fail"] },
+          "objectiveVerdict": { "enum": ["pending", "pass", "fail", "unknown"] },
           "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "objectiveChecks": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "kind", "path", "contains", "command", "status", "detail"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "kind": { "enum": ["file-exists", "file-contains", "command"] },
+                "path": { "type": "string" },
+                "contains": { "type": "string" },
+                "command": { "type": "string" },
+                "status": { "enum": ["pending", "pass", "fail", "skipped"] },
+                "detail": { "type": "string" }
+              }
+            }
+          },
           "notes": { "type": "string" }
         }
       }

@@ -1,13 +1,15 @@
 {
   "$schema": "../../.mlgs/art-asset-manifest.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.2",
   "updated": "",
+  "visualTargetPath": "design/art/visual-target.json",
   "assets": [
     {
       "id": "example-player-idle",
       "kind": "sprite",
       "usage": "Player idle presentation",
       "requiredFor": "vertical-slice",
+      "visualTargets": ["VT-001"],
       "sourceType": "generated",
       "source": "provider/model or source file",
       "license": "project-owned/generated",
@@ -18,8 +20,8 @@
       "placeholder": false,
       "importRecipe": "production/assets/import-recipes/example-player-idle.json",
       "references": [],
-      "evidence": []
+      "evidence": [],
+      "reviewPath": "production/assets/reviews/example-player-idle.json"
     }
   ]
 }
-

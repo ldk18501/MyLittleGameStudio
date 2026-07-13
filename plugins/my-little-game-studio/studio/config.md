@@ -42,6 +42,8 @@
 
 ## Productization Strategy
 
+Product versions do not advance phases. `0.1.x` is a prototype/pre-release label. A game may be called `1.0.0` or later only after the Release gate passes against an explicit `production/scope/release-scope.json`; all required scope items must be verified, all formal art approved against the visual targets, and no release-scope placeholders may remain.
+
 Production can start when either:
 
 1. concept and plan are approved, and prototype passed; or
@@ -57,5 +59,9 @@ After production unlock, projects progress through enforced milestones:
 
 Quality gates parse structured JSON evidence and, when applicable, the art asset manifest. File presence alone never passes these milestones.
 
-MLGS release scope includes application icon, localization, crash/error checks, and final build evidence. Store operations, legal, monetization, analytics, deployment, and marketing belong to external tools.
+The release scope is enumerated before production and must cover features, content quantities, onboarding/tutorial beats, UI screens, configuration/data sources, audio, art, localization, operations readiness, and builds. “All content” always means all items in that approved manifest, not all items the implementation happened to create.
+
+The approved visual target is the production reference. HTML prototypes prove interaction hypotheses only; their colors, panels, buttons, and layout are not art direction and must not be carried into Vertical Slice unless the visual target explicitly approves them.
+
+MLGS release scope includes the game-side implementation and evidence needed for monetization, analytics/consent, remote configuration or LiveOps, service failure behavior, application icon, localization, crash/error checks, and final builds when they apply. Store-console accounts, legal/rating submissions, hosting deployment, and marketing execution may use external owners/tools, but the handoff, required game artifacts, and blocker status must be explicit in `production/release/operations-readiness.md`.
 

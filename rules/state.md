@@ -39,6 +39,10 @@ If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1
 - A prototype gate requires both plan and playtest report, or an approved `skipped-with-risk` state with a reason.
 - Vertical Slice and later gates require a structured `production/quality/<stage>.json` report with `verdict: pass`, owner approval, no blockers, passing required checks, and evidence for every check.
 - Art-related gates also validate `production/assets/asset-manifest.json`; required assets must reach the configured lifecycle status, exist on disk, have import recipes and Unity references, and have in-game evidence.
+- Plan and productization gates validate `production/scope/release-scope.json`. It is the explicit completeness set for features, content quantities, tutorials, UI screens, configuration, audio, art, localization, operations readiness, and builds.
+- Formal art entries must link to approved IDs in `design/art/visual-target.json`; Unity references and in-game evidence must be existing project-relative files.
+- Quality-check evidence must be existing project-relative files. Labels such as `manual:passed` or unresolvable prose are not gate evidence.
+- Version strings never advance state. `0.x` is prototype/pre-release; `1.0.0+` requires the final Release gate and a fully verified release scope.
 - Gate evaluation is evidence-driven. Never advance a phase merely because a report file exists or because implementation subjectively looks complete.
 
 ## Write Safety

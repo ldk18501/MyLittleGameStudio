@@ -30,6 +30,20 @@
 |---|---:|---:|---|---|
 |  |  |  |  |  |
 
+## Release content inventory
+
+| Scope ID | Content type | Named items / planned count | Vertical Slice subset | Configuration source | Acceptance evidence |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+
+## Onboarding coverage
+
+- Teach beat:
+- Practice beat:
+- Verify beat:
+- Failure/recovery beat:
+- Player-journey step:
+
 ## 边界情况
 
 - 如果 [条件]，则 [结果]。
@@ -49,6 +63,7 @@
 ## Unity 记录
 
 - 数据需求：
+- Production configuration ID/path：
 - 运行时组件：
 - 性能关注：
 

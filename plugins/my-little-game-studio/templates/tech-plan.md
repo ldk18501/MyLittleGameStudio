@@ -53,6 +53,14 @@
 - Save version/migration/failure：
 - Localization source and runtime binding：
 
+## Production configuration inventory
+
+| Config ID | Source asset/table | Runtime consumer | Schema/range/reference validation | Failure path | Scope ID |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+
+- Prototype constants migration/removal plan:
+
 ## 场景与 Prefab 策略
 
 - Scenes：

@@ -1,0 +1,12 @@
+﻿{
+    "$schema":  "../../.mlgs/release-scope.schema.json",
+    "schemaVersion":  "1.1",
+    "targetVersion":  "1.0.0",
+    "releaseDefinition":  "A complete, fully integrated, formally arted, tutorialized, data-driven, verified game build within the explicitly enumerated release scope.",
+    "updated":  "",
+    "items":  [
+
+              ],
+    "profileId":  "",
+    "designBaselineVersion":  ""
+}

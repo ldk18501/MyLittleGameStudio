@@ -24,6 +24,7 @@ Creative Director
 - existing `design/references.md`
 - existing `design/reference-analysis.md`
 - existing `design/concept-package.md`
+- existing `design/art/visual-target.json`
 - user-provided references, links, files, or idea text
 
 ## Write
@@ -31,6 +32,7 @@ Creative Director
 - project `design/references.md` when references exist
 - project `design/reference-analysis.md` when references need synthesis
 - project `design/concept-package.md`
+- project `design/art/visual-target.json` and at least one target image under `design/art/targets/`
 - project `.mlgs/state.json`
 
 ## Flow
@@ -54,11 +56,12 @@ Creative Director
    - visual direction
    - Unity feasibility notes
    - risks and assumptions
-6. Under low participation, write a reasonable draft and mark approval pending.
-7. Under medium participation, write the draft and ask for approve/revise.
-8. Under high participation, show 2-4 direction options before finalizing major creative choices.
-9. Set next action to `/mlgs 把当前概念拆成开发计划` when the concept is ready enough.
-10. Record trace.
+6. Creative Director and Technical Artist convert the visual direction into at least one representative final-gameplay target image. Record the image, source, target resolution, non-negotiable visual rules, forbidden prototype treatments, and owner approval in `design/art/visual-target.json`. A mood board or HTML prototype alone is not a visual target.
+7. Under low participation, write a reasonable draft and mark approval pending.
+8. Under medium participation, write the draft and ask for approve/revise.
+9. Under high participation, show 2-4 direction options before finalizing major creative choices.
+10. Set next action to planning only after the concept and visual target are ready for approval.
+11. Record trace.
 
 ## Completion
 

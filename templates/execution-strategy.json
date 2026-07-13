@@ -1,0 +1,22 @@
+{
+  "$schema": "../../.mlgs/execution-strategy.schema.json",
+  "schemaVersion": "1.0",
+  "id": "replace-me",
+  "workPackageId": "replace-me",
+  "strategy": "direct",
+  "reason": "Explain why this strategy matches the risk.",
+  "groups": [
+    {
+      "id": "delivery",
+      "role": "gameplay-developer",
+      "objective": "Deliver the bounded work-package objective.",
+      "inputs": [],
+      "outputs": []
+    }
+  ],
+  "synthesisOwner": "producer",
+  "maxParallel": 1,
+  "maxRounds": 1,
+  "stopCondition": "Both declared and objective verdicts pass.",
+  "updated": ""
+}

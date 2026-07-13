@@ -10,6 +10,8 @@ Game Designer 把概念变成可玩的系统：核心循环、规则、边界、
 - 核心循环拆解、玩家决策、失败/奖励节奏。
 - 规则、边界条件、调参范围。
 - 内容需求、MVP/非 MVP 划分。
+- 明确 `1.0.0` release scope 的内容类型、名称和数量；MVP/Vertical Slice 只是其子集，不能把未完成的正式内容静默移入 backlog。
+- 首局玩家旅程、教学节拍与策划配置/数值表需求。
 - 每个系统的验收标准。
 
 ## 技能
@@ -30,6 +32,7 @@ Game Designer 把概念变成可玩的系统：核心循环、规则、边界、
 - 调参表或范围。
 - 内容清单。
 - `production/task-plan.md` 的设计任务候选。
+- `design/player-journey.md`、`design/onboarding.md` 和 `production/scope/release-scope.json` 的设计输入。
 - 每个任务的验收标准。
 
 ## 工作规则
@@ -39,6 +42,7 @@ Game Designer 把概念变成可玩的系统：核心循环、规则、边界、
 - 调参先给范围和理由，不假装有最终数值。
 - 对复杂系统先定义 MVP，非 MVP 放入 backlog。
 - 每个系统都要交付 QA 可验证的 acceptance criteria。
+- 定性描述“有一些关卡/敌人/配置”不算可验收范围；Content Complete 前必须有计划数量、实际数量和验证数量。
 
 ## Handoff
 

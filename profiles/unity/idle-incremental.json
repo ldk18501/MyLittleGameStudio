@@ -1,0 +1,148 @@
+﻿{
+    "$schema":  "../../studio/game-profile.schema.json",
+    "schemaVersion":  "1.0",
+    "id":  "idle-incremental",
+    "displayName":  "Idle / Incremental",
+    "engine":  "Unity",
+    "genres":  [
+                   "idle",
+                   "incremental"
+               ],
+    "coreLoop":  [
+                     "Generate resources",
+                     "Purchase upgrades",
+                     "Automate production",
+                     "Unlock tiers",
+                     "Return for offline rewards"
+                 ],
+    "releaseScopeRequirements":  [
+                                     {
+                                         "id":  "vertical-content",
+                                         "type":  "content",
+                                         "description":  "Representative final-quality vertical-slice content",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "generator-tiers",
+                                         "type":  "content",
+                                         "description":  "Generator and upgrade tiers with production presentation",
+                                         "minimumPlannedCount":  20,
+                                         "requiredFor":  "content-complete"
+                                     },
+                                     {
+                                         "id":  "economy-progression",
+                                         "type":  "feature",
+                                         "description":  "Economy, offline progress, prestige, and recovery",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "live-balancing",
+                                         "type":  "configuration",
+                                         "description":  "Economy curves and remote-config-ready values",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "alpha"
+                                     },
+                                     {
+                                         "id":  "tutorial-first-session",
+                                         "type":  "tutorial",
+                                         "description":  "First-session guided journey",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "ui-production",
+                                         "type":  "ui-screen",
+                                         "description":  "Complete production UI inventory",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "config-production",
+                                         "type":  "configuration",
+                                         "description":  "Designer-editable production configuration",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "art-production",
+                                         "type":  "art",
+                                         "description":  "Formal in-game approved art sets",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "audio-production",
+                                         "type":  "audio",
+                                         "description":  "Music, SFX, and feedback audio sets",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "vertical-slice"
+                                     },
+                                     {
+                                         "id":  "operations-readiness",
+                                         "type":  "operations",
+                                         "description":  "Game-side operations and publishing handoffs",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "release-candidate"
+                                     },
+                                     {
+                                         "id":  "release-build",
+                                         "type":  "build",
+                                         "description":  "Verified target-platform release build",
+                                         "minimumPlannedCount":  1,
+                                         "requiredFor":  "release"
+                                     }
+                                 ],
+    "requiredUiScreens":  [
+                              "main-menu",
+                              "production-hud",
+                              "upgrade-shop",
+                              "prestige",
+                              "offline-reward",
+                              "settings"
+                          ],
+    "onboardingBeats":  [
+                            "Collect first resource",
+                            "Buy first upgrade",
+                            "Unlock automation",
+                            "Receive offline reward",
+                            "Explain prestige"
+                        ],
+    "configurationSources":  [
+                                 "economy-curves",
+                                 "generators",
+                                 "upgrades",
+                                 "offline-progress",
+                                 "localization"
+                             ],
+    "artSets":  [
+                    "machines",
+                    "resources",
+                    "environments",
+                    "hud",
+                    "upgrade-icons",
+                    "vfx"
+                ],
+    "audioSets":  [
+                      "music",
+                      "ui-sfx",
+                      "production-sfx",
+                      "reward-sfx"
+                  ],
+    "performanceBudgets":  {
+                               "targetFps":  60,
+                               "maxFrameMs":  16.67,
+                               "maxMemoryMb":  768
+                           },
+    "unityChecks":  [
+                        "Unity compile passes",
+                        "Offline progress is deterministic",
+                        "Save migration passes",
+                        "Target-device smoke passes"
+                    ],
+    "selectedAt":  "",
+    "projectOverrides":  [
+
+                         ]
+}

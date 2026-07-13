@@ -16,9 +16,8 @@ else {
   if ($skill -notmatch '(?s)^---\s*\r?\nname:\s*mlgs\s*\r?\ndescription:\s*.+?\r?\n---') { $errors += "Public skill frontmatter is invalid." }
   if ($skill -match '\[TODO:') { $errors += "Public skill contains TODO placeholders." }
 }
-foreach ($relative in @("AGENTS.md", "workflow/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "studio/state.json", "studio/state.schema.json", "dashboard/index.html")) {
+foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/init-production-pipeline.ps1", "tools/get-production-capabilities.ps1", "tools/test-production-capabilities.ps1", "tools/new-execution-strategy.ps1", "tools/select-game-profile.ps1", "tools/validate-game-profile-coverage.ps1", "tools/freeze-design-baseline.ps1", "tools/test-design-baseline.ps1", "tools/validate-ui-screen-contract.ps1", "tools/new-work-package.ps1", "tools/run-objective-checks.ps1", "tools/test-art-review.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/state.schema.json", "studio/visual-target.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/art-review.schema.json", "studio/game-profile.schema.json", "studio/ui-screen-contract.schema.json", "studio/design-baseline.schema.json", "studio/change-impact.schema.json", "studio/capability-manifest.schema.json", "studio/execution-strategy.schema.json", "dashboard/index.html")) {
   if (-not (Test-Path (Join-Path $pluginRoot $relative))) { $errors += "Self-contained package missing $relative" }
 }
 if ($errors.Count -gt 0) { throw ($errors -join "`n") }
 [pscustomobject]@{ status = "passed"; plugin_root = $pluginRoot; version = $manifest.version } | ConvertTo-Json
-

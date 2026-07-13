@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "profiles": [
+    {
+      "id": "card-roguelike",
+      "displayName": "Card Roguelike",
+      "file": "profiles/unity/card-roguelike.json"
+    },
+    {
+      "id": "idle-incremental",
+      "displayName": "Idle / Incremental",
+      "file": "profiles/unity/idle-incremental.json"
+    },
+    {
+      "id": "puzzle",
+      "displayName": "Puzzle",
+      "file": "profiles/unity/puzzle.json"
+    },
+    {
+      "id": "action-roguelite",
+      "displayName": "Action Roguelite",
+      "file": "profiles/unity/action-roguelite.json"
+    }
+  ]
+}

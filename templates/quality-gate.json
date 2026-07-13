@@ -1,8 +1,10 @@
 {
   "$schema": "../../.mlgs/quality-gate.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "stage": "vertical-slice",
   "verdict": "pending",
+  "declaredVerdict": "pending",
+  "objectiveVerdict": "pending",
   "ownerApproval": false,
   "updated": "",
   "checks": [],

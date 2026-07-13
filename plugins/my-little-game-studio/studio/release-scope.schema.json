@@ -1,0 +1,160 @@
+﻿{
+    "$schema":  "https://json-schema.org/draft/2020-12/schema",
+    "$id":  "https://mylittlegamestudio.local/schemas/release-scope.schema.json",
+    "title":  "MLGS release scope manifest",
+    "type":  "object",
+    "additionalProperties":  false,
+    "required":  [
+                     "schemaVersion",
+                     "profileId",
+                     "designBaselineVersion",
+                     "targetVersion",
+                     "releaseDefinition",
+                     "updated",
+                     "items"
+                 ],
+    "properties":  {
+                       "$schema":  {
+                                       "type":  "string"
+                                   },
+                       "schemaVersion":  {
+                                             "const":  "1.1"
+                                         },
+                       "targetVersion":  {
+                                             "type":  "string",
+                                             "pattern":  "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+                                         },
+                       "releaseDefinition":  {
+                                                 "type":  "string",
+                                                 "minLength":  1
+                                             },
+                       "updated":  {
+                                       "type":  "string",
+                                       "minLength":  1
+                                   },
+                       "items":  {
+                                     "type":  "array",
+                                     "minItems":  1,
+                                     "items":  {
+                                                   "type":  "object",
+                                                   "additionalProperties":  false,
+                                                   "required":  [
+                                                                    "id",
+                                                                    "type",
+                                                                    "description",
+                                                                    "source",
+                                                                    "requiredFor",
+                                                                    "status",
+                                                                    "placeholder",
+                                                                    "plannedCount",
+                                                                    "implementedCount",
+                                                                    "verifiedCount",
+                                                                    "implementation",
+                                                                    "evidence",
+                                                                    "artAssetIds",
+                                                                    "profileRequirementIds"
+                                                                ],
+                                                   "properties":  {
+                                                                      "id":  {
+                                                                                 "type":  "string",
+                                                                                 "minLength":  1
+                                                                             },
+                                                                      "type":  {
+                                                                                   "enum":  [
+                                                                                                "feature",
+                                                                                                "content",
+                                                                                                "tutorial",
+                                                                                                "ui-screen",
+                                                                                                "configuration",
+                                                                                                "audio",
+                                                                                                "art",
+                                                                                                "localization",
+                                                                                                "operations",
+                                                                                                "build"
+                                                                                            ]
+                                                                               },
+                                                                      "description":  {
+                                                                                          "type":  "string",
+                                                                                          "minLength":  1
+                                                                                      },
+                                                                      "source":  {
+                                                                                     "type":  "string",
+                                                                                     "minLength":  1
+                                                                                 },
+                                                                      "requiredFor":  {
+                                                                                          "enum":  [
+                                                                                                       "vertical-slice",
+                                                                                                       "content-complete",
+                                                                                                       "alpha",
+                                                                                                       "beta",
+                                                                                                       "release-candidate",
+                                                                                                       "release"
+                                                                                                   ]
+                                                                                      },
+                                                                      "status":  {
+                                                                                     "enum":  [
+                                                                                                  "planned",
+                                                                                                  "specified",
+                                                                                                  "implemented",
+                                                                                                  "integrated",
+                                                                                                  "verified"
+                                                                                              ]
+                                                                                 },
+                                                                      "placeholder":  {
+                                                                                          "type":  "boolean"
+                                                                                      },
+                                                                      "plannedCount":  {
+                                                                                           "type":  "integer",
+                                                                                           "minimum":  1
+                                                                                       },
+                                                                      "implementedCount":  {
+                                                                                               "type":  "integer",
+                                                                                               "minimum":  0
+                                                                                           },
+                                                                      "verifiedCount":  {
+                                                                                            "type":  "integer",
+                                                                                            "minimum":  0
+                                                                                        },
+                                                                      "implementation":  {
+                                                                                             "type":  "array",
+                                                                                             "items":  {
+                                                                                                           "type":  "string",
+                                                                                                           "minLength":  1
+                                                                                                       },
+                                                                                             "uniqueItems":  true
+                                                                                         },
+                                                                      "evidence":  {
+                                                                                       "type":  "array",
+                                                                                       "items":  {
+                                                                                                     "type":  "string",
+                                                                                                     "minLength":  1
+                                                                                                 },
+                                                                                       "uniqueItems":  true
+                                                                                   },
+                                                                      "artAssetIds":  {
+                                                                                          "type":  "array",
+                                                                                          "items":  {
+                                                                                                        "type":  "string",
+                                                                                                        "minLength":  1
+                                                                                                    },
+                                                                                          "uniqueItems":  true
+                                                                                      },
+                                                                      "profileRequirementIds":  {
+                                                                                                    "type":  "array",
+                                                                                                    "items":  {
+                                                                                                                  "type":  "string",
+                                                                                                                  "minLength":  1
+                                                                                                              },
+                                                                                                    "uniqueItems":  true
+                                                                                                }
+                                                                  }
+                                               }
+                                 },
+                       "profileId":  {
+                                         "type":  "string"
+                                     },
+                       "designBaselineVersion":  {
+                                                     "type":  "string"
+                                                 }
+                   }
+}

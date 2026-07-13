@@ -55,8 +55,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 ## 成品化门禁
 
 - Prototype 之后的生产代码必须读取 `rules/production-code.md`。
-- 正式美术使用 `production/assets/asset-manifest.json`，生成预览只有经过处理、Unity 导入、真实引用和游戏内证据后才能标记 `approved`。
-- Vertical Slice、Content Complete、Alpha、Beta、Release Candidate 和 Release 使用 `tools/test-quality-gate.ps1`；不得用文件存在代替质量证据。
+- HTML 原型只验证交互，不是视觉实现参考。正式美术必须链接 `design/art/visual-target.json` 中已批准的效果图 ID，并在处理、Unity 导入、真实引用、目标图对比和游戏内证据齐全后才能标记 `approved`。
+- 生产前必须建立 `production/scope/release-scope.json`，逐项覆盖功能、内容数量、教学、UI、配置表、音频、美术、本地化、operations readiness 和构建；未列入或未验证的项目不能被“全部完成”吞掉。
+- Vertical Slice、Content Complete、Alpha、Beta、Release Candidate 和 Release 使用 `tools/test-quality-gate.ps1`；它联合验证质量报告、美术、release scope 和代码审计，证据必须是存在的项目内文件。
+- `0.1.x` 只表示原型/预发布。只有最终 Release gate 通过后，游戏才可以标记 `1.0.0` 或 release-ready。
 - MLGS 发布范围仅含图标、本地化、崩溃/错误检查和最终构建证据。
 
 ## 验证与 Trace
@@ -67,3 +69,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 - trace：`tools/trace.ps1`
 
 每个 route 记录 command、lead/support agents、skills、读写文件、假设、决策和验证。低/中参与度下直接执行常规工作；依赖、包、Unity 设置、大范围 scene/prefab、build settings 和核心架构变化仍需 owner 确认。
+## Production contracts
+
+- Use `tools/new-work-package.ps1`, `run-objective-checks.ps1`, and `test-work-package.ps1` for production tasks. Completion requires both declared and objective verdicts to pass; rework is bounded.
+- Formal assets require Art Director and QA pass in `production/assets/reviews/<asset-id>.json`; comparison errors, unavailable automation, low scores, missing evidence, and attempt exhaustion fail closed.
+- Select a profile from `profiles/unity/`, expand every profile requirement into release scope, validate coverage, enumerate UI screens, and freeze `design/baseline.json` before production.
+- A changed frozen design source invalidates its mapped product stages until impact is reviewed and a new baseline version is deliberately frozen.
+- Refresh and validate `production/capabilities/capability-manifest.json` before formal production. Required image/Sprite/mesh/animation/audio/video, Unity import/validation, and visual-comparison entries must be ready with evidence.
+- Non-direct work uses `tools/new-execution-strategy.ps1`; logical role groups remain in the current thread unless the owner explicitly requests separate threads.

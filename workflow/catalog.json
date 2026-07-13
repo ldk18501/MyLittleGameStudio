@@ -1,71 +1,884 @@
-{
-  "schemaVersion": "1.1",
-  "publicEntry": "mlgs",
-  "commands": [
-    { "id": "start", "file": "commands/start.md", "lead": "producer", "intents": ["开始", "新游戏", "空项目", "参与度", "修复指针", "继续当前项目"] },
-    { "id": "help", "file": "commands/help.md", "lead": "producer", "intents": ["帮助", "菜单", "怎么使用", "支持什么"] },
-    { "id": "brainstorm", "file": "commands/brainstorm.md", "lead": "creative-director", "intents": ["头脑风暴", "想点子", "玩法主题", "参考", "pitch", "概念包"] },
-    { "id": "adopt", "file": "commands/adopt.md", "lead": "producer", "support": ["unity-architect", "qa-lead"], "intents": ["接管项目", "已有项目", "Unity 项目", "项目路径"] },
-    { "id": "status", "file": "commands/status.md", "lead": "producer", "intents": ["状态", "下一步", "卡住", "员工动态"] },
-    { "id": "plan", "file": "commands/plan.md", "lead": "game-designer", "support": ["producer", "unity-architect", "qa-lead", "technical-artist"], "intents": ["规划", "设计方案", "技术方案", "拆系统", "任务计划"] },
-    { "id": "prototype", "file": "commands/prototype.md", "lead": "gameplay-developer", "support": ["game-designer", "qa-lead"], "intents": ["原型", "验证玩法", "验证风险", "跳过原型"] },
-    { "id": "implement", "file": "commands/implement.md", "lead": "gameplay-developer", "support": ["unity-architect", "qa-lead", "producer"], "intents": ["实现", "继续开发", "下一个任务", "写代码", "做功能"] },
-    { "id": "fix", "file": "commands/fix.md", "lead": "gameplay-developer", "support": ["qa-lead"], "intents": ["修 bug", "修复", "编译错误", "测试失败", "回归"] },
-    { "id": "review", "file": "commands/review.md", "lead": "qa-lead", "support": ["producer", "unity-architect"], "intents": ["审查", "review", "代码审查", "设计评审", "阶段评审", "工作流评审", "成品度评审"] },
-    { "id": "test", "file": "commands/test.md", "lead": "qa-lead", "intents": ["测试", "验证", "smoke", "QA", "验收", "成品度检查"] },
-    { "id": "build", "file": "commands/build.md", "lead": "unity-architect", "support": ["qa-lead"], "intents": ["打包", "构建", "构建预检", "APK"] },
-    { "id": "dashboard", "file": "commands/dashboard.md", "lead": "producer", "intents": ["dashboard", "看板", "刷新看板", "员工状态"] },
-    { "id": "generate-art", "file": "commands/generate-art.md", "lead": "technical-artist", "support": ["creative-director", "unity-architect", "ui-ux-developer", "qa-lead"], "intents": ["生成美术", "正式美术", "概念图", "切图", "Sprite", "图集", "美术导入", "资源引用", "资产清单"] },
-    { "id": "productize", "file": "commands/productize.md", "lead": "producer", "support": ["game-designer", "unity-architect", "gameplay-developer", "ui-ux-developer", "technical-artist", "qa-lead"], "intents": ["成品化", "去 Demo", "垂直切片", "vertical slice", "内容完成", "content complete", "alpha", "beta", "打磨"] },
-    { "id": "release", "file": "commands/release.md", "lead": "qa-lead", "support": ["unity-architect", "technical-artist", "ui-ux-developer"], "intents": ["发布候选", "release candidate", "正式版本", "图标", "本地化", "崩溃检查", "发布验收"] }
-  ],
-  "phases": [
-    { "id": "intake", "lead": "producer", "commands": ["start", "adopt", "status", "help"], "gate": "project-selected" },
-    { "id": "concept", "lead": "creative-director", "commands": ["brainstorm", "generate-art", "review", "status"], "gate": "concept-approved" },
-    { "id": "plan", "lead": "game-designer", "commands": ["plan", "generate-art", "review", "test", "status"], "gate": "plan-approved" },
-    { "id": "prototype", "lead": "gameplay-developer", "commands": ["prototype", "test", "review", "status"], "gate": "prototype-passed-or-skipped" },
-    { "id": "vertical-slice", "lead": "producer", "commands": ["productize", "implement", "generate-art", "fix", "review", "test", "build", "status"], "gate": "vertical-slice-approved" },
-    { "id": "production", "lead": "unity-architect", "commands": ["productize", "implement", "generate-art", "fix", "review", "test", "build", "status"], "gate": "content-complete-approved" },
-    { "id": "alpha", "lead": "qa-lead", "commands": ["productize", "implement", "generate-art", "fix", "review", "test", "build", "status"], "gate": "alpha-approved" },
-    { "id": "beta", "lead": "qa-lead", "commands": ["productize", "release", "fix", "review", "test", "build", "status"], "gate": "beta-approved" },
-    { "id": "release-candidate", "lead": "qa-lead", "commands": ["release", "fix", "review", "test", "build", "status"], "gate": "release-candidate-approved" },
-    { "id": "release", "lead": "qa-lead", "commands": ["release", "fix", "review", "test", "build", "status"], "gate": "release-approved" }
-  ],
-  "gates": {
-    "project-selected": { "approval": "projectSelected", "all": [".mlgs/project.md"] },
-    "concept-approved": { "approval": "conceptPackage", "all": ["design/concept-package.md"] },
-    "plan-approved": { "approval": "designTechPlan", "all": ["design/systems/*.md", "docs/tech-plan.md", "production/task-plan.md", "design/art/style-bible.md", "production/assets/asset-manifest.json"] },
-    "prototype-passed-or-skipped": { "approval": "prototypeValidation", "all": ["prototype/prototype-plan.md", "prototype/playtest-report.md"], "allowSkippedWithRisk": true },
-    "production-unblocked": { "approval": "productionUnblocked", "all": ["production/task-plan.md"] },
-    "vertical-slice-approved": {
-      "all": ["production/quality/vertical-slice.json", "production/quality/code-audit.json", "production/assets/asset-manifest.json"],
-      "qualityReport": { "path": "production/quality/vertical-slice.json", "stage": "vertical-slice", "requiredChecks": ["core-loop", "final-look-target", "ui-flow", "art-pipeline", "performance-budget", "code-modularity"] },
-      "artManifest": { "path": "production/assets/asset-manifest.json", "requiredFor": "vertical-slice", "minimumStatus": "approved", "disallowPlaceholders": true },
-      "codeAudit": { "path": "production/quality/code-audit.json", "allowWarnings": true }
-    },
-    "content-complete-approved": {
-      "all": ["production/quality/content-complete.json", "production/qa/content-complete-qa.md", "production/quality/code-audit.json", "production/assets/asset-manifest.json"],
-      "qualityReport": { "path": "production/quality/content-complete.json", "stage": "content-complete", "requiredChecks": ["feature-complete", "content-complete", "no-placeholder-content", "art-assets", "localization-source-complete", "code-modularity", "save-and-error-paths", "regression"] },
-      "artManifest": { "path": "production/assets/asset-manifest.json", "requiredFor": "content-complete", "minimumStatus": "approved", "disallowPlaceholders": true },
-      "codeAudit": { "path": "production/quality/code-audit.json", "allowWarnings": true }
-    },
-    "alpha-approved": {
-      "all": ["production/quality/alpha.json", "production/qa/alpha-qa.md", "production/qa/crash-check.md"],
-      "qualityReport": { "path": "production/quality/alpha.json", "stage": "alpha", "requiredChecks": ["full-playthrough", "blocking-bugs", "missing-references", "performance", "localization-integrity", "crash-free-smoke"] }
-    },
-    "beta-approved": {
-      "all": ["production/quality/beta.json", "production/qa/beta-qa.md", "production/release/icon-checklist.md", "production/localization/localization-report.md", "production/qa/crash-check.md"],
-      "qualityReport": { "path": "production/quality/beta.json", "stage": "beta", "requiredChecks": ["target-device-smoke", "icon", "localization", "crash-error-check", "known-issues", "regression"] }
-    },
-    "release-candidate-approved": {
-      "all": ["production/quality/release-candidate.json", "production/release/icon-checklist.md", "production/localization/localization-report.md", "production/qa/crash-check.md", "production/release/release-checklist.md", "production/release/known-issues.md"],
-      "qualityReport": { "path": "production/quality/release-candidate.json", "stage": "release-candidate", "requiredChecks": ["release-build", "icon", "localization", "crash-error-check", "zero-blockers", "known-issues"] },
-      "artManifest": { "path": "production/assets/asset-manifest.json", "requiredFor": "release-candidate", "minimumStatus": "approved", "disallowPlaceholders": true, "requiredKinds": ["app-icon"] }
-    },
-    "release-approved": {
-      "all": ["production/quality/release.json", "production/release/build-report.md", "production/release/icon-checklist.md", "production/localization/localization-report.md", "production/qa/crash-check.md"],
-      "qualityReport": { "path": "production/quality/release.json", "stage": "release", "requiredChecks": ["release-candidate-locked", "final-smoke", "icon", "localization", "crash-error-check"] }
-    }
-  },
-  "alwaysWritableProjectPaths": [".mlgs", "design", "docs", "prototype", "production", "tests"]
+﻿{
+    "schemaVersion":  "1.1",
+    "publicEntry":  "mlgs",
+    "commands":  [
+                     {
+                         "id":  "start",
+                         "file":  "commands/start.md",
+                         "lead":  "producer",
+                         "intents":  [
+                                         "开始",
+                                         "新游戏",
+                                         "空项目",
+                                         "参与度",
+                                         "修复指针",
+                                         "继续当前项目"
+                                     ]
+                     },
+                     {
+                         "id":  "help",
+                         "file":  "commands/help.md",
+                         "lead":  "producer",
+                         "intents":  [
+                                         "帮助",
+                                         "菜单",
+                                         "怎么使用",
+                                         "支持什么"
+                                     ]
+                     },
+                     {
+                         "id":  "brainstorm",
+                         "file":  "commands/brainstorm.md",
+                         "lead":  "creative-director",
+                         "intents":  [
+                                         "头脑风暴",
+                                         "想点子",
+                                         "玩法主题",
+                                         "参考",
+                                         "pitch",
+                                         "概念包"
+                                     ]
+                     },
+                     {
+                         "id":  "adopt",
+                         "file":  "commands/adopt.md",
+                         "lead":  "producer",
+                         "support":  [
+                                         "unity-architect",
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "接管项目",
+                                         "已有项目",
+                                         "Unity 项目",
+                                         "项目路径"
+                                     ]
+                     },
+                     {
+                         "id":  "status",
+                         "file":  "commands/status.md",
+                         "lead":  "producer",
+                         "intents":  [
+                                         "状态",
+                                         "下一步",
+                                         "卡住",
+                                         "员工动态"
+                                     ]
+                     },
+                     {
+                         "id":  "plan",
+                         "file":  "commands/plan.md",
+                         "lead":  "game-designer",
+                         "support":  [
+                                         "producer",
+                                         "unity-architect",
+                                         "qa-lead",
+                                         "art-director",
+                                         "technical-artist"
+                                     ],
+                         "intents":  [
+                                         "规划",
+                                         "设计方案",
+                                         "技术方案",
+                                         "拆系统",
+                                         "任务计划"
+                                     ]
+                     },
+                     {
+                         "id":  "prototype",
+                         "file":  "commands/prototype.md",
+                         "lead":  "gameplay-developer",
+                         "support":  [
+                                         "game-designer",
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "原型",
+                                         "验证玩法",
+                                         "验证风险",
+                                         "跳过原型"
+                                     ]
+                     },
+                     {
+                         "id":  "implement",
+                         "file":  "commands/implement.md",
+                         "lead":  "gameplay-developer",
+                         "support":  [
+                                         "unity-architect",
+                                         "qa-lead",
+                                         "producer"
+                                     ],
+                         "intents":  [
+                                         "实现",
+                                         "继续开发",
+                                         "下一个任务",
+                                         "写代码",
+                                         "做功能"
+                                     ]
+                     },
+                     {
+                         "id":  "fix",
+                         "file":  "commands/fix.md",
+                         "lead":  "gameplay-developer",
+                         "support":  [
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "修 bug",
+                                         "修复",
+                                         "编译错误",
+                                         "测试失败",
+                                         "回归"
+                                     ]
+                     },
+                     {
+                         "id":  "review",
+                         "file":  "commands/review.md",
+                         "lead":  "qa-lead",
+                         "support":  [
+                                         "producer",
+                                         "unity-architect",
+                                         "art-director"
+                                     ],
+                         "intents":  [
+                                         "审查",
+                                         "review",
+                                         "代码审查",
+                                         "设计评审",
+                                         "阶段评审",
+                                         "工作流评审",
+                                         "成品度评审"
+                                     ]
+                     },
+                     {
+                         "id":  "test",
+                         "file":  "commands/test.md",
+                         "lead":  "qa-lead",
+                         "intents":  [
+                                         "测试",
+                                         "验证",
+                                         "smoke",
+                                         "QA",
+                                         "验收",
+                                         "成品度检查"
+                                     ]
+                     },
+                     {
+                         "id":  "build",
+                         "file":  "commands/build.md",
+                         "lead":  "unity-architect",
+                         "support":  [
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "打包",
+                                         "构建",
+                                         "构建预检",
+                                         "APK"
+                                     ]
+                     },
+                     {
+                         "id":  "dashboard",
+                         "file":  "commands/dashboard.md",
+                         "lead":  "producer",
+                         "intents":  [
+                                         "dashboard",
+                                         "看板",
+                                         "刷新看板",
+                                         "员工状态"
+                                     ]
+                     },
+                     {
+                         "id":  "generate-art",
+                         "file":  "commands/generate-art.md",
+                         "lead":  "art-director",
+                         "support":  [
+                                         "technical-artist",
+                                         "creative-director",
+                                         "unity-architect",
+                                         "ui-ux-developer",
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "生成美术",
+                                         "正式美术",
+                                         "概念图",
+                                         "切图",
+                                         "Sprite",
+                                         "图集",
+                                         "美术导入",
+                                         "资源引用",
+                                         "资产清单"
+                                     ]
+                     },
+                     {
+                         "id":  "productize",
+                         "file":  "commands/productize.md",
+                         "lead":  "producer",
+                         "support":  [
+                                         "game-designer",
+                                         "unity-architect",
+                                         "gameplay-developer",
+                                         "ui-ux-developer",
+                                         "art-director",
+                                         "technical-artist",
+                                         "qa-lead"
+                                     ],
+                         "intents":  [
+                                         "成品化",
+                                         "去 Demo",
+                                         "垂直切片",
+                                         "vertical slice",
+                                         "内容完成",
+                                         "content complete",
+                                         "alpha",
+                                         "beta",
+                                         "打磨"
+                                     ]
+                     },
+                     {
+                         "id":  "release",
+                         "file":  "commands/release.md",
+                         "lead":  "qa-lead",
+                         "support":  [
+                                         "unity-architect",
+                                         "technical-artist",
+                                         "ui-ux-developer"
+                                     ],
+                         "intents":  [
+                                         "发布候选",
+                                         "release candidate",
+                                         "正式版本",
+                                         "图标",
+                                         "本地化",
+                                         "崩溃检查",
+                                         "发布验收"
+                                     ]
+                     }
+                 ],
+    "phases":  [
+                   {
+                       "id":  "intake",
+                       "lead":  "producer",
+                       "commands":  [
+                                        "start",
+                                        "adopt",
+                                        "status",
+                                        "help"
+                                    ],
+                       "gate":  "project-selected"
+                   },
+                   {
+                       "id":  "concept",
+                       "lead":  "creative-director",
+                       "commands":  [
+                                        "brainstorm",
+                                        "generate-art",
+                                        "review",
+                                        "status"
+                                    ],
+                       "gate":  "concept-approved"
+                   },
+                   {
+                       "id":  "plan",
+                       "lead":  "game-designer",
+                       "commands":  [
+                                        "plan",
+                                        "generate-art",
+                                        "review",
+                                        "test",
+                                        "status"
+                                    ],
+                       "gate":  "plan-approved"
+                   },
+                   {
+                       "id":  "prototype",
+                       "lead":  "gameplay-developer",
+                       "commands":  [
+                                        "prototype",
+                                        "test",
+                                        "review",
+                                        "status"
+                                    ],
+                       "gate":  "prototype-passed-or-skipped"
+                   },
+                   {
+                       "id":  "vertical-slice",
+                       "lead":  "producer",
+                       "commands":  [
+                                        "productize",
+                                        "implement",
+                                        "generate-art",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "vertical-slice-approved"
+                   },
+                   {
+                       "id":  "production",
+                       "lead":  "unity-architect",
+                       "commands":  [
+                                        "productize",
+                                        "implement",
+                                        "generate-art",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "content-complete-approved"
+                   },
+                   {
+                       "id":  "alpha",
+                       "lead":  "qa-lead",
+                       "commands":  [
+                                        "productize",
+                                        "implement",
+                                        "generate-art",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "alpha-approved"
+                   },
+                   {
+                       "id":  "beta",
+                       "lead":  "qa-lead",
+                       "commands":  [
+                                        "productize",
+                                        "release",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "beta-approved"
+                   },
+                   {
+                       "id":  "release-candidate",
+                       "lead":  "qa-lead",
+                       "commands":  [
+                                        "release",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "release-candidate-approved"
+                   },
+                   {
+                       "id":  "release",
+                       "lead":  "qa-lead",
+                       "commands":  [
+                                        "release",
+                                        "fix",
+                                        "review",
+                                        "test",
+                                        "build",
+                                        "status"
+                                    ],
+                       "gate":  "release-approved"
+                   }
+               ],
+    "gates":  {
+                  "project-selected":  {
+                                           "approval":  "projectSelected",
+                                           "all":  [
+                                                       ".mlgs/project.md"
+                                                   ]
+                                       },
+                  "concept-approved":  {
+                                           "approval":  "conceptPackage",
+                                           "all":  [
+                                                       "design/concept-package.md",
+                                                       "design/reference-analysis.md",
+                                                       "design/art/visual-target.json"
+                                                   ]
+                                       },
+                  "plan-approved":  {
+                                        "approval":  "designTechPlan",
+                                        "all":  [
+                                                    "design/systems/*.md",
+                                                    "design/player-journey.md",
+                                                    "design/onboarding.md",
+                                                    "docs/tech-plan.md",
+                                                    "production/task-plan.md",
+                                                    "production/data/configuration-plan.md",
+                                                    "production/release/operations-readiness.md",
+                                                    "production/scope/release-scope.json",
+                                                    "design/art/style-bible.md",
+                                                    "production/assets/asset-manifest.json",
+                                                    "design/game-profile.json",
+                                                    "design/ui/screen-inventory.json",
+                                                    "design/baseline.json",
+                                                    "production/capabilities/capability-manifest.json"
+                                                ],
+                                        "artManifest":  {
+                                                            "path":  "production/assets/asset-manifest.json",
+                                                            "requiredFor":  "release",
+                                                            "minimumStatus":  "planned"
+                                                        },
+                                        "scopeManifest":  {
+                                                              "path":  "production/scope/release-scope.json",
+                                                              "requiredFor":  "release",
+                                                              "minimumStatus":  "specified",
+                                                              "requiredTypes":  [
+                                                                                    "feature",
+                                                                                    "content",
+                                                                                    "tutorial",
+                                                                                    "ui-screen",
+                                                                                    "configuration",
+                                                                                    "audio",
+                                                                                    "art",
+                                                                                    "localization",
+                                                                                    "operations",
+                                                                                    "build"
+                                                                                ]
+                                                          },
+                                        "gameProfileCoverage":  {
+                                                                    "profilePath":  "design/game-profile.json",
+                                                                    "scopePath":  "production/scope/release-scope.json",
+                                                                    "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                },
+                                        "designBaseline":  {
+                                                               "path":  "design/baseline.json"
+                                                           },
+                                        "uiScreenContract":  {
+                                                                 "path":  "design/ui/screen-inventory.json",
+                                                                 "requiredFor":  "content-complete",
+                                                                 "minimumStatus":  "planned"
+                                                             }
+                                    },
+                  "prototype-passed-or-skipped":  {
+                                                      "approval":  "prototypeValidation",
+                                                      "all":  [
+                                                                  "prototype/prototype-plan.md",
+                                                                  "prototype/playtest-report.md"
+                                                              ],
+                                                      "allowSkippedWithRisk":  true
+                                                  },
+                  "production-unblocked":  {
+                                               "approval":  "productionUnblocked",
+                                               "all":  [
+                                                           "production/task-plan.md"
+                                                       ]
+                                           },
+                  "vertical-slice-approved":  {
+                                                  "all":  [
+                                                              "production/quality/vertical-slice.json",
+                                                              "production/quality/code-audit.json",
+                                                              "production/assets/asset-manifest.json",
+                                                              "production/scope/release-scope.json"
+                                                          ],
+                                                  "qualityReport":  {
+                                                                        "path":  "production/quality/vertical-slice.json",
+                                                                        "stage":  "vertical-slice",
+                                                                        "requiredChecks":  [
+                                                                                               "core-loop",
+                                                                                               "final-look-target",
+                                                                                               "visual-target-match",
+                                                                                               "first-session-flow",
+                                                                                               "ui-flow",
+                                                                                               "art-pipeline",
+                                                                                               "data-driven-config",
+                                                                                               "audio-feedback",
+                                                                                               "performance-budget",
+                                                                                               "code-modularity",
+                                                                                               "no-prototype-presentation"
+                                                                                           ]
+                                                                    },
+                                                  "artManifest":  {
+                                                                      "path":  "production/assets/asset-manifest.json",
+                                                                      "requiredFor":  "vertical-slice",
+                                                                      "minimumStatus":  "approved",
+                                                                      "disallowPlaceholders":  true
+                                                                  },
+                                                  "scopeManifest":  {
+                                                                        "path":  "production/scope/release-scope.json",
+                                                                        "requiredFor":  "vertical-slice",
+                                                                        "minimumStatus":  "integrated",
+                                                                        "disallowPlaceholders":  true,
+                                                                        "requiredTypes":  [
+                                                                                              "feature",
+                                                                                              "content",
+                                                                                              "tutorial",
+                                                                                              "ui-screen",
+                                                                                              "configuration",
+                                                                                              "audio",
+                                                                                              "art"
+                                                                                          ]
+                                                                    },
+                                                  "codeAudit":  {
+                                                                    "path":  "production/quality/code-audit.json",
+                                                                    "allowWarnings":  true
+                                                                },
+                                                  "gameProfileCoverage":  {
+                                                                              "profilePath":  "design/game-profile.json",
+                                                                              "scopePath":  "production/scope/release-scope.json",
+                                                                              "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                          },
+                                                  "designBaseline":  {
+                                                                         "path":  "design/baseline.json"
+                                                                     },
+                                                  "uiScreenContract":  {
+                                                                           "path":  "design/ui/screen-inventory.json",
+                                                                           "requiredFor":  "vertical-slice",
+                                                                           "minimumStatus":  "integrated"
+                                                                       },
+                                                  "capabilityManifest":  {
+                                                                             "path":  "production/capabilities/capability-manifest.json",
+                                                                             "requiredFor":  "vertical-slice",
+                                                                             "requiredCapabilityKinds":  [
+
+                                                                                                         ]
+                                                                         }
+                                              },
+                  "content-complete-approved":  {
+                                                    "all":  [
+                                                                "production/quality/content-complete.json",
+                                                                "production/qa/content-complete-qa.md",
+                                                                "production/quality/code-audit.json",
+                                                                "production/assets/asset-manifest.json",
+                                                                "production/scope/release-scope.json"
+                                                            ],
+                                                    "qualityReport":  {
+                                                                          "path":  "production/quality/content-complete.json",
+                                                                          "stage":  "content-complete",
+                                                                          "requiredChecks":  [
+                                                                                                 "feature-complete",
+                                                                                                 "scope-coverage",
+                                                                                                 "content-counts-complete",
+                                                                                                 "onboarding-complete",
+                                                                                                 "configuration-complete",
+                                                                                                 "operations-integrated",
+                                                                                                 "no-placeholder-content",
+                                                                                                 "formal-art-coverage",
+                                                                                                 "audio-complete",
+                                                                                                 "localization-source-complete",
+                                                                                                 "code-modularity",
+                                                                                                 "save-and-error-paths",
+                                                                                                 "regression"
+                                                                                             ]
+                                                                      },
+                                                    "artManifest":  {
+                                                                        "path":  "production/assets/asset-manifest.json",
+                                                                        "requiredFor":  "content-complete",
+                                                                        "minimumStatus":  "approved",
+                                                                        "disallowPlaceholders":  true
+                                                                    },
+                                                    "scopeManifest":  {
+                                                                          "path":  "production/scope/release-scope.json",
+                                                                          "requiredFor":  "content-complete",
+                                                                          "minimumStatus":  "integrated",
+                                                                          "disallowPlaceholders":  true,
+                                                                          "requiredTypes":  [
+                                                                                                "feature",
+                                                                                                "content",
+                                                                                                "tutorial",
+                                                                                                "ui-screen",
+                                                                                                "configuration",
+                                                                                                "audio",
+                                                                                                "art",
+                                                                                                "operations"
+                                                                                            ]
+                                                                      },
+                                                    "codeAudit":  {
+                                                                      "path":  "production/quality/code-audit.json",
+                                                                      "allowWarnings":  true
+                                                                  },
+                                                    "gameProfileCoverage":  {
+                                                                                "profilePath":  "design/game-profile.json",
+                                                                                "scopePath":  "production/scope/release-scope.json",
+                                                                                "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                            },
+                                                    "designBaseline":  {
+                                                                           "path":  "design/baseline.json"
+                                                                       },
+                                                    "uiScreenContract":  {
+                                                                             "path":  "design/ui/screen-inventory.json",
+                                                                             "requiredFor":  "content-complete",
+                                                                             "minimumStatus":  "integrated"
+                                                                         },
+                                                    "capabilityManifest":  {
+                                                                               "path":  "production/capabilities/capability-manifest.json",
+                                                                               "requiredFor":  "content-complete",
+                                                                               "requiredCapabilityKinds":  [
+
+                                                                                                           ]
+                                                                           }
+                                                },
+                  "alpha-approved":  {
+                                         "all":  [
+                                                     "production/quality/alpha.json",
+                                                     "production/qa/alpha-qa.md",
+                                                     "production/qa/crash-check.md",
+                                                     "production/scope/release-scope.json"
+                                                 ],
+                                         "qualityReport":  {
+                                                               "path":  "production/quality/alpha.json",
+                                                               "stage":  "alpha",
+                                                               "requiredChecks":  [
+                                                                                      "full-playthrough",
+                                                                                      "new-player-comprehension",
+                                                                                      "balance-and-config-validation",
+                                                                                      "scope-verification",
+                                                                                      "blocking-bugs",
+                                                                                      "missing-references",
+                                                                                      "performance",
+                                                                                      "localization-integrity",
+                                                                                      "crash-free-smoke"
+                                                                                  ]
+                                                           },
+                                         "scopeManifest":  {
+                                                               "path":  "production/scope/release-scope.json",
+                                                               "requiredFor":  "alpha",
+                                                               "minimumStatus":  "verified",
+                                                               "disallowPlaceholders":  true,
+                                                               "requiredTypes":  [
+                                                                                     "feature",
+                                                                                     "content",
+                                                                                     "tutorial",
+                                                                                     "ui-screen",
+                                                                                     "configuration",
+                                                                                     "audio",
+                                                                                     "art",
+                                                                                     "operations"
+                                                                                 ]
+                                                           },
+                                         "gameProfileCoverage":  {
+                                                                     "profilePath":  "design/game-profile.json",
+                                                                     "scopePath":  "production/scope/release-scope.json",
+                                                                     "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                 },
+                                         "designBaseline":  {
+                                                                "path":  "design/baseline.json"
+                                                            },
+                                         "uiScreenContract":  {
+                                                                  "path":  "design/ui/screen-inventory.json",
+                                                                  "requiredFor":  "alpha",
+                                                                  "minimumStatus":  "approved"
+                                                              },
+                                         "capabilityManifest":  {
+                                                                    "path":  "production/capabilities/capability-manifest.json",
+                                                                    "requiredFor":  "alpha",
+                                                                    "requiredCapabilityKinds":  [
+
+                                                                                                ]
+                                                                }
+                                     },
+                  "beta-approved":  {
+                                        "all":  [
+                                                    "production/quality/beta.json",
+                                                    "production/qa/beta-qa.md",
+                                                    "production/release/icon-checklist.md",
+                                                    "production/localization/localization-report.md",
+                                                    "production/qa/crash-check.md",
+                                                    "production/scope/release-scope.json"
+                                                ],
+                                        "qualityReport":  {
+                                                              "path":  "production/quality/beta.json",
+                                                              "stage":  "beta",
+                                                              "requiredChecks":  [
+                                                                                     "target-device-smoke",
+                                                                                     "release-scope-regression",
+                                                                                     "operations-readiness",
+                                                                                     "icon",
+                                                                                     "localization",
+                                                                                     "crash-error-check",
+                                                                                     "known-issues",
+                                                                                     "regression"
+                                                                                 ]
+                                                          },
+                                        "scopeManifest":  {
+                                                              "path":  "production/scope/release-scope.json",
+                                                              "requiredFor":  "beta",
+                                                              "minimumStatus":  "verified",
+                                                              "disallowPlaceholders":  true,
+                                                              "requiredTypes":  [
+                                                                                    "feature",
+                                                                                    "content",
+                                                                                    "tutorial",
+                                                                                    "ui-screen",
+                                                                                    "configuration",
+                                                                                    "audio",
+                                                                                    "art",
+                                                                                    "localization",
+                                                                                    "operations",
+                                                                                    "build"
+                                                                                ]
+                                                          },
+                                        "gameProfileCoverage":  {
+                                                                    "profilePath":  "design/game-profile.json",
+                                                                    "scopePath":  "production/scope/release-scope.json",
+                                                                    "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                },
+                                        "designBaseline":  {
+                                                               "path":  "design/baseline.json"
+                                                           },
+                                        "uiScreenContract":  {
+                                                                 "path":  "design/ui/screen-inventory.json",
+                                                                 "requiredFor":  "beta",
+                                                                 "minimumStatus":  "approved"
+                                                             },
+                                        "capabilityManifest":  {
+                                                                   "path":  "production/capabilities/capability-manifest.json",
+                                                                   "requiredFor":  "beta",
+                                                                   "requiredCapabilityKinds":  [
+
+                                                                                               ]
+                                                               }
+                                    },
+                  "release-candidate-approved":  {
+                                                     "all":  [
+                                                                 "production/quality/release-candidate.json",
+                                                                 "production/release/icon-checklist.md",
+                                                                 "production/localization/localization-report.md",
+                                                                 "production/qa/crash-check.md",
+                                                                 "production/release/release-checklist.md",
+                                                                 "production/release/known-issues.md",
+                                                                 "production/release/operations-readiness.md",
+                                                                 "production/scope/release-scope.json"
+                                                             ],
+                                                     "qualityReport":  {
+                                                                           "path":  "production/quality/release-candidate.json",
+                                                                           "stage":  "release-candidate",
+                                                                           "requiredChecks":  [
+                                                                                                  "release-build",
+                                                                                                  "version-contract",
+                                                                                                  "complete-release-scope",
+                                                                                                  "operations-handoff",
+                                                                                                  "icon",
+                                                                                                  "localization",
+                                                                                                  "crash-error-check",
+                                                                                                  "zero-blockers",
+                                                                                                  "known-issues"
+                                                                                              ]
+                                                                       },
+                                                     "artManifest":  {
+                                                                         "path":  "production/assets/asset-manifest.json",
+                                                                         "requiredFor":  "release-candidate",
+                                                                         "minimumStatus":  "approved",
+                                                                         "disallowPlaceholders":  true,
+                                                                         "requiredKinds":  [
+                                                                                               "app-icon"
+                                                                                           ]
+                                                                     },
+                                                     "scopeManifest":  {
+                                                                           "path":  "production/scope/release-scope.json",
+                                                                           "requiredFor":  "release-candidate",
+                                                                           "minimumStatus":  "verified",
+                                                                           "disallowPlaceholders":  true,
+                                                                           "requiredTypes":  [
+                                                                                                 "feature",
+                                                                                                 "content",
+                                                                                                 "tutorial",
+                                                                                                 "ui-screen",
+                                                                                                 "configuration",
+                                                                                                 "audio",
+                                                                                                 "art",
+                                                                                                 "localization",
+                                                                                                 "operations",
+                                                                                                 "build"
+                                                                                             ]
+                                                                       },
+                                                     "gameProfileCoverage":  {
+                                                                                 "profilePath":  "design/game-profile.json",
+                                                                                 "scopePath":  "production/scope/release-scope.json",
+                                                                                 "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                             },
+                                                     "designBaseline":  {
+                                                                            "path":  "design/baseline.json"
+                                                                        },
+                                                     "uiScreenContract":  {
+                                                                              "path":  "design/ui/screen-inventory.json",
+                                                                              "requiredFor":  "release-candidate",
+                                                                              "minimumStatus":  "approved"
+                                                                          },
+                                                     "capabilityManifest":  {
+                                                                                "path":  "production/capabilities/capability-manifest.json",
+                                                                                "requiredFor":  "release-candidate",
+                                                                                "requiredCapabilityKinds":  [
+
+                                                                                                            ]
+                                                                            }
+                                                 },
+                  "release-approved":  {
+                                           "all":  [
+                                                       "production/quality/release.json",
+                                                       "production/release/build-report.md",
+                                                       "production/release/icon-checklist.md",
+                                                       "production/localization/localization-report.md",
+                                                       "production/qa/crash-check.md",
+                                                       "production/release/operations-readiness.md",
+                                                       "production/scope/release-scope.json"
+                                                   ],
+                                           "qualityReport":  {
+                                                                 "path":  "production/quality/release.json",
+                                                                 "stage":  "release",
+                                                                 "requiredChecks":  [
+                                                                                        "release-candidate-locked",
+                                                                                        "version-contract",
+                                                                                        "complete-release-scope",
+                                                                                        "final-smoke",
+                                                                                        "icon",
+                                                                                        "localization",
+                                                                                        "crash-error-check"
+                                                                                    ]
+                                                             },
+                                           "scopeManifest":  {
+                                                                 "path":  "production/scope/release-scope.json",
+                                                                 "requiredFor":  "release",
+                                                                 "minimumStatus":  "verified",
+                                                                 "disallowPlaceholders":  true,
+                                                                 "requiredTypes":  [
+                                                                                       "feature",
+                                                                                       "content",
+                                                                                       "tutorial",
+                                                                                       "ui-screen",
+                                                                                       "configuration",
+                                                                                       "audio",
+                                                                                       "art",
+                                                                                       "localization",
+                                                                                       "operations",
+                                                                                       "build"
+                                                                                   ]
+                                                             },
+                                           "gameProfileCoverage":  {
+                                                                       "profilePath":  "design/game-profile.json",
+                                                                       "scopePath":  "production/scope/release-scope.json",
+                                                                       "uiScreenPath":  "design/ui/screen-inventory.json"
+                                                                   },
+                                           "designBaseline":  {
+                                                                  "path":  "design/baseline.json"
+                                                              },
+                                           "uiScreenContract":  {
+                                                                    "path":  "design/ui/screen-inventory.json",
+                                                                    "requiredFor":  "release",
+                                                                    "minimumStatus":  "approved"
+                                                                },
+                                           "capabilityManifest":  {
+                                                                      "path":  "production/capabilities/capability-manifest.json",
+                                                                      "requiredFor":  "release",
+                                                                      "requiredCapabilityKinds":  [
+
+                                                                                                  ]
+                                                                  }
+                                       }
+              },
+    "alwaysWritableProjectPaths":  [
+                                       ".mlgs",
+                                       "design",
+                                       "docs",
+                                       "prototype",
+                                       "production",
+                                       "tests"
+                                   ]
 }

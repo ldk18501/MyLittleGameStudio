@@ -9,6 +9,10 @@
 
 ## Visual anchors
 
+- Approved visual target IDs and images:
+- Non-negotiable target traits:
+- Explicitly forbidden prototype/placeholder treatments:
+
 - Shape language：
 - Silhouette rules：
 - Palette and value range：
@@ -43,10 +47,10 @@
 ## Approval checklist
 
 - [ ] Matches approved visual anchors
+- [ ] Side-by-side in-game comparison matches linked visual-target IDs
 - [ ] Reads at gameplay scale
 - [ ] Source and provenance recorded
 - [ ] Processed non-destructively
 - [ ] Imported and referenced in Unity
 - [ ] In-game evidence captured
 - [ ] Performance and fallback accepted
-

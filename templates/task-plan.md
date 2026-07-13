@@ -9,9 +9,17 @@
 
 ## Release Scope 任务
 
+Target version: `1.0.0`. Every ID in `production/scope/release-scope.json` must appear in this plan; an uncovered ID is a blocker, not backlog.
+
 | ID | 任务 | Owner | 来源 | 状态 |
 |---|---|---|---|---|
 | T-001 |  |  |  | not-started |
+
+## Release-scope coverage
+
+| Scope ID | Type | Planned count | Task IDs | Required stage | Coverage status |
+|---|---|---:|---|---|---|
+|  | feature / content / tutorial / ui-screen / configuration / audio / art / localization / operations / build |  |  |  | missing |
 
 ## 建议顺序
 
@@ -27,6 +35,7 @@
 | Alpha | 完整流程稳定，无 blocker | full-flow QA + crash/error smoke | pending |
 | Beta | 目标设备回归、图标、本地化、崩溃检查 | Beta report | pending |
 | Release Candidate | 锁定候选版本和已知问题 | RC report + release subset evidence | pending |
+| Release | 全部 scope verified 后锁定 `1.0.0` | final report + locked build + complete scope evidence | pending |
 
 ## Definition of Done
 

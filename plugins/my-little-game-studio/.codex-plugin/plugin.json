@@ -1,6 +1,6 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.5.0+codex.20260710173137",
+  "version": "0.7.0+codex.20260713200500",
   "description": "Codex-first Unity/C# 独立游戏工作室流程。通过 /mlgs 自然语言入口推进规划、正式美术、模块化实现、成品阶段、质量门禁、图标、本地化、崩溃检查和构建。",
   "author": {
     "name": "MyLittleGameStudio"

@@ -63,6 +63,8 @@ Examples:
 | `/mlgs move the game to Vertical Slice` | Enforce final-look, integration, architecture, performance, and art-pipeline evidence |
 | `/mlgs review Content Complete readiness` | Reject placeholders, unwired features, missing references, and production-code blockers |
 | `/mlgs prepare icon localization and crash checks` | Validate the MLGS-owned game-content release subset |
+
+Product version policy: `0.1.x` is prototype/pre-release. `1.0.0` means the final Release gate passed against an explicit release-scope manifest: all planned features and content quantities, onboarding, UI, configuration, audio, formal art, localization, operations readiness, and build evidence are verified. An HTML prototype or a completed feature list cannot be promoted to `1.0.0` by renaming it.
 | `/mlgs fix this compile error` | Diagnose and fix a bug, compile issue, or QA failure |
 | `/mlgs review whether this task is ready` | Review code, design, task, phase, build, or workflow |
 | `/mlgs run verification` | Run or define verification |
@@ -75,6 +77,7 @@ See `workflow/command-index.md` for the grouped intent index.
 ## Studio Staff
 
 - Producer: routing, scope, state, task assignment
+- Art Director: production visual target, style consistency, and final in-game approval
 - Creative Director: fantasy, pitch, pillars, references
 - Game Designer: systems, rules, tuning, acceptance criteria
 - Unity Architect: Unity architecture, packages, scenes, build risk
@@ -82,6 +85,16 @@ See `workflow/command-index.md` for the grouped intent index.
 - UI/UX Developer: HUD, runtime UI, input ergonomics
 - Technical Artist: shaders, VFX, formal generated-art lifecycle, Unity import/slicing/references
 - QA Lead: verification, smoke checks, build readiness
+
+## Production Guarantees
+
+- Machine-readable work packages separate declared completion from objective evidence and cap rework attempts.
+- Formal art is reviewed fail-closed against approved target images by the Art Director and QA in the real Unity game view.
+- Unity game profiles define minimum systems, content quantity, onboarding, UI, configuration, art, audio, performance, and validation scope.
+- Frozen design hashes produce explicit change-impact invalidation instead of silently letting production drift.
+- Every production UI screen has a state, asset, implementation, and evidence contract.
+- Multimodal capability readiness covers image/Sprite, mesh, animation, audio, video, Unity import/validation, and visual comparison.
+- Risk-based execution strategies remain bounded by work-package rounds, objective checks, and stop conditions.
 
 ## Project State
 

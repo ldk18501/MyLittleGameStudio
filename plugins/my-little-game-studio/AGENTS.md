@@ -98,6 +98,7 @@ Keep the studio small and Unity-focused:
 
 - Producer: routing, scope, state, task assignment
 - Creative Director: fantasy, pitch, pillars, references
+- Art Director: production visual target, style consistency, and final in-game visual approval
 - Game Designer: systems, rules, tuning, acceptance criteria
 - Unity Architect: Unity architecture, packages, scenes, data, build risk
 - Gameplay Developer: C# gameplay implementation
@@ -118,6 +119,16 @@ MLGS is Unity + C# only.
 - Prefer event-driven flows when they reduce coupling.
 - Consider Addressables for generated or runtime-loaded assets.
 - After prototype approval, read and enforce `rules/production-code.md`; temporary/demo shortcuts require a tracked removal milestone.
+- Treat HTML prototypes as interaction evidence only. Never use their placeholder panels, solid colors, or button styling as the production visual specification.
+- Before production, require an approved visual target, a release-scope manifest, a player journey, onboarding/tutorial design, and a production configuration plan.
+- Select a Unity game profile before finalizing release scope. Its minimum content, systems, UI screens, onboarding beats, configuration, art, audio, performance, and Unity checks are production requirements unless an explicit project override is approved.
+- Freeze a hash-based design baseline before production. Any changed source invalidates its mapped scope, assets, work packages, and product gates until impact is reviewed and the baseline is deliberately re-frozen.
+- Every production UI surface must exist in `design/ui/screen-inventory.json` with scope linkage, approved visual targets, states, controls, real Unity implementation, formal assets, and evidence.
+- Production work must use machine-readable work packages with objective checks, separate declared and objective verdicts, and a bounded attempt budget. A task is never complete when those verdicts disagree.
+- Before formal asset production, refresh `production/capabilities/capability-manifest.json`. Required image, sprite, mesh, animation, audio, video, Unity import/validation, and visual-comparison capabilities must be `ready` with evidence; `manual`, `missing`, or `blocked` fails closed.
+- Choose execution strategy from task risk: direct for bounded work, pipeline for dependent stages, fan-out-and-synthesize for independent specialist analyses, adversarial-review for high-risk decisions, and loop-until-done for objectively checkable rework. Roles remain logical passes in the current thread unless the owner explicitly requests separate threads.
+- Formal art approval is fail-closed: missing comparison evidence, unavailable/error verdicts, low target-match scores, or exhausted rework attempts block approval.
+- `0.1.x` means prototype/pre-release. Never call a game `1.0.0` or release-ready until the Release gate passes with every release-scope item verified, every formal art asset approved in game, and game-side operations readiness plus external publishing handoffs recorded.
 - Avoid `Find`, `FindObjectOfType`, `SendMessage`, repeated hot-path `GetComponent`, and hot-path allocations.
 - A feature is incomplete until its real scene/UI/data/error path is wired and verified; an isolated Demo/Test scene is not production evidence.
 - Use Unity Test Runner, compile checks, smoke tests, or documented manual QA evidence when possible.
