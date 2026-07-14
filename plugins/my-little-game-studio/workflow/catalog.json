@@ -419,7 +419,10 @@
                                                     "design/game-profile.json",
                                                     "design/ui/screen-inventory.json",
                                                     "design/baseline.json",
-                                                    "production/capabilities/capability-manifest.json"
+                                                    "production/capabilities/capability-manifest.json",
+                                                    "design/art/visual-scene-contract.json",
+                                                    "design/framework-adoption.json",
+                                                    "design/presentation-architecture.json"
                                                 ],
                                         "artManifest":  {
                                                             "path":  "production/assets/asset-manifest.json",
@@ -455,7 +458,19 @@
                                                                  "path":  "design/ui/screen-inventory.json",
                                                                  "requiredFor":  "content-complete",
                                                                  "minimumStatus":  "planned"
-                                                             }
+                                                             },
+                                        "visualSceneContract":  {
+                                                                      "path":  "design/art/visual-scene-contract.json",
+                                                                      "requiredFor":  "vertical-slice",
+                                                                      "minimumStatus":  "specified"
+                                                                  },
+                                        "frameworkAdoption":  {
+                                                                   "path":  "design/framework-adoption.json"
+                                                               },
+                                        "presentationArchitecture":  {
+                                                                           "path":  "design/presentation-architecture.json",
+                                                                           "contractOnly":  true
+                                                                       }
                                     },
                   "prototype-passed-or-skipped":  {
                                                       "approval":  "prototypeValidation",
@@ -539,7 +554,19 @@
                                                                              "requiredCapabilityKinds":  [
 
                                                                                                          ]
-                                                                         }
+                                                                         },
+                                                  "visualSceneContract":  {
+                                                                                "path":  "design/art/visual-scene-contract.json",
+                                                                                "requiredFor":  "vertical-slice",
+                                                                                "minimumStatus":  "approved"
+                                                                            },
+                                                  "frameworkAdoption":  {
+                                                                             "path":  "design/framework-adoption.json"
+                                                                         },
+                                                  "presentationArchitecture":  {
+                                                                                     "path":  "design/presentation-architecture.json",
+                                                                                     "contractOnly":  false
+                                                                                 }
                                               },
                   "content-complete-approved":  {
                                                     "all":  [

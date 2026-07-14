@@ -1,0 +1,22 @@
+{
+  "$schema": "../.mlgs/framework-adoption.schema.json",
+  "schemaVersion": "1.0",
+  "projectMode": "existing-framework",
+  "reconnaissance": { "completed": false, "assetsRoot": "Assets", "packagesManifest": "Packages/manifest.json", "asmdefPaths": [], "evidence": [] },
+  "frameworkSignals": [],
+  "selectedIntegration": {
+    "compositionRoot": { "decision": "adopt", "path": "", "notes": "Identify the existing composition root before implementation." },
+    "moduleBoundary": { "decision": "adopt", "path": "", "notes": "Identify existing module and assembly boundaries." },
+    "lifecycle": { "decision": "adopt", "path": "", "notes": "Identify initialization and cleanup ownership." },
+    "events": { "decision": "not-applicable", "path": "", "notes": "Record the existing event mechanism or justify direct calls." },
+    "configuration": { "decision": "adopt", "path": "", "notes": "Identify validated production configuration." },
+    "persistence": { "decision": "not-applicable", "path": "", "notes": "Record the save boundary or why it is not applicable." },
+    "uiPresentation": { "decision": "adopt", "path": "", "notes": "Identify the UI framework and presentation boundary." }
+  },
+  "implementationRoots": ["Assets"],
+  "forbiddenProductionPatterns": ["Demo", "Prototype", "Sample", "Test-only runtime", "standalone replacement manager"],
+  "architectVerdict": "pending",
+  "status": "draft",
+  "blockers": [],
+  "updated": ""
+}

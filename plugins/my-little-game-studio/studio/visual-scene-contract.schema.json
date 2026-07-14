@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/visual-scene-contract.schema.json",
+  "title": "MLGS screen-level visual scene contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updated", "scenes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "updated": { "type": "string", "minLength": 1 },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "requiredFor", "kind", "visualTargetIds", "targetImages", "targetResolution", "capture", "layers", "anchors", "thresholds", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "status", "attempt", "maxAttempts", "blockers"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "requiredFor": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
+          "kind": { "enum": ["gameplay", "diegetic-ui", "menu", "hybrid"] },
+          "visualTargetIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "targetImages": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "targetResolution": { "$ref": "#/$defs/resolution" },
+          "capture": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["unityScene", "camera", "gameViewPreset", "resolution", "screenshots"],
+            "properties": {
+              "unityScene": { "type": "string" },
+              "camera": { "type": "string" },
+              "gameViewPreset": { "type": "string" },
+              "resolution": { "$ref": "#/$defs/resolution" },
+              "screenshots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+            }
+          },
+          "layers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "role", "renderer", "required", "implementationPaths", "evidence"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "role": { "enum": ["background", "midground", "foreground", "world-gameplay", "diegetic-ui", "screen-ui", "vfx"] },
+                "renderer": { "enum": ["SpriteRenderer", "TilemapRenderer", "MeshRenderer", "ParticleSystem", "UGUI", "UIToolkit", "mixed"] },
+                "required": { "type": "boolean" },
+                "implementationPaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+                "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+              }
+            }
+          },
+          "anchors": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "purpose", "normalizedRect", "implementationPath"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "purpose": { "type": "string", "minLength": 1 },
+                "normalizedRect": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["x", "y", "width", "height"],
+                  "properties": {
+                    "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "y": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "width": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+                    "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+                  }
+                },
+                "implementationPath": { "type": "string" }
+              }
+            }
+          },
+          "thresholds": { "$ref": "#/$defs/metrics" },
+          "scores": { "$ref": "#/$defs/metrics" },
+          "automatedVerdict": { "enum": ["pending", "pass", "fail", "unavailable", "error"] },
+          "artDirectorVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+          "qaVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+          "status": { "enum": ["planned", "specified", "implemented", "approved", "blocked"] },
+          "attempt": { "type": "integer", "minimum": 0, "maximum": 5 },
+          "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetMatch", "composition", "spatialLayout", "depthLighting", "materialLanguage", "detailDensity", "diegeticIntegration", "readability"],
+      "properties": {
+        "targetMatch": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "composition": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "spatialLayout": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "depthLighting": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "materialLanguage": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "detailDensity": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "diegeticIntegration": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "readability": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}

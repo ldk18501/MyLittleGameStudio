@@ -4,7 +4,7 @@
   "title": "MLGS Unity game profile",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "displayName", "engine", "genres", "coreLoop", "releaseScopeRequirements", "requiredUiScreens", "onboardingBeats", "configurationSources", "artSets", "audioSets", "performanceBudgets", "unityChecks", "selectedAt", "projectOverrides"],
+  "required": ["schemaVersion", "id", "displayName", "engine", "genres", "coreLoop", "releaseScopeRequirements", "requiredUiScreens", "onboardingBeats", "configurationSources", "artSets", "audioSets", "performanceBudgets", "unityChecks", "presentationDefaults", "selectedAt", "projectOverrides"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": "1.0" },
@@ -36,6 +36,17 @@
     "audioSets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "performanceBudgets": { "type": "object" },
     "unityChecks": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "presentationDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "pureUIGame", "coreGameplayRenderer", "uiRenderer"],
+      "properties": {
+        "dimension": { "enum": ["2d", "2.5d", "3d"] },
+        "pureUIGame": { "type": "boolean" },
+        "coreGameplayRenderer": { "enum": ["sprite-scene", "tilemap-scene", "3d-scene", "hybrid-scene", "ugui"] },
+        "uiRenderer": { "enum": ["ugui", "uitoolkit", "hybrid"] }
+      }
+    },
     "selectedAt": { "type": "string" },
     "projectOverrides": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
   }

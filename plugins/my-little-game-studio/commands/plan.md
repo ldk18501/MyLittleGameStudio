@@ -38,6 +38,9 @@ Game Designer
 - project `production/release/operations-readiness.md`
 - project `production/scope/release-scope.json`
 - project `design/art/style-bible.md`
+- project `design/art/visual-scene-contract.json`
+- project `design/framework-adoption.json`
+- project `design/presentation-architecture.json`
 - project `production/assets/asset-manifest.json`
 - optional project `design/assets/asset-requirements.md`
 - optional project `design/ux/[screen].md`
@@ -57,7 +60,8 @@ Game Designer
    - dependencies
    - UI/VFX/audio hooks
    - acceptance criteria
-5. Unity Architect writes:
+5. Unity Architect runs `tools/inspect-unity-framework.ps1 -Apply`, reviews its candidates, and approves `design/framework-adoption.json`: existing asmdefs, bootstrap/composition root, module lifecycle, events, configuration, persistence, UI framework, tests, and asset loading. Existing projects default to adopting these integration points; replacing them requires an explicit architecture decision.
+6. Unity Architect writes:
    - Unity version/platform assumptions
    - architecture boundaries
    - ScriptableObject/config strategy
@@ -67,7 +71,9 @@ Game Designer
    - performance guardrails
    - module/assembly boundaries and dependency direction
    - composition root, lifecycle/cancellation, error handling, save boundaries, and localization boundaries
-6. Game Designer and Producer enumerate `production/scope/release-scope.json`: every release feature, content group with planned quantity, tutorial beat, UI screen, configuration/data source, audio set, art set, localization target, operations-readiness decision, and build. Every item links to a source design file and a target milestone.
+7. Unity Architect and Technical Artist approve `design/presentation-architecture.json`. A 2D project is scene-rendered with SpriteRenderer/TilemapRenderer by default; UGUI is for HUD/menus/overlays. `pureUIGame` and narrow UGUI gameplay exceptions require owner approval.
+8. Art Director and Technical Artist turn each approved target screen into `design/art/visual-scene-contract.json`: fixed resolution/camera, normalized composition anchors, required background/midground/foreground/world/diegetic/UI/VFX layers, renderer ownership, Unity paths, and comparison thresholds.
+9. Game Designer and Producer enumerate `production/scope/release-scope.json`: every release feature, content group with planned quantity, tutorial beat, UI screen, configuration/data source, audio set, art set, localization target, operations-readiness decision, and build. Every item links to a source design file and a target milestone.
 7. UI/UX Developer writes the end-to-end player journey and onboarding/tutorial flow. The Vertical Slice must include a real first-session path; Content Complete must include all teach/practice/verify/recovery beats.
 8. Unity Architect writes `production/data/configuration-plan.md` for tuning, progression, economy, rewards, spawn/content tables, validation, runtime consumers, and failure behavior. Prototype constants receive migration tasks.
 9. Producer and Unity Architect write `production/release/operations-readiness.md`: product model, game-side monetization/analytics/consent/remote-config or LiveOps requirements, service failure behavior, and named external owners for store/legal/deployment handoffs. “Not applicable” must be an explicit verified decision.
@@ -78,7 +84,7 @@ Game Designer
 14. Under low participation, write the plan and ask only for phase approval.
 15. Under medium/high participation, show concise options when architecture or scope choices matter.
 16. Update state and next action.
-17. Record trace.
+20. Run the three contract validators in planning mode, then record trace.
 
 ## Completion
 
@@ -93,7 +99,7 @@ Every production task is also a machine-readable work package. Use one verifiabl
 2. Expand every `releaseScopeRequirement` into release-scope items with matching `profileRequirementIds` and sufficient `plannedCount`.
 3. Enumerate every profile-required UI screen in `design/ui/screen-inventory.json`, including states, controls, visual targets, implementation path, formal asset IDs, audio IDs, and evidence.
 4. Run `tools/validate-game-profile-coverage.ps1`.
-5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`. Production cannot start from a draft or stale baseline.
+5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`, including the visual scene, framework-adoption, and presentation-architecture contracts. Production cannot start from a draft or stale baseline.
 ## Capability and orchestration plan
 
 Refresh `production/capabilities/capability-manifest.json` while planning the asset list. Missing image, Sprite, mesh, animation, audio, video, Unity import/validation, or visual-comparison providers become explicit dependencies and budget risks. For non-direct tasks, create `production/execution/<work-package-id>.json` with `tools/new-execution-strategy.ps1`; cap parallel logical groups and synthesis rounds.

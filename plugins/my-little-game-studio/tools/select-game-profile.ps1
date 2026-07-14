@@ -26,7 +26,18 @@ foreach ($relative in @("production/scope/release-scope.json", "design/ui/screen
   if ($related.PSObject.Properties.Name -contains "updated") { $related.updated = (Get-Date).ToString("o") }
   Write-MLGSJsonAtomic -Path $relatedPath -Value $related
 }
-foreach ($schema in @("game-profile.schema.json", "ui-screen-contract.schema.json", "design-baseline.schema.json", "change-impact.schema.json")) {
+$presentationPath = Join-Path $ProjectRoot "design/presentation-architecture.json"
+if (Test-Path $presentationPath) {
+  $presentation = Get-Content -LiteralPath $presentationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $presentation.dimension = [string]$profile.presentationDefaults.dimension
+  $presentation.pureUIGame = [bool]$profile.presentationDefaults.pureUIGame
+  $presentation.ownerApprovedPureUI = $false
+  $presentation.coreGameplayRenderer = [string]$profile.presentationDefaults.coreGameplayRenderer
+  $presentation.uiRenderer = [string]$profile.presentationDefaults.uiRenderer
+  $presentation.updated = (Get-Date).ToString("o")
+  Write-MLGSJsonAtomic -Path $presentationPath -Value $presentation
+}
+foreach ($schema in @("game-profile.schema.json", "ui-screen-contract.schema.json", "design-baseline.schema.json", "change-impact.schema.json", "framework-adoption.schema.json", "presentation-architecture.schema.json", "visual-scene-contract.schema.json")) {
   $schemaTarget = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ".mlgs/$schema"
   New-Item -ItemType Directory -Path (Split-Path -Parent $schemaTarget) -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $Root "studio/$schema") -Destination $schemaTarget -Force

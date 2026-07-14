@@ -1,7 +1,7 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.7.0+codex.20260713200500",
-  "description": "Codex-first Unity/C# 独立游戏工作室流程。通过 /mlgs 自然语言入口推进规划、正式美术、模块化实现、成品阶段、质量门禁、图标、本地化、崩溃检查和构建。",
+  "version": "0.8.1+codex.20260714112608",
+  "description": "Codex-first Unity/C# 独立游戏工作室流程，通过 /mlgs 推进规划、正式美术、生产实现、质量门禁与发布准备。",
   "author": {
     "name": "MyLittleGameStudio"
   },
@@ -16,8 +16,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "MyLittleGameStudio",
-    "shortDescription": "Unity 游戏从概念、正式美术到 Release Candidate 的单入口工作室",
-    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室。只暴露 /mlgs 一个入口，由 Producer 根据项目状态自动路由到开始、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建或 dashboard。结构化质量门禁和资产清单避免项目长期停留在 Demo 状态。",
+    "shortDescription": "从游戏概念、正式美术到可发布质量的 Unity 工作室",
+    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室。通过 /mlgs 单入口推进概念、规划、原型、正式美术、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、Release Candidate、构建与 dashboard。结构化质量门禁避免项目长期停留在 Demo 状态。",
     "developerName": "MyLittleGameStudio",
     "category": "Engineering",
     "capabilities": [

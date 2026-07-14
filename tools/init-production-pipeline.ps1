@@ -32,6 +32,10 @@ Copy-IfNeeded "studio/design-baseline.schema.json" ".mlgs/design-baseline.schema
 Copy-IfNeeded "studio/change-impact.schema.json" ".mlgs/change-impact.schema.json"
 Copy-IfNeeded "studio/capability-manifest.schema.json" ".mlgs/capability-manifest.schema.json"
 Copy-IfNeeded "studio/execution-strategy.schema.json" ".mlgs/execution-strategy.schema.json"
+Copy-IfNeeded "studio/framework-adoption.schema.json" ".mlgs/framework-adoption.schema.json"
+Copy-IfNeeded "studio/presentation-architecture.schema.json" ".mlgs/presentation-architecture.schema.json"
+Copy-IfNeeded "templates/framework-adoption.json" "design/framework-adoption.json"
+Copy-IfNeeded "templates/presentation-architecture.json" "design/presentation-architecture.json"
 Copy-IfNeeded "templates/ui-screen-contract.json" "design/ui/screen-inventory.json"
 Copy-IfNeeded "templates/design-baseline.json" "design/baseline.json"
 Copy-IfNeeded "templates/capability-manifest.json" "production/capabilities/capability-manifest.json"
@@ -40,6 +44,17 @@ Copy-IfNeeded "templates/player-journey.md" "design/player-journey.md"
 Copy-IfNeeded "templates/onboarding-design.md" "design/onboarding.md"
 Copy-IfNeeded "templates/configuration-plan.md" "production/data/configuration-plan.md"
 Copy-IfNeeded "templates/operations-readiness.md" "production/release/operations-readiness.md"
+
+foreach ($relative in @("design/framework-adoption.json", "design/presentation-architecture.json")) {
+  $contractPath = Join-Path $ProjectRoot $relative
+  if (Test-Path $contractPath) {
+    $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace([string]$contract.updated)) {
+      $contract.updated = (Get-Date).ToString("o")
+      Write-MLGSJsonAtomic -Path $contractPath -Value $contract
+    }
+  }
+}
 
 $scopePath = Join-Path $ProjectRoot "production/scope/release-scope.json"
 $uiPath = Join-Path $ProjectRoot "design/ui/screen-inventory.json"

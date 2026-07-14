@@ -36,7 +36,8 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
 4. Convert every failed or missing check into a bounded task with acceptance criteria and evidence path.
 5. Validate the explicit release scope with `tools/validate-release-scope.ps1`; never infer completeness from implemented files alone. Missing planned counts, tutorial beats, UI screens, configuration sources, audio, or art are blockers.
 6. For production code, read `rules/production-code.md`; run `tools/test-production-code.ps1` and attach the report at Content Complete or earlier.
-7. For art, run the formal `generate-art` route and validate both visual-target linkage and the required manifest scope.
+7. For art, run the formal `generate-art` route and validate the screen-level visual scene contract before asset approval. A correctly skinned UGUI panel over a background is not final-look evidence when the target requires a layered scene or diegetic display.
+8. Validate framework adoption and presentation architecture. A Vertical Slice fails if production gameplay is still a Demo/Test implementation, bypasses the existing framework, or implements 2D core play through UGUI without an approved pure-UI decision.
 8. Complete the stage definition:
    - Vertical Slice: one representative final-quality player journey, final-look target, production architecture, performance budget, and asset pipeline all proven together.
    - Content Complete: every enumerated release-scope feature, planned content quantity, tutorial beat, UI screen, production configuration, audio set, and formal art item is integrated; placeholders, unfinished flows, temporary code, and missing references are removed.

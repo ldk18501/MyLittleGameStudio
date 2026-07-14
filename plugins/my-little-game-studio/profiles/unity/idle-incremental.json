@@ -141,6 +141,12 @@
                         "Save migration passes",
                         "Target-device smoke passes"
                     ],
+    "presentationDefaults":  {
+                                      "dimension":  "2d",
+                                      "pureUIGame":  false,
+                                      "coreGameplayRenderer":  "sprite-scene",
+                                      "uiRenderer":  "ugui"
+                                  },
     "selectedAt":  "",
     "projectOverrides":  [
 

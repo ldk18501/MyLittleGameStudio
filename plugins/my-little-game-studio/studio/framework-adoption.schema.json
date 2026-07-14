@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/framework-adoption.schema.json",
+  "title": "MLGS Unity framework adoption contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "projectMode", "reconnaissance", "frameworkSignals", "selectedIntegration", "implementationRoots", "forbiddenProductionPatterns", "architectVerdict", "status", "blockers", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "projectMode": { "enum": ["existing-framework", "new-foundation"] },
+    "reconnaissance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completed", "assetsRoot", "packagesManifest", "asmdefPaths", "evidence"],
+      "properties": {
+        "completed": { "type": "boolean" },
+        "assetsRoot": { "type": "string", "minLength": 1 },
+        "packagesManifest": { "type": "string", "minLength": 1 },
+        "asmdefPaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "frameworkSignals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "name", "path", "decision"],
+        "properties": {
+          "kind": { "enum": ["bootstrap", "module", "lifecycle", "events", "config", "save", "ui", "assets", "tests", "assembly"] },
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "decision": { "enum": ["adopt", "adapt", "replace", "not-applicable"] }
+        }
+      }
+    },
+    "selectedIntegration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compositionRoot", "moduleBoundary", "lifecycle", "events", "configuration", "persistence", "uiPresentation"],
+      "properties": {
+        "compositionRoot": { "$ref": "#/$defs/integrationPoint" },
+        "moduleBoundary": { "$ref": "#/$defs/integrationPoint" },
+        "lifecycle": { "$ref": "#/$defs/integrationPoint" },
+        "events": { "$ref": "#/$defs/integrationPoint" },
+        "configuration": { "$ref": "#/$defs/integrationPoint" },
+        "persistence": { "$ref": "#/$defs/integrationPoint" },
+        "uiPresentation": { "$ref": "#/$defs/integrationPoint" }
+      }
+    },
+    "implementationRoots": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "forbiddenProductionPatterns": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "architectVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "status": { "enum": ["draft", "approved", "blocked"] },
+    "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "updated": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "integrationPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "path", "notes"],
+      "properties": {
+        "decision": { "enum": ["adopt", "adapt", "create", "not-applicable"] },
+        "path": { "type": "string" },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

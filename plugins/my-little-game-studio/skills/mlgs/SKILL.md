@@ -77,3 +77,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 - A changed frozen design source invalidates its mapped product stages until impact is reviewed and a new baseline version is deliberately frozen.
 - Refresh and validate `production/capabilities/capability-manifest.json` before formal production. Required image/Sprite/mesh/animation/audio/video, Unity import/validation, and visual-comparison entries must be ready with evidence.
 - Non-direct work uses `tools/new-execution-strategy.ps1`; logical role groups remain in the current thread unless the owner explicitly requests separate threads.
+- Whole-screen fidelity is governed by `design/art/visual-scene-contract.json`. Lock composition anchors, depth layers, renderer ownership, Unity scene/camera/resolution, then run `tools/test-visual-scene-contract.ps1`; isolated asset quality cannot approve a mismatched scene.
+- Production implementation requires approved `design/framework-adoption.json` and `design/presentation-architecture.json`. Existing Unity framework integration points are adopted before code is written.
+- In 2D non-pure-UI games, core gameplay uses SpriteRenderer/TilemapRenderer scene content. UGUI/UI Toolkit is restricted to UI surfaces and owner-approved exceptions; authoritative gameplay rules never live in UI views.

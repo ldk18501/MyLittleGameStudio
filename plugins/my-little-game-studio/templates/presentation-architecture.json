@@ -1,0 +1,18 @@
+{
+  "$schema": "../.mlgs/presentation-architecture.schema.json",
+  "schemaVersion": "1.0",
+  "dimension": "2d",
+  "pureUIGame": false,
+  "ownerApprovedPureUI": false,
+  "coreGameplayRenderer": "sprite-scene",
+  "uiRenderer": "ugui",
+  "coreGameplayPaths": ["Assets/Game/World"],
+  "uiPaths": ["Assets/Game/UI"],
+  "allowedUGUIExceptions": [],
+  "requiredWorldComponents": ["SpriteRenderer"],
+  "evidence": [],
+  "architectVerdict": "pending",
+  "status": "draft",
+  "blockers": [],
+  "updated": ""
+}

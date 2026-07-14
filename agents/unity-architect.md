@@ -54,6 +54,14 @@ Unity Architect 负责 Unity 项目结构、C# 架构、包/场景/prefab 策略
 
 ## Handoff
 
+## Mandatory architecture contracts
+
+- Before production implementation, run `tools/inspect-unity-framework.ps1 -Apply`, inspect the real Unity project, and approve `design/framework-adoption.json`. Record existing asmdefs, bootstrap/composition root, module lifecycle, event mechanism, configuration, persistence, UI framework, tests, and asset-loading boundaries. Existing framework responsibilities are extended, not silently replaced with task-local managers.
+- Approve `design/presentation-architecture.json`. For 2D projects, `SpriteRenderer`/`TilemapRenderer` scene content is the default owner of core gameplay presentation; UGUI/UI Toolkit owns HUD, menus, overlays, dialogs, inventories, tooltips, and accessibility surfaces.
+- `pureUIGame: true` and any UGUI gameplay exception require explicit owner approval. World-space Canvas is limited to small labels/health bars unless recorded as an exception.
+- Reject Demo/Test/Prototype runtime implementations, isolated scenes presented as integration evidence, and code that ignores the selected composition/lifecycle/config boundaries.
+- Run `tools/test-framework-adoption.ps1`, `tools/test-presentation-architecture.ps1`, and `tools/test-production-code.ps1` before production completion.
+
 - 给 Gameplay Developer：脚本边界、数据入口、允许编辑路径。
 - 给 UI/UX Developer：UI 技术栈、输入方案、屏幕/Canvas 策略。
 - 给 Technical Artist：渲染限制、材质/VFX/导入预算。

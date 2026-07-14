@@ -83,12 +83,23 @@ try {
     $state = Get-Content -LiteralPath $statePath -Raw -Encoding UTF8 | ConvertFrom-Json
     $state.approvals.productionUnblocked = $true
     $state | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $statePath -Encoding UTF8
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -ProjectRoot $project -RuntimeRoot $runtimeRoot | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Unlocked production did not pass preflight." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -ProjectRoot $project -RuntimeRoot $runtimeRoot 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 2) { throw "Unlocked production without architecture contracts was not blocked." }
     $valid = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -ChangedPaths "Assets/Scripts/PlayerController.cs","production/task-plan.md" | ConvertFrom-Json
     if (-not $valid.valid) { throw "Approved paths were rejected." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -ChangedPaths "ProjectSettings/ProjectSettings.asset" 2>$null | Out-Null
     if ($LASTEXITCODE -ne 3) { throw "Out-of-bound path was not rejected." }
+  }
+
+  $results += Invoke-Step "framework-reconnaissance" {
+    $bootstrapPath = Join-Path $project "Assets/Scripts/GameBootstrap.cs"
+    $asmdefPath = Join-Path $project "Assets/Scripts/Game.Runtime.asmdef"
+    Set-Content -LiteralPath $bootstrapPath -Value "public sealed class GameBootstrap { }" -Encoding UTF8
+    Set-Content -LiteralPath $asmdefPath -Value '{"name":"Game.Runtime"}' -Encoding UTF8
+    $report = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-unity-framework.ps1") -Root $Root -ProjectRoot $project | ConvertFrom-Json
+    if (@($report.asmdefPaths) -notcontains "Assets/Scripts/Game.Runtime.asmdef") { throw "Framework reconnaissance did not discover the runtime asmdef." }
+    if (@($report.frameworkSignals | Where-Object { $_.path -eq "Assets/Scripts/GameBootstrap.cs" }).Count -eq 0) { throw "Framework reconnaissance did not discover the composition-root candidate." }
+    Remove-Item -LiteralPath $bootstrapPath, $asmdefPath -Force
   }
 
   $results += Invoke-Step "formal-art-pipeline" {
@@ -110,12 +121,86 @@ try {
       New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
       Set-Content -LiteralPath $path -Value "smoke" -Encoding UTF8
     }
+    foreach ($entry in @(
+      @{ Path = "Assets/Game/World/GameplayRoot.prefab"; Content = "SpriteRenderer world gameplay" },
+      @{ Path = "Assets/Game/UI/Hud.prefab"; Content = "UGUI HUD" }
+    )) {
+      $path = Join-Path $project $entry.Path
+      New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+      Set-Content -LiteralPath $path -Value $entry.Content -Encoding UTF8
+    }
     $visualTargetPath = Join-Path $project "design/art/visual-target.json"
     $visualTarget = Get-Content -LiteralPath $visualTargetPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $visualTarget.updated = (Get-Date).ToString("o")
     $visualTarget.targets[0].approved = $true
     $visualTarget.targets[0].imagePath = "design/art/targets/final-gameplay-target.png"
     Write-MLGSJsonAtomic -Path $visualTargetPath -Value $visualTarget
+
+    $frameworkPath = Join-Path $project "design/framework-adoption.json"
+    $framework = Get-Content -LiteralPath $frameworkPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $framework.projectMode = "existing-framework"
+    $framework.reconnaissance.completed = $true
+    $framework.reconnaissance.evidence = @("Assets/Scripts/PlayerController.cs", "Packages/manifest.json")
+    $framework.frameworkSignals = @([pscustomobject]@{ kind = "module"; name = "Smoke gameplay module"; path = "Assets/Scripts/PlayerController.cs"; decision = "adopt" })
+    foreach ($name in @("compositionRoot", "moduleBoundary", "lifecycle", "configuration", "uiPresentation")) {
+      $framework.selectedIntegration.$name.decision = "adopt"
+      $framework.selectedIntegration.$name.path = "Assets/Scripts/PlayerController.cs"
+      $framework.selectedIntegration.$name.notes = "Smoke adopted integration point."
+    }
+    foreach ($name in @("events", "persistence")) {
+      $framework.selectedIntegration.$name.decision = "not-applicable"
+      $framework.selectedIntegration.$name.path = ""
+      $framework.selectedIntegration.$name.notes = "Not needed by the smoke feature."
+    }
+    $framework.implementationRoots = @("Assets")
+    $framework.architectVerdict = "pass"
+    $framework.status = "approved"
+    $framework.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
+
+    $presentationPath = Join-Path $project "design/presentation-architecture.json"
+    $presentation = Get-Content -LiteralPath $presentationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $presentation.dimension = "2d"
+    $presentation.pureUIGame = $false
+    $presentation.ownerApprovedPureUI = $false
+    $presentation.coreGameplayRenderer = "sprite-scene"
+    $presentation.coreGameplayPaths = @("Assets/Game/World")
+    $presentation.uiPaths = @("Assets/Game/UI")
+    $presentation.requiredWorldComponents = @("SpriteRenderer")
+    $presentation.evidence = @("Assets/Game/World/GameplayRoot.prefab")
+    $presentation.architectVerdict = "pass"
+    $presentation.status = "approved"
+    $presentation.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $presentationPath -Value $presentation
+
+    $sceneContractPath = Join-Path $project "design/art/visual-scene-contract.json"
+    $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $sceneContract.updated = (Get-Date).ToString("o")
+    $sceneContract.scenes = @([pscustomobject][ordered]@{
+      id = "gameplay-main"
+      requiredFor = "vertical-slice"
+      kind = "gameplay"
+      visualTargetIds = @("VT-001")
+      targetImages = @("design/art/targets/final-gameplay-target.png")
+      targetResolution = [pscustomobject]@{ width = 1080; height = 1920 }
+      capture = [pscustomobject]@{ unityScene = "Assets/Scenes/Main.unity"; camera = "MainCamera"; gameViewPreset = "1080x1920"; resolution = [pscustomobject]@{ width = 1080; height = 1920 }; screenshots = @("production/assets/reviews/hero-game-view.png") }
+      layers = @(
+        [pscustomobject]@{ id = "background"; role = "background"; renderer = "SpriteRenderer"; required = $true; implementationPaths = @("Assets/Game/World/GameplayRoot.prefab"); evidence = @("production/assets/reviews/hero-game-view.png") },
+        [pscustomobject]@{ id = "world"; role = "world-gameplay"; renderer = "SpriteRenderer"; required = $true; implementationPaths = @("Assets/Game/World/GameplayRoot.prefab"); evidence = @("production/assets/reviews/hero-game-view.png") },
+        [pscustomobject]@{ id = "foreground"; role = "foreground"; renderer = "SpriteRenderer"; required = $true; implementationPaths = @("Assets/Game/World/GameplayRoot.prefab"); evidence = @("production/assets/reviews/hero-game-view.png") }
+      )
+      anchors = @([pscustomobject]@{ id = "focal"; purpose = "Primary gameplay focal area"; normalizedRect = [pscustomobject]@{ x = 0.1; y = 0.1; width = 0.8; height = 0.8 }; implementationPath = "Assets/Game/World/GameplayRoot.prefab" })
+      thresholds = [pscustomobject]@{ targetMatch = 85; composition = 80; spatialLayout = 80; depthLighting = 80; materialLanguage = 80; detailDensity = 80; diegeticIntegration = 80; readability = 80 }
+      scores = [pscustomobject]@{ targetMatch = 90; composition = 90; spatialLayout = 90; depthLighting = 90; materialLanguage = 90; detailDensity = 90; diegeticIntegration = 90; readability = 90 }
+      automatedVerdict = "pass"
+      artDirectorVerdict = "pass"
+      qaVerdict = "pass"
+      status = "approved"
+      attempt = 1
+      maxAttempts = 3
+      blockers = @()
+    })
+    Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
     $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $manifest.assets = @([pscustomobject]@{
@@ -244,7 +329,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Game profile coverage did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-ui-screen-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor content-complete -MinimumStatus integrated | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "UI screen contract did not pass." }
-    $baselineSources = @("design/concept-package.md", "design/game-profile.json", "design/ui/screen-inventory.json", "production/scope/release-scope.json")
+    $baselineSources = @("design/concept-package.md", "design/game-profile.json", "design/ui/screen-inventory.json", "design/art/visual-scene-contract.json", "design/framework-adoption.json", "design/presentation-architecture.json", "production/scope/release-scope.json")
     & (Join-Path $Root "tools/freeze-design-baseline.ps1") -Root $Root -ProjectRoot $project -Version 1 -SourcePaths $baselineSources | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-design-baseline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Fresh design baseline did not pass." }
@@ -254,6 +339,42 @@ try {
     & (Join-Path $Root "tools/freeze-design-baseline.ps1") -Root $Root -ProjectRoot $project -Version 2 -SourcePaths $baselineSources -Force | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-design-baseline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Re-frozen design baseline did not pass." }
+  }
+
+  $results += Invoke-Step "visual-framework-presentation-contracts" {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-visual-scene-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved visual scene contract did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-framework-adoption.ps1") -Root $Root -ProjectRoot $project | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved framework adoption did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-presentation-architecture.ps1") -Root $Root -ProjectRoot $project | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved presentation architecture did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -ProjectRoot $project -RuntimeRoot $runtimeRoot | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved architecture contracts did not unlock production preflight." }
+
+    $sceneContractPath = Join-Path $project "design/art/visual-scene-contract.json"
+    $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $sceneContract.scenes[0].scores.targetMatch = 84
+    Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-visual-scene-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 16) { throw "Low whole-screen target match passed." }
+    $sceneContract.scenes[0].scores.targetMatch = 90
+    Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
+
+    $frameworkPath = Join-Path $project "design/framework-adoption.json"
+    $framework = Get-Content -LiteralPath $frameworkPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $signals = @($framework.frameworkSignals)
+    $framework.frameworkSignals = @()
+    Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-framework-adoption.ps1") -Root $Root -ProjectRoot $project 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 17) { throw "Existing project without framework signals passed." }
+    $framework.frameworkSignals = $signals
+    Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
+
+    $worldPath = Join-Path $project "Assets/Game/World/GameplayRoot.prefab"
+    Set-Content -LiteralPath $worldPath -Value "SpriteRenderer RectTransform CanvasRenderer" -Encoding UTF8
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-presentation-architecture.ps1") -Root $Root -ProjectRoot $project 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 18) { throw "UGUI content inside 2D core gameplay passed." }
+    Set-Content -LiteralPath $worldPath -Value "SpriteRenderer world gameplay" -Encoding UTF8
   }
 
   $results += Invoke-Step "capability-routing" {

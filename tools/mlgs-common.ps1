@@ -1073,8 +1073,34 @@ function Get-MLGSGateEvaluation {
       $codeAuditIssues = @($codeAuditResult.issues)
     }
 
+    $visualScenePass = $true
+    $visualSceneIssues = @()
+    if ($gate.PSObject.Properties.Name -contains "visualSceneContract") {
+      $definition = $gate.visualSceneContract
+      $raw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Split-Path -Parent $PSScriptRoot) "tools/test-visual-scene-contract.ps1") -Root (Split-Path -Parent $PSScriptRoot) -ProjectRoot $ProjectRoot -Path ([string]$definition.path) -RequiredFor ([string]$definition.requiredFor) -MinimumStatus ([string]$definition.minimumStatus) 2>$null
+      try { $visualSceneResult = $raw | ConvertFrom-Json; $visualScenePass = [bool]$visualSceneResult.passed; $visualSceneIssues = @($visualSceneResult.issues) } catch { $visualScenePass = $false; $visualSceneIssues = @("Visual scene contract validator did not return parseable output.") }
+    }
+
+    $frameworkPass = $true
+    $frameworkIssues = @()
+    if ($gate.PSObject.Properties.Name -contains "frameworkAdoption") {
+      $definition = $gate.frameworkAdoption
+      $raw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Split-Path -Parent $PSScriptRoot) "tools/test-framework-adoption.ps1") -Root (Split-Path -Parent $PSScriptRoot) -ProjectRoot $ProjectRoot -Path ([string]$definition.path) 2>$null
+      try { $frameworkResult = $raw | ConvertFrom-Json; $frameworkPass = [bool]$frameworkResult.passed; $frameworkIssues = @($frameworkResult.issues) } catch { $frameworkPass = $false; $frameworkIssues = @("Framework adoption validator did not return parseable output.") }
+    }
+
+    $presentationPass = $true
+    $presentationIssues = @()
+    if ($gate.PSObject.Properties.Name -contains "presentationArchitecture") {
+      $definition = $gate.presentationArchitecture
+      $args = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path (Split-Path -Parent $PSScriptRoot) "tools/test-presentation-architecture.ps1"), "-Root", (Split-Path -Parent $PSScriptRoot), "-ProjectRoot", $ProjectRoot, "-Path", [string]$definition.path)
+      if (($definition.PSObject.Properties.Name -contains "contractOnly") -and [bool]$definition.contractOnly) { $args += "-ContractOnly" }
+      $raw = & powershell @args 2>$null
+      try { $presentationResult = $raw | ConvertFrom-Json; $presentationPass = [bool]$presentationResult.passed; $presentationIssues = @($presentationResult.issues) } catch { $presentationPass = $false; $presentationIssues = @("Presentation architecture validator did not return parseable output.") }
+    }
+
     $gateResults[$gateProperty.Name] = [pscustomobject]@{
-      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass))
+      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass))
       artifactsPassed = $artifactPass
       approvalPassed = $approvalPass
       qualityPassed = $qualityPass
@@ -1085,6 +1111,9 @@ function Get-MLGSGateEvaluation {
       uiScreenContractPassed = $uiPass
       designBaselinePassed = $baselinePass
       codeAuditPassed = $codeAuditPass
+      visualSceneContractPassed = $visualScenePass
+      frameworkAdoptionPassed = $frameworkPass
+      presentationArchitecturePassed = $presentationPass
       skippedWithRisk = $skipped
       missing = @($missing)
       qualityIssues = @($qualityIssues)
@@ -1095,6 +1124,9 @@ function Get-MLGSGateEvaluation {
       uiScreenContractIssues = @($uiIssues)
       designBaselineIssues = @($baselineIssues)
       codeAuditIssues = @($codeAuditIssues)
+      visualSceneContractIssues = @($visualSceneIssues)
+      frameworkAdoptionIssues = @($frameworkIssues)
+      presentationArchitectureIssues = @($presentationIssues)
     }
   }
 

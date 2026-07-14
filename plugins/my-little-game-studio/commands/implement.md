@@ -24,6 +24,9 @@ Gameplay Developer
 - relevant design/system docs
 - relevant Unity files inside approved write paths
 - `rules/production-code.md`
+- project `design/framework-adoption.json`
+- project `design/presentation-architecture.json`
+- relevant entries in project `design/art/visual-scene-contract.json`
 
 ## Write
 
@@ -37,16 +40,18 @@ Gameplay Developer
 1. Resolve active project and owner participation.
 2. Parse the task from the user request, task plan, or status next options.
 3. Run `tools/preflight-task.ps1 -Command implement`. If blocked, continue only after the owner explicitly accepts risk and rerun with `-AcceptRisk`.
-4. Read the smallest relevant design, tech, and code context.
+4. Run `tools/test-framework-adoption.ps1` and `tools/test-presentation-architecture.ps1 -ContractOnly`. Read the selected existing framework integration points before reading the feature files. Stop if the task would create a parallel framework or if presentation ownership is undefined.
+5. Read the smallest relevant design, tech, and code context.
 5. Determine whether the work is disposable prototype code or production code. After prototype approval, default to production code; a temporary shortcut requires a tracked removal task before Vertical Slice approval.
 6. Link the task to one or more IDs in `production/scope/release-scope.json`. After the prototype phase, UI/presentation tasks must read the approved visual target and style bible; do not reproduce HTML prototype styling unless explicitly approved there.
-7. Apply `rules/production-code.md`: preserve module dependency direction, separate rules from Unity presentation, use explicit composition and serialized references, make lifecycle cleanup/cancellation explicit, keep config data-driven, and expose errors with context.
+8. Apply `rules/production-code.md`: preserve the adopted framework and module dependency direction, separate rules from Unity presentation, use explicit composition and serialized references, make lifecycle cleanup/cancellation explicit, keep config data-driven, and expose errors with context. Runtime production paths may not contain Demo/Test/Prototype implementations.
+9. For 2D non-pure-UI games, build core gameplay as scene objects with SpriteRenderer/TilemapRenderer and suitable animation/VFX components. UGUI implements only HUD, menus, overlays and recorded exceptions; UI views never own authoritative gameplay rules.
 7. Use `mlgs-unity-mechanics` when the task involves gameplay mechanisms, input feel, feedback, object count, pooling, timing, or performance-sensitive runtime logic.
 8. For DOD/instancing/bullets/mass objects, read `dod-performance.md` and record the chosen L1-L5 tier.
 9. Under high participation, present a concise implementation plan before meaningful edits.
 10. Under low/medium participation, implement directly unless the edit is high-risk.
 11. Run compile, focused tests, integration smoke, and the task acceptance checks. A feature is not done if only an isolated component works but its actual scene/UI/data flow is unwired.
-12. Run `tools/test-production-code.ps1` for production tasks. Resolve errors; convert warnings into fixes or recorded debt with a removal milestone.
+14. Run `tools/test-presentation-architecture.ps1` and `tools/test-production-code.ps1` for production tasks. Resolve errors; convert warnings into fixes or recorded debt with a removal milestone.
 13. Run `tools/validate-changes.ps1` and reject edits outside project planning paths or approved Unity write paths.
 14. Record:
     - files changed

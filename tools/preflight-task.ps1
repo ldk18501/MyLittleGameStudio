@@ -31,6 +31,12 @@ if (-not $resolved.exists -or $resolved.mode -eq "template") {
     if (@($state.activeProject.approvedWritePaths).Count -eq 0) {
       $blockers += "No approved Unity write paths are configured."
     }
+    if (@("implement", "fix", "productize") -contains $Command -and [bool]$state.approvals.productionUnblocked) {
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-framework-adoption.ps1") -Root $Root -ProjectRoot $resolved.project_root 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 0) { $blockers += "Framework adoption contract is missing or invalid; implementation may not bypass the project's existing architecture." }
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-presentation-architecture.ps1") -Root $Root -ProjectRoot $resolved.project_root -ContractOnly 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 0) { $blockers += "Presentation architecture contract is missing or invalid." }
+    }
   }
 }
 

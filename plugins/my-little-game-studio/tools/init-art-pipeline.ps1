@@ -37,6 +37,8 @@ Copy-MLGSTemplate "studio/art-asset-manifest.schema.json" ".mlgs/art-asset-manif
 Copy-MLGSTemplate "studio/visual-target.schema.json" ".mlgs/visual-target.schema.json"
 Copy-MLGSTemplate "studio/quality-gate.schema.json" ".mlgs/quality-gate.schema.json"
 Copy-MLGSTemplate "studio/art-review.schema.json" ".mlgs/art-review.schema.json"
+Copy-MLGSTemplate "studio/visual-scene-contract.schema.json" ".mlgs/visual-scene-contract.schema.json"
+Copy-MLGSTemplate "templates/visual-scene-contract.json" "design/art/visual-scene-contract.json"
 
 $visualTargetPath = Join-Path $ProjectRoot "design/art/visual-target.json"
 if (Test-Path $visualTargetPath) {
@@ -44,6 +46,15 @@ if (Test-Path $visualTargetPath) {
   if ([string]::IsNullOrWhiteSpace([string]$visualTarget.updated)) {
     $visualTarget.updated = (Get-Date).ToString("o")
     Write-MLGSJsonAtomic -Path $visualTargetPath -Value $visualTarget
+  }
+}
+
+$sceneContractPath = Join-Path $ProjectRoot "design/art/visual-scene-contract.json"
+if (Test-Path $sceneContractPath) {
+  $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ([string]::IsNullOrWhiteSpace([string]$sceneContract.updated)) {
+    $sceneContract.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
   }
 }
 

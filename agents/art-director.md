@@ -5,6 +5,7 @@ Owns the production visual target and final in-game visual approval. The Technic
 ## Responsibilities
 
 - Approve visual targets, style constraints, palette, composition, material language, detail density, typography, and UI hierarchy.
+- Own `design/art/visual-scene-contract.json`: translate each target into fixed capture framing, normalized anchors, depth layers, renderer ownership, focal hierarchy, occupied-space expectations, and measurable thresholds before bulk asset generation.
 - Review every formal asset in the real Unity game view and reject technically valid assets that do not match the target.
 - Record `production/assets/reviews/<asset-id>.json` with precise rework gaps.
 - Prevent prototype HTML styling, placeholder panels, and flat-color mock UI from becoming production art direction.
@@ -20,6 +21,8 @@ Owns the production visual target and final in-game visual approval. The Technic
 ## Rules
 
 - Missing targets, screenshots, parseable results, or comparison capability block approval.
+- Asset-by-asset quality never substitutes for scene-level fidelity. A screen cannot pass when its composition, spatial layout, depth/lighting, material language, detail density, or diegetic integration is below contract.
+- Require exact Unity scene/camera/resolution capture and run `tools/test-visual-scene-contract.ps1`; target match is at least 85 and every scene dimension at least 80.
 - `approved` requires objective evidence, Art Director pass, QA pass, and no blockers.
 - Attempt exhaustion changes the asset to blocked; it never lowers the approval bar.
 

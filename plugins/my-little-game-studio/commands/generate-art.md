@@ -24,6 +24,7 @@ Art Director
 - `production/assets/prompts/`
 - `production/assets/import-recipes/`
 - `production/assets/reviews/`
+- `design/art/visual-scene-contract.json`
 
 Initialize missing artifacts with:
 
@@ -44,14 +45,16 @@ Do not skip directly to `approved`. Each transition must preserve source/provena
 ## Flow
 
 1. Read the approved concept, reference analysis, visual target images, style bible, release-scope art items, target platform, render pipeline, and manifest.
-2. Expand every release-scope art item into individual manifest entries before bulk generation. Each entry records one or more approved `visualTargets`; an asset without a visual-target link is not formal art.
+2. Before bulk generation, specify and lock the screen-level visual scene contract: exact target/capture resolution, Unity scene and camera, normalized anchors, required depth layers, renderer ownership, focal areas, diegetic integration, and minimum scores. Do not generate a pile of isolated assets before the representative scene blockout matches the target composition.
+3. Expand every release-scope art item into individual manifest entries before bulk generation. Each entry records one or more approved `visualTargets`; an asset without a visual-target link is not formal art.
 3. For generated art, use the `imagegen` skill/tool when available. Generate candidates against the style bible; keep prompt metadata beside the asset and preserve the original source image.
 4. Select a candidate against silhouette, palette, readability, camera scale, animation needs, and consistency. Do not approve directly from the generation preview.
 5. Process non-destructively: crop, remove background, preserve alpha, trim padding, resize, or create variants. Keep source and processed files separate.
 6. Write an import recipe before Unity import. Include texture type, Sprite mode, pixels per unit, pivot, border, mesh type, filter/wrap mode, compression, max size, platform overrides, slicing grid or rectangles, atlas, and Addressables decision.
 7. Before writing into Unity production paths, run `tools/preflight-task.ps1 -Command generate-art`. Apply import and slicing with available Unity automation (`unity-importer`, `unity-asset`, `unity-script`, or an approved project-local Editor tool). Do not edit `.meta` files by hand.
 8. Wire references through serialized fields, Prefabs, ScriptableObjects, UI documents, or Addressables. Avoid runtime string paths and `Resources.Load` as an unreviewed shortcut.
-9. Capture in-game evidence at target resolution, including a side-by-side or annotated comparison against the linked visual target. QA verifies composition, palette, value structure, materials, detail density, UI treatment, missing references, sprite borders/pivots, animation frames, atlas coverage, readability, memory, and fallback behavior.
+10. Capture the exact Unity Game View scene/camera at the contract resolution. Run screen-level comparison before per-asset approval. QA verifies anchor placement, occupied space, depth layers, focal hierarchy, lighting, material language, detail density, diegetic integration, renderer ownership, readability, memory, and fallback behavior.
+11. Run `tools/test-visual-scene-contract.ps1`. Target match below 85, any scene dimension below 80, missing required layers/anchors, mismatched capture resolution, missing Unity evidence, or unavailable comparison blocks approval and starts the next bounded correction attempt.
 10. Run `tools/validate-changes.ps1` for changed Unity paths. Mark the asset `approved` only after in-game review and validation:
 
    ```powershell
