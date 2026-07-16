@@ -35,6 +35,10 @@ if ($detection.state_exists) {
 }
 
 $applyResult = $null
+$codebaseReport = $null
+if ($detection.is_unity_project -or $detection.is_partial_unity_project) {
+  try { $codebaseReport = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-codebase.ps1") -Root $Root -ProjectRoot $resolvedProjectRoot | ConvertFrom-Json } catch { $codebaseReport = [pscustomobject]@{ error = $_.Exception.Message } }
+}
 if ($Apply) {
   if ($detection.state_exists) {
     $repairArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/repair-pointer.ps1"), "-Root", $Root, "-StatePath", $detection.state_path)
@@ -57,6 +61,7 @@ if ($Apply) {
   recommendation = $recommendation
   recommended_action = $recommendedAction
   detection = $detection
+  codebase = $codebaseReport
   apply_requested = [bool]$Apply
   apply_result = $applyResult
 } | ConvertTo-Json -Depth 20

@@ -60,6 +60,25 @@ if ($Apply) {
   $contract.reconnaissance.asmdefPaths = @($asmdefs)
   $contract.reconnaissance.evidence = @("Packages/manifest.json") + @($asmdefs) + @($signals | Select-Object -First 10 -ExpandProperty path)
   $contract.frameworkSignals = @($signals)
+  if ([string]$contract.projectMode -eq "new-foundation") {
+    $planned = @{
+      compositionRoot = "Assets/Game/Bootstrap/GameBootstrap.cs"
+      moduleBoundary = "Assets/Game"
+      lifecycle = "Assets/Game/Bootstrap/GameBootstrap.cs"
+      configuration = "Assets/Game/Config"
+      uiPresentation = "Assets/Game/UI"
+    }
+    foreach ($name in $planned.Keys) {
+      $contract.selectedIntegration.$name.decision = "create"
+      $contract.selectedIntegration.$name.path = $planned[$name]
+      $contract.selectedIntegration.$name.notes = "Planned minimal foundation; create only when a real production task requires it."
+    }
+    foreach ($name in @("events", "persistence")) {
+      $contract.selectedIntegration.$name.decision = "not-applicable"
+      $contract.selectedIntegration.$name.path = ""
+      $contract.selectedIntegration.$name.notes = "Introduce only when a real requirement appears."
+    }
+  }
   $contract.architectVerdict = "pending"
   $contract.status = "draft"
   $contract.updated = (Get-Date).ToString("o")

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/task-context.schema.json",
+  "title": "MLGS adaptive code task context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "workPackageId", "projectKind", "intensity", "requirementSources", "scopeIds", "targetModuleId", "codeFilesRead", "symbols", "exemplars", "integrationPoints", "dependencies", "plannedFiles", "unitySurfaces", "structuralEvidence", "freshness", "architectVerdict", "status", "blockers", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "workPackageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "projectKind": { "enum": ["new-project", "small-existing", "large-framework"] },
+    "intensity": { "enum": ["lightweight", "standard", "deep"] },
+    "requirementSources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "scopeIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "targetModuleId": { "type": "string" },
+    "codeFilesRead": { "type": "array", "items": { "$ref": "#/$defs/fileEvidence" } },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "path", "relationship", "reason"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "relationship": { "enum": ["target", "caller", "callee", "base-type", "implementation", "subscriber", "publisher", "sibling", "data-owner", "composition-root"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "exemplars": { "type": "array", "items": { "$ref": "#/$defs/fileEvidence" } },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "symbol", "decision", "reason"],
+        "properties": {
+          "kind": { "enum": ["composition", "lifecycle", "module-api", "events", "configuration", "persistence", "ui", "assets", "scene", "prefab", "tests"] },
+          "path": { "type": "string", "minLength": 1 },
+          "symbol": { "type": "string" },
+          "decision": { "enum": ["reuse", "adapt", "replace", "create", "not-applicable"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "dependencies": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "plannedFiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modify", "create", "delete", "evidence"],
+      "properties": {
+        "modify": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "create": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "delete": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "unitySurfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenes", "prefabs", "configuration", "ui", "tests"],
+      "properties": {
+        "scenes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "prefabs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "configuration": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "ui": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "tests": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "structuralEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "queries", "evidence", "preImpactVerdict", "postImpactVerdict", "notes"],
+      "properties": {
+        "provider": { "enum": ["none", "codegraph", "roslyn", "manual-structural"] },
+        "queries": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "preImpactVerdict": { "enum": ["not-required", "pending", "pass", "fail", "blocked"] },
+        "postImpactVerdict": { "enum": ["not-required", "pending", "pass", "fail", "blocked"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codebaseProfileSha256", "moduleMapSha256"],
+      "properties": {
+        "codebaseProfileSha256": { "type": "string", "minLength": 1 },
+        "moduleMapSha256": { "type": "string", "minLength": 1 }
+      }
+    },
+    "architectVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "status": { "enum": ["draft", "ready", "implemented", "approved", "blocked"] },
+    "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "updated": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "fileEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

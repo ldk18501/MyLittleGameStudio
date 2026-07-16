@@ -423,6 +423,8 @@
                                                     "design/art/visual-scene-contract.json",
                                                     "design/framework-adoption.json",
                                                     "design/presentation-architecture.json"
+                                                    ,"design/code/codebase-profile.json"
+                                                    ,"design/code/module-map.json"
                                                 ],
                                         "artManifest":  {
                                                             "path":  "production/assets/asset-manifest.json",
@@ -471,6 +473,10 @@
                                                                            "path":  "design/presentation-architecture.json",
                                                                            "contractOnly":  true
                                                                        }
+                                       ,"codebaseUnderstanding":  {
+                                                                         "profilePath":  "design/code/codebase-profile.json",
+                                                                         "moduleMapPath":  "design/code/module-map.json"
+                                                                     }
                                     },
                   "prototype-passed-or-skipped":  {
                                                       "approval":  "prototypeValidation",
@@ -567,6 +573,10 @@
                                                                                      "path":  "design/presentation-architecture.json",
                                                                                      "contractOnly":  false
                                                                                  }
+                                                 ,"codebaseUnderstanding":  {
+                                                                                   "profilePath":  "design/code/codebase-profile.json",
+                                                                                   "moduleMapPath":  "design/code/module-map.json"
+                                                                               }
                                               },
                   "content-complete-approved":  {
                                                     "all":  [

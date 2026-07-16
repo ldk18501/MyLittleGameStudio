@@ -4,6 +4,7 @@ param(
   [string]$ProjectRoot = "",
   [string]$StatePath = "",
   [string]$RuntimeRoot = "",
+  [ValidatePattern("^$|^[a-z0-9][a-z0-9-]*$")][string]$TaskId = "",
   [switch]$AcceptRisk
 )
 
@@ -36,6 +37,15 @@ if (-not $resolved.exists -or $resolved.mode -eq "template") {
       if ($LASTEXITCODE -ne 0) { $blockers += "Framework adoption contract is missing or invalid; implementation may not bypass the project's existing architecture." }
       & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-presentation-architecture.ps1") -Root $Root -ProjectRoot $resolved.project_root -ContractOnly 2>$null | Out-Null
       if ($LASTEXITCODE -ne 0) { $blockers += "Presentation architecture contract is missing or invalid." }
+      if (@("implement", "fix") -contains $Command) {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-codebase-understanding.ps1") -Root $Root -ProjectRoot $resolved.project_root 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) { $blockers += "Codebase profile/module understanding is missing, stale, or unapproved." }
+        if ([string]::IsNullOrWhiteSpace($TaskId)) { $blockers += "Production code work requires -TaskId and a matching task context/change plan." }
+        else {
+          & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-task.ps1") -Root $Root -ProjectRoot $resolved.project_root -TaskId $TaskId -MinimumStatus ready 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) { $blockers += "Task context/change plan is missing, stale, underspecified, or unapproved for '$TaskId'." }
+        }
+      }
     }
   }
 }

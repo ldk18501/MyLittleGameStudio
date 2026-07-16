@@ -21,6 +21,11 @@ if ($issues.Count -eq 0) {
 }
 if ($issues.Count -eq 0) {
   if ([string]$package.schemaVersion -ne "1.0") { $issues += "Work package schemaVersion must be 1.0." }
+  if (($package.PSObject.Properties.Name -contains "workKind") -and [string]$package.workKind -eq "code") {
+    foreach ($name in @("contextPackPath", "changePlanPath", "conformanceReportPath")) {
+      if ($package.PSObject.Properties.Name -notcontains $name -or [string]::IsNullOrWhiteSpace([string]$package.$name)) { $issues += "Code work package requires $name." }
+    }
+  }
   if ([int]$package.budget.currentAttempt -gt [int]$package.budget.maxAttempts) { $issues += "currentAttempt exceeds maxAttempts." }
   if (@($package.attempts).Count -gt [int]$package.budget.maxAttempts) { $issues += "Attempt history exceeds maxAttempts." }
   foreach ($criterion in @($package.successCriteria)) {
@@ -43,6 +48,16 @@ if ($issues.Count -eq 0) {
   if ([string]$package.status -eq "done") {
     if ([string]$package.declaredVerdict -ne "pass" -or [string]$package.objectiveVerdict -ne "pass") { $issues += "Done requires both declaredVerdict and objectiveVerdict to be pass." }
     if (@($package.gaps).Count -gt 0 -or @($package.blockers).Count -gt 0) { $issues += "Done work package still has gaps or blockers." }
+    if (($package.PSObject.Properties.Name -contains "workKind") -and [string]$package.workKind -eq "code") {
+      foreach ($name in @("contextPackPath", "changePlanPath", "conformanceReportPath")) {
+        $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$package.$name) -Label "Code work package $name"
+        if ($pathIssue) { $issues += $pathIssue }
+      }
+      $conformanceFull = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$package.conformanceReportPath)
+      if (Test-Path $conformanceFull) {
+        try { $conformance = Get-Content $conformanceFull -Raw -Encoding UTF8 | ConvertFrom-Json; if ([string]$conformance.verdict -ne "pass") { $issues += "Done code work package requires passing conformance." } } catch { $issues += "Code conformance report is invalid JSON." }
+      }
+    }
   }
   elseif ([string]$package.declaredVerdict -eq "pass") { $issues += "declaredVerdict pass is only valid when status is done." }
 }

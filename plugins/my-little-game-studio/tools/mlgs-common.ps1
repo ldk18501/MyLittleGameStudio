@@ -1099,8 +1099,16 @@ function Get-MLGSGateEvaluation {
       try { $presentationResult = $raw | ConvertFrom-Json; $presentationPass = [bool]$presentationResult.passed; $presentationIssues = @($presentationResult.issues) } catch { $presentationPass = $false; $presentationIssues = @("Presentation architecture validator did not return parseable output.") }
     }
 
+    $codebasePass = $true
+    $codebaseIssues = @()
+    if ($gate.PSObject.Properties.Name -contains "codebaseUnderstanding") {
+      $definition = $gate.codebaseUnderstanding
+      $raw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Split-Path -Parent $PSScriptRoot) "tools/test-codebase-understanding.ps1") -Root (Split-Path -Parent $PSScriptRoot) -ProjectRoot $ProjectRoot -ProfilePath ([string]$definition.profilePath) -ModuleMapPath ([string]$definition.moduleMapPath) 2>$null
+      try { $codebaseResult = $raw | ConvertFrom-Json; $codebasePass = [bool]$codebaseResult.passed; $codebaseIssues = @($codebaseResult.issues) } catch { $codebasePass = $false; $codebaseIssues = @("Codebase understanding validator did not return parseable output.") }
+    }
+
     $gateResults[$gateProperty.Name] = [pscustomobject]@{
-      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass))
+      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass))
       artifactsPassed = $artifactPass
       approvalPassed = $approvalPass
       qualityPassed = $qualityPass
@@ -1114,6 +1122,7 @@ function Get-MLGSGateEvaluation {
       visualSceneContractPassed = $visualScenePass
       frameworkAdoptionPassed = $frameworkPass
       presentationArchitecturePassed = $presentationPass
+      codebaseUnderstandingPassed = $codebasePass
       skippedWithRisk = $skipped
       missing = @($missing)
       qualityIssues = @($qualityIssues)
@@ -1127,6 +1136,7 @@ function Get-MLGSGateEvaluation {
       visualSceneContractIssues = @($visualSceneIssues)
       frameworkAdoptionIssues = @($frameworkIssues)
       presentationArchitectureIssues = @($presentationIssues)
+      codebaseUnderstandingIssues = @($codebaseIssues)
     }
   }
 

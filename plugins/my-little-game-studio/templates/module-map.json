@@ -1,0 +1,12 @@
+{
+  "$schema": "../../.mlgs/module-map.schema.json",
+  "schemaVersion": "1.0",
+  "projectKind": "new-project",
+  "modules": [],
+  "sharedServices": [],
+  "dependencyRules": [],
+  "architectVerdict": "pending",
+  "status": "draft",
+  "blockers": [],
+  "updated": ""
+}

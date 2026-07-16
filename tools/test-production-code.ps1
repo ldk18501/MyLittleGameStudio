@@ -3,6 +3,8 @@ param(
   [Parameter(Mandatory = $true)][string]$ProjectRoot,
   [string[]]$SourcePaths = @("Assets"),
   [string]$OutputPath = "production/quality/code-audit.json",
+  [ValidatePattern("^$|^[a-z0-9][a-z0-9-]*$")][string]$TaskId = "",
+  [string[]]$ChangedPaths = @(),
   [switch]$FailOnWarnings,
   [switch]$NoWrite
 )
@@ -52,6 +54,38 @@ $presentationRaw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-P
 try { $presentationResult = $presentationRaw | ConvertFrom-Json } catch { $presentationResult = [pscustomobject]@{ passed = $false; issues = @("Presentation architecture validator returned invalid output.") } }
 foreach ($issue in @($frameworkResult.issues)) { $findings += [pscustomobject]@{ severity = "error"; rule = "framework-adoption"; path = "design/framework-adoption.json"; line = 1; message = [string]$issue } }
 foreach ($issue in @($presentationResult.issues)) { $findings += [pscustomobject]@{ severity = "error"; rule = "presentation-architecture"; path = "design/presentation-architecture.json"; line = 1; message = [string]$issue } }
+$codebaseRaw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-codebase-understanding.ps1") -Root $Root -ProjectRoot $ProjectRoot 2>$null
+try { $codebaseResult = $codebaseRaw | ConvertFrom-Json } catch { $codebaseResult = [pscustomobject]@{ passed = $false; issues = @("Codebase understanding validator returned invalid output.") } }
+foreach ($issue in @($codebaseResult.issues)) { $findings += [pscustomobject]@{ severity = "error"; rule = "codebase-understanding"; path = "design/code/codebase-profile.json"; line = 1; message = [string]$issue } }
+$workPackageRoot = Join-Path $ProjectRoot "production/work-packages"
+if (Test-Path $workPackageRoot) {
+  foreach ($packageFile in @(Get-ChildItem -LiteralPath $workPackageRoot -File -Filter "*.json" -ErrorAction SilentlyContinue)) {
+    try { $codePackage = Get-Content $packageFile.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { continue }
+    if ([string]$codePackage.workKind -ne "code" -or [string]$codePackage.status -ne "done") { continue }
+    if ([string]::IsNullOrWhiteSpace([string]$codePackage.conformanceReportPath)) { $findings += [pscustomobject]@{ severity = "error"; rule = "missing-code-conformance"; path = $packageFile.FullName.Substring($ProjectRoot.Length).TrimStart('\','/').Replace("\","/"); line = 1; message = "Done code work package has no conformance report." }; continue }
+    $conformancePath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$codePackage.conformanceReportPath)
+    if (-not (Test-Path $conformancePath)) { $findings += [pscustomobject]@{ severity = "error"; rule = "missing-code-conformance"; path = [string]$codePackage.conformanceReportPath; line = 1; message = "Done code work package conformance report is missing." } }
+    else {
+      try {
+        $doneConformance = Get-Content $conformancePath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$doneConformance.verdict -ne "pass") {
+          $findings += [pscustomobject]@{ severity = "error"; rule = "failed-code-conformance"; path = [string]$codePackage.conformanceReportPath; line = 1; message = "Done code work package conformance did not pass." }
+        }
+      } catch {
+        $findings += [pscustomobject]@{ severity = "error"; rule = "invalid-code-conformance"; path = [string]$codePackage.conformanceReportPath; line = 1; message = "Done code work package conformance report is invalid." }
+      }
+    }
+  }
+}
+$conformanceResult = [pscustomobject]@{ passed = $true; verdict = "not-run"; findings = @() }
+if ($TaskId) {
+  if (@($ChangedPaths).Count -eq 0) { $findings += [pscustomobject]@{ severity = "error"; rule = "missing-changed-paths"; path = "production/context-packs/$TaskId.json"; line = 1; message = "Task-scoped production audit requires ChangedPaths." } }
+  else {
+    $conformanceRaw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $ProjectRoot -TaskId $TaskId -ChangedPaths $ChangedPaths 2>$null
+    try { $conformanceResult = $conformanceRaw | ConvertFrom-Json } catch { $conformanceResult = [pscustomobject]@{ verdict = "fail"; findings = @([pscustomobject]@{ severity = "error"; rule = "conformance-output"; path = ""; message = "Code conformance validator returned invalid output." }) } }
+    foreach ($finding in @($conformanceResult.findings | Where-Object severity -eq "error")) { $findings += [pscustomobject]@{ severity = "error"; rule = "conformance/$($finding.rule)"; path = [string]$finding.path; line = 1; message = [string]$finding.message } }
+  }
+}
 
 $errors = @($findings | Where-Object { $_.severity -eq "error" })
 $warnings = @($findings | Where-Object { $_.severity -eq "warning" })
@@ -66,7 +100,10 @@ $report = [ordered]@{
   findings = @($findings)
   frameworkAdoptionPassed = [bool]$frameworkResult.passed
   presentationArchitecturePassed = [bool]$presentationResult.passed
-  note = "Heuristic audit plus mandatory framework-adoption and presentation-architecture contracts; pair with module integration review."
+  codebaseUnderstandingPassed = [bool]$codebaseResult.passed
+  taskId = $TaskId
+  conformanceVerdict = [string]$conformanceResult.verdict
+  note = "Heuristic audit plus adaptive codebase understanding, framework/presentation contracts, and optional task-scoped conformance review."
 }
 if (-not $NoWrite) {
   $target = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $OutputPath

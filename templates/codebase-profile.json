@@ -1,0 +1,16 @@
+{
+  "$schema": "../../.mlgs/codebase-profile.schema.json",
+  "schemaVersion": "1.0",
+  "projectKind": "new-project",
+  "intensity": "lightweight",
+  "classification": { "source": "auto", "confidence": "low", "rationale": "Pending codebase inspection.", "overrideReason": "" },
+  "metrics": { "runtimeCSharpFiles": 0, "testCSharpFiles": 0, "asmdefs": 0, "frameworkSignals": 0, "topLevelCodeRoots": [] },
+  "policy": { "architectureMode": "create-minimal", "contextDepth": "file-neighborhood", "structuralAnalysisRequirement": "optional", "minimumExemplars": 0, "minimumContextFiles": 0, "requireModuleMap": false, "requireChangePlan": true, "requirePostImpact": false, "allowNewFoundation": true, "legacyCompatibility": "not-applicable" },
+  "structuralAnalysis": { "provider": "none", "status": "not-required", "queries": [], "evidence": [], "notes": "" },
+  "conventions": { "namespaceRoot": "", "serializedFields": "[SerializeField] private", "memberNaming": "Follow the selected project exemplars; use Unity/C# defaults for a new project.", "logging": "Use the project logger when present; otherwise Unity Debug with actionable context.", "asyncFlow": "Choose coroutine, Task, or UniTask once and follow lifecycle cancellation.", "events": "Prefer typed events or direct interfaces according to module boundaries.", "configuration": "Use ScriptableObject or validated data for stable content.", "uiArchitecture": "Separate UI state/presentation from gameplay rules.", "generatedCodePaths": [], "thirdPartyPaths": ["Assets/Plugins", "Assets/ThirdParty"], "notes": [] },
+  "exemplars": [],
+  "architectVerdict": "pending",
+  "status": "draft",
+  "blockers": [],
+  "updated": ""
+}

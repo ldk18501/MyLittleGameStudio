@@ -102,6 +102,22 @@ try {
     Remove-Item -LiteralPath $bootstrapPath, $asmdefPath -Force
   }
 
+  $results += Invoke-Step "adaptive-codebase-tiers" {
+    $newProject = Join-Path $sandbox "TierNew"
+    $smallProject = Join-Path $sandbox "TierSmall"
+    $largeProject = Join-Path $sandbox "TierLarge"
+    foreach ($tierProject in @($newProject, $smallProject, $largeProject)) { New-Item -ItemType Directory -Path (Join-Path $tierProject "Assets/Game") -Force | Out-Null }
+    Set-Content -LiteralPath (Join-Path $newProject "Assets/Game/FirstFeature.cs") -Value "public sealed class FirstFeature { }" -Encoding UTF8
+    1..4 | ForEach-Object { Set-Content -LiteralPath (Join-Path $smallProject "Assets/Game/Feature$_.cs") -Value "public sealed class Feature$_ { }" -Encoding UTF8 }
+    1..20 | ForEach-Object { Set-Content -LiteralPath (Join-Path $largeProject "Assets/Game/System$_.cs") -Value "public sealed class System$_ { }" -Encoding UTF8 }
+    $newReport = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-codebase.ps1") -Root $Root -ProjectRoot $newProject | ConvertFrom-Json
+    $smallReport = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-codebase.ps1") -Root $Root -ProjectRoot $smallProject | ConvertFrom-Json
+    $largeReport = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-codebase.ps1") -Root $Root -ProjectRoot $largeProject -LargeSourceThreshold 20 | ConvertFrom-Json
+    if ($newReport.projectKind -ne "new-project" -or $newReport.intensity -ne "lightweight" -or -not [bool]$newReport.policy.allowNewFoundation) { throw "New-project lightweight policy is incorrect." }
+    if ($smallReport.projectKind -ne "small-existing" -or $smallReport.intensity -ne "standard" -or [int]$smallReport.policy.minimumExemplars -ne 2) { throw "Small-existing standard policy is incorrect." }
+    if ($largeReport.projectKind -ne "large-framework" -or $largeReport.intensity -ne "deep" -or [string]$largeReport.policy.structuralAnalysisRequirement -ne "required") { throw "Large-framework deep policy is incorrect." }
+  }
+
   $results += Invoke-Step "formal-art-pipeline" {
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/init-production-pipeline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/select-game-profile.ps1") -Root $Root -ProjectRoot $project -ProfileId puzzle | Out-Null
@@ -129,6 +145,20 @@ try {
       New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
       Set-Content -LiteralPath $path -Value $entry.Content -Encoding UTF8
     }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-codebase.ps1") -Root $Root -ProjectRoot $project -ProjectKind new-project -OverrideReason "Smoke exercises the lightweight greenfield policy." -Apply | Out-Null
+    $codeProfilePath = Join-Path $project "design/code/codebase-profile.json"
+    $codeProfile = Get-Content -LiteralPath $codeProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $codeProfile.architectVerdict = "pass"
+    $codeProfile.status = "approved"
+    $codeProfile.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $codeProfilePath -Value $codeProfile
+    $moduleMapPath = Join-Path $project "design/code/module-map.json"
+    $moduleMap = Get-Content -LiteralPath $moduleMapPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $moduleMap.architectVerdict = "pass"
+    $moduleMap.status = "approved"
+    $moduleMap.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $moduleMapPath -Value $moduleMap
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/inspect-unity-framework.ps1") -Root $Root -ProjectRoot $project -Apply | Out-Null
     $visualTargetPath = Join-Path $project "design/art/visual-target.json"
     $visualTarget = Get-Content -LiteralPath $visualTargetPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $visualTarget.updated = (Get-Date).ToString("o")
@@ -138,25 +168,34 @@ try {
 
     $frameworkPath = Join-Path $project "design/framework-adoption.json"
     $framework = Get-Content -LiteralPath $frameworkPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $framework.projectMode = "existing-framework"
+    $framework.projectMode = "new-foundation"
     $framework.reconnaissance.completed = $true
     $framework.reconnaissance.evidence = @("Assets/Scripts/PlayerController.cs", "Packages/manifest.json")
-    $framework.frameworkSignals = @([pscustomobject]@{ kind = "module"; name = "Smoke gameplay module"; path = "Assets/Scripts/PlayerController.cs"; decision = "adopt" })
-    foreach ($name in @("compositionRoot", "moduleBoundary", "lifecycle", "configuration", "uiPresentation")) {
-      $framework.selectedIntegration.$name.decision = "adopt"
-      $framework.selectedIntegration.$name.path = "Assets/Scripts/PlayerController.cs"
-      $framework.selectedIntegration.$name.notes = "Smoke adopted integration point."
-    }
-    foreach ($name in @("events", "persistence")) {
-      $framework.selectedIntegration.$name.decision = "not-applicable"
-      $framework.selectedIntegration.$name.path = ""
-      $framework.selectedIntegration.$name.notes = "Not needed by the smoke feature."
-    }
+    $framework.frameworkSignals = @()
     $framework.implementationRoots = @("Assets")
     $framework.architectVerdict = "pass"
     $framework.status = "approved"
     $framework.updated = (Get-Date).ToString("o")
     Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
+
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-work-package.ps1") -Root $Root -ProjectRoot $project -Id smoke-feature -Title "Smoke feature" -Objective "Exercise adaptive code task contracts" | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-code-task.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -RequirementSources "design/concept-package.md" -TargetModuleId "game-foundation" | Out-Null
+    $contextPath = Join-Path $project "production/context-packs/smoke-feature.json"
+    $context = Get-Content -LiteralPath $contextPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $context.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs")
+    $context.architectVerdict = "pass"
+    $context.status = "ready"
+    $context.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $contextPath -Value $context
+    $changePlanPath = Join-Path $project "production/change-plans/smoke-feature.json"
+    $changePlan = Get-Content -LiteralPath $changePlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $changePlan.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs")
+    $changePlan.responsibilities[0].name = "PlayerController"
+    $changePlan.responsibilities[0].path = "Assets/Scripts/PlayerController.cs"
+    $changePlan.architectVerdict = "pass"
+    $changePlan.status = "approved"
+    $changePlan.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $changePlanPath -Value $changePlan
 
     $presentationPath = Join-Path $project "design/presentation-architecture.json"
     $presentation = Get-Content -LiteralPath $presentationPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -329,7 +368,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Game profile coverage did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-ui-screen-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor content-complete -MinimumStatus integrated | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "UI screen contract did not pass." }
-    $baselineSources = @("design/concept-package.md", "design/game-profile.json", "design/ui/screen-inventory.json", "design/art/visual-scene-contract.json", "design/framework-adoption.json", "design/presentation-architecture.json", "production/scope/release-scope.json")
+    $baselineSources = @("design/concept-package.md", "design/game-profile.json", "design/ui/screen-inventory.json", "design/art/visual-scene-contract.json", "design/framework-adoption.json", "design/presentation-architecture.json", "design/code/codebase-profile.json", "design/code/module-map.json", "production/scope/release-scope.json")
     & (Join-Path $Root "tools/freeze-design-baseline.ps1") -Root $Root -ProjectRoot $project -Version 1 -SourcePaths $baselineSources | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-design-baseline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Fresh design baseline did not pass." }
@@ -348,7 +387,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Approved framework adoption did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-presentation-architecture.ps1") -Root $Root -ProjectRoot $project | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Approved presentation architecture did not pass." }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -ProjectRoot $project -RuntimeRoot $runtimeRoot | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-codebase-understanding.ps1") -Root $Root -ProjectRoot $project | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved lightweight codebase profile did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-task.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved lightweight code task did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -TaskId smoke-feature -ProjectRoot $project -RuntimeRoot $runtimeRoot | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Approved architecture contracts did not unlock production preflight." }
 
     $sceneContractPath = Join-Path $project "design/art/visual-scene-contract.json"
@@ -362,13 +405,36 @@ try {
 
     $frameworkPath = Join-Path $project "design/framework-adoption.json"
     $framework = Get-Content -LiteralPath $frameworkPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $signals = @($framework.frameworkSignals)
+    $codeProfilePath = Join-Path $project "design/code/codebase-profile.json"
+    $codeProfile = Get-Content -LiteralPath $codeProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $originalProjectKind = [string]$codeProfile.projectKind
+    $originalFrameworkMode = [string]$framework.projectMode
+    $codeProfile.projectKind = "small-existing"
+    $framework.projectMode = "existing-framework"
     $framework.frameworkSignals = @()
+    Write-MLGSJsonAtomic -Path $codeProfilePath -Value $codeProfile
     Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-framework-adoption.ps1") -Root $Root -ProjectRoot $project 2>$null | Out-Null
     if ($LASTEXITCODE -ne 17) { throw "Existing project without framework signals passed." }
-    $framework.frameworkSignals = $signals
+    $codeProfile.projectKind = $originalProjectKind
+    $framework.projectMode = $originalFrameworkMode
+    Write-MLGSJsonAtomic -Path $codeProfilePath -Value $codeProfile
     Write-MLGSJsonAtomic -Path $frameworkPath -Value $framework
+
+    $contextPath = Join-Path $project "production/context-packs/smoke-feature.json"
+    $context = Get-Content -LiteralPath $contextPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $context.status = "implemented"
+    $context.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $contextPath -Value $context
+    $changePlanPath = Join-Path $project "production/change-plans/smoke-feature.json"
+    $changePlan = Get-Content -LiteralPath $changePlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $changePlan.status = "implemented"
+    $changePlan.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $changePlanPath -Value $changePlan
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/PlayerController.cs" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Planned code change did not pass conformance." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/Unplanned.cs" 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 21) { throw "Unplanned code change passed conformance." }
 
     $worldPath = Join-Path $project "Assets/Game/World/GameplayRoot.prefab"
     Set-Content -LiteralPath $worldPath -Value "SpriteRenderer RectTransform CanvasRenderer" -Encoding UTF8

@@ -21,6 +21,7 @@ Review code, design, task readiness, phase readiness, build readiness, or studio
 - `product`: Vertical Slice, Content Complete, Alpha, Beta, or Release Candidate evidence
 - `art`: style consistency, manifest lifecycle, import, slicing, atlas, references, placeholders, and in-game approval
 - `production-code`: module boundaries, dependency direction, lifecycle, test seams, error handling, temporary/demo shortcuts
+- `code-integration`: project classification, context freshness, real extension points, style exemplars, planned-vs-actual files, legacy tradeoff, new abstractions, and pre/post structural impact
 - `workflow`: MLGS project structure, commands, agents, dashboard
 
 ## Flow

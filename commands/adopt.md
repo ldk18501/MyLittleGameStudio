@@ -58,6 +58,8 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    - tests or QA evidence
    - detected phase
    - major gaps
+   - recommended project kind and intensity: new/lightweight, small-existing/standard, or large-framework/deep
+   - confidence and the signals used; low-confidence classifications must be confirmed or overridden during planning
 4. Recommend one action:
    - existing state -> repair pointer and run `/mlgs 看看当前状态`; offer explicit migration for legacy YAML
    - Unity project without MLGS state -> initialize as `external-adopted`
@@ -72,6 +74,7 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot <path> -Apply
    ```
    Include `-OwnerParticipation low|medium|high` and `-ApprovedWritePaths` when known.
+7. Do not force the adopted project into its current architecture. The report is evidence for planning; it may lead to extending, lightly adapting, replacing a harmful legacy area, or creating an isolated new module.
 7. Ask or recommend next work:
    - missing concept -> `/mlgs 帮我头脑风暴这个游戏概念`
    - missing plan -> `/mlgs 把当前概念拆成开发计划`

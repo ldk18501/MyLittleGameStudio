@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/module-map.schema.json",
+  "title": "MLGS Unity module map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "projectKind", "modules", "sharedServices", "dependencyRules", "architectVerdict", "status", "blockers", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "projectKind": { "enum": ["new-project", "small-existing", "large-framework"] },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "root", "state", "asmdefs", "responsibilities", "publicEntryPoints", "dependencies", "lifecycle", "dataOwnership", "exemplars"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "root": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["planned", "existing", "legacy", "deprecated"] },
+          "asmdefs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "responsibilities": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "publicEntryPoints": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "dependencies": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "lifecycle": { "type": "string" },
+          "dataOwnership": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "exemplars": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    },
+    "sharedServices": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "dependencyRules": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "architectVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "status": { "enum": ["draft", "approved", "blocked"] },
+    "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

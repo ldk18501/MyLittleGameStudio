@@ -65,6 +65,8 @@ $hasTests = (Count-Files -Path $testsPath -Include @("*.cs", "*.md", "*.json", "
 $hasQa = (Count-Files -Path (Join-Path $productionPath "qa") -Include @("*.md", "*.json", "*.txt")) -gt 0
 $sourceFileCount = Count-Files -Path (Join-Path $resolvedProjectRoot "src") -Include @("*.cs", "*.gd", "*.cpp", "*.h", "*.rs", "*.py", "*.js", "*.ts")
 $assetFileCount = Count-Files -Path $assetsPath -Include @("*.cs", "*.prefab", "*.unity", "*.asset", "*.mat", "*.controller")
+$unityCSharpFileCount = Count-Files -Path $assetsPath -Include @("*.cs")
+$asmdefCount = Count-Files -Path $assetsPath -Include @("*.asmdef")
 $designFileCount = Count-Files -Path $designPath -Include @("*.md")
 $docFileCount = Count-Files -Path $docsPath -Include @("*.md")
 
@@ -111,6 +113,8 @@ $recommendedCommand = if ($stateExists) { "status" } elseif ($isUnityProject -or
     systems_files = $systemsCount
     source_files = $sourceFileCount
     asset_files = $assetFileCount
+    unity_csharp_files = $unityCSharpFileCount
+    asmdefs = $asmdefCount
   }
   artifacts = [pscustomobject]@{
     concept = $hasConcept

@@ -56,11 +56,16 @@ Unity Architect 负责 Unity 项目结构、C# 架构、包/场景/prefab 策略
 
 ## Mandatory architecture contracts
 
+- Classify the codebase as `new-project/lightweight`, `small-existing/standard`, or `large-framework/deep`. Treat automatic classification as a recommendation that may be overridden with a reason.
+- Own `design/code/codebase-profile.json` and `design/code/module-map.json`. Approve observed conventions and real exemplars instead of imposing a universal architecture.
+- For every production task, approve its context pack and change plan. Existing-project choices may extend, adapt, replace legacy code, create a new foundation, or isolate a new module; evolution choices require an explicit consistency/benefit/risk tradeoff.
+- Require CodeGraph, Roslyn, or manual structural evidence only for deep projects. Do not block a new or small project merely because CodeGraph is absent or unhelpful.
 - Before production implementation, run `tools/inspect-unity-framework.ps1 -Apply`, inspect the real Unity project, and approve `design/framework-adoption.json`. Record existing asmdefs, bootstrap/composition root, module lifecycle, event mechanism, configuration, persistence, UI framework, tests, and asset-loading boundaries. Existing framework responsibilities are extended, not silently replaced with task-local managers.
 - Approve `design/presentation-architecture.json`. For 2D projects, `SpriteRenderer`/`TilemapRenderer` scene content is the default owner of core gameplay presentation; UGUI/UI Toolkit owns HUD, menus, overlays, dialogs, inventories, tooltips, and accessibility surfaces.
 - `pureUIGame: true` and any UGUI gameplay exception require explicit owner approval. World-space Canvas is limited to small labels/health bars unless recorded as an exception.
 - Reject Demo/Test/Prototype runtime implementations, isolated scenes presented as integration evidence, and code that ignores the selected composition/lifecycle/config boundaries.
 - Run `tools/test-framework-adoption.ps1`, `tools/test-presentation-architecture.ps1`, and `tools/test-production-code.ps1` before production completion.
+- Run task-scoped planned-vs-actual conformance and post-impact review when the profile requires it.
 
 - 给 Gameplay Developer：脚本边界、数据入口、允许编辑路径。
 - 给 UI/UX Developer：UI 技术栈、输入方案、屏幕/Canvas 策略。

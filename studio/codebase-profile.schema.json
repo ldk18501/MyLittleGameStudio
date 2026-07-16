@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/codebase-profile.schema.json",
+  "title": "MLGS adaptive Unity codebase profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "projectKind", "intensity", "classification", "metrics", "policy", "structuralAnalysis", "conventions", "exemplars", "architectVerdict", "status", "blockers", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "projectKind": { "enum": ["new-project", "small-existing", "large-framework"] },
+    "intensity": { "enum": ["lightweight", "standard", "deep"] },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "confidence", "rationale", "overrideReason"],
+      "properties": {
+        "source": { "enum": ["auto", "owner-override"] },
+        "confidence": { "enum": ["low", "medium", "high"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "overrideReason": { "type": "string" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeCSharpFiles", "testCSharpFiles", "asmdefs", "frameworkSignals", "topLevelCodeRoots"],
+      "properties": {
+        "runtimeCSharpFiles": { "type": "integer", "minimum": 0 },
+        "testCSharpFiles": { "type": "integer", "minimum": 0 },
+        "asmdefs": { "type": "integer", "minimum": 0 },
+        "frameworkSignals": { "type": "integer", "minimum": 0 },
+        "topLevelCodeRoots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architectureMode", "contextDepth", "structuralAnalysisRequirement", "minimumExemplars", "minimumContextFiles", "requireModuleMap", "requireChangePlan", "requirePostImpact", "allowNewFoundation", "legacyCompatibility"],
+      "properties": {
+        "architectureMode": { "enum": ["create-minimal", "adapt-lightly", "adopt-or-deliberately-evolve"] },
+        "contextDepth": { "enum": ["file-neighborhood", "module-neighborhood", "dependency-graph"] },
+        "structuralAnalysisRequirement": { "enum": ["optional", "recommended", "required"] },
+        "minimumExemplars": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "minimumContextFiles": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "requireModuleMap": { "type": "boolean" },
+        "requireChangePlan": { "type": "boolean" },
+        "requirePostImpact": { "type": "boolean" },
+        "allowNewFoundation": { "type": "boolean" },
+        "legacyCompatibility": { "enum": ["not-applicable", "prefer-consistency", "balanced", "evolve-with-approval"] }
+      }
+    },
+    "structuralAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "status", "queries", "evidence", "notes"],
+      "properties": {
+        "provider": { "enum": ["none", "codegraph", "roslyn", "manual-structural"] },
+        "status": { "enum": ["not-required", "pending", "pass", "blocked"] },
+        "queries": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "notes": { "type": "string" }
+      }
+    },
+    "conventions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespaceRoot", "serializedFields", "memberNaming", "logging", "asyncFlow", "events", "configuration", "uiArchitecture", "generatedCodePaths", "thirdPartyPaths", "notes"],
+      "properties": {
+        "namespaceRoot": { "type": "string" },
+        "serializedFields": { "type": "string", "minLength": 1 },
+        "memberNaming": { "type": "string", "minLength": 1 },
+        "logging": { "type": "string", "minLength": 1 },
+        "asyncFlow": { "type": "string", "minLength": 1 },
+        "events": { "type": "string", "minLength": 1 },
+        "configuration": { "type": "string", "minLength": 1 },
+        "uiArchitecture": { "type": "string", "minLength": 1 },
+        "generatedCodePaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "thirdPartyPaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "notes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "exemplars": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "path", "reason", "sha256"],
+        "properties": {
+          "role": { "enum": ["bootstrap", "module", "gameplay", "ui", "configuration", "persistence", "test", "utility"] },
+          "path": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "architectVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
+    "status": { "enum": ["draft", "approved", "blocked"] },
+    "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

@@ -27,6 +27,10 @@ Gameplay Developer
 - project `design/framework-adoption.json`
 - project `design/presentation-architecture.json`
 - relevant entries in project `design/art/visual-scene-contract.json`
+- project `design/code/codebase-profile.json`
+- project `design/code/module-map.json`
+- project `production/context-packs/[task-id].json`
+- project `production/change-plans/[task-id].json`
 
 ## Write
 
@@ -39,9 +43,10 @@ Gameplay Developer
 
 1. Resolve active project and owner participation.
 2. Parse the task from the user request, task plan, or status next options.
-3. Run `tools/preflight-task.ps1 -Command implement`. If blocked, continue only after the owner explicitly accepts risk and rerun with `-AcceptRisk`.
-4. Run `tools/test-framework-adoption.ps1` and `tools/test-presentation-architecture.ps1 -ContractOnly`. Read the selected existing framework integration points before reading the feature files. Stop if the task would create a parallel framework or if presentation ownership is undefined.
-5. Read the smallest relevant design, tech, and code context.
+3. Create the work package, then run `tools/new-code-task.ps1 -TaskId <id>`. Fill the context pack and change plan at the intensity selected by the codebase profile.
+4. Run `tools/test-code-task.ps1 -TaskId <id>`. For new projects, keep the context light and design the minimum useful foundation. For small projects, read the target module and two sibling/style examples. For deep projects, record callers, callees, base types, subscribers, data owners, and impact evidence.
+5. Run `tools/preflight-task.ps1 -Command implement -TaskId <id>`. `-AcceptRisk` never waives missing or stale code understanding.
+6. Read exactly the approved context pack. Do not start from the design document alone and do not expand into unrelated modules.
 5. Determine whether the work is disposable prototype code or production code. After prototype approval, default to production code; a temporary shortcut requires a tracked removal task before Vertical Slice approval.
 6. Link the task to one or more IDs in `production/scope/release-scope.json`. After the prototype phase, UI/presentation tasks must read the approved visual target and style bible; do not reproduce HTML prototype styling unless explicitly approved there.
 8. Apply `rules/production-code.md`: preserve the adopted framework and module dependency direction, separate rules from Unity presentation, use explicit composition and serialized references, make lifecycle cleanup/cancellation explicit, keep config data-driven, and expose errors with context. Runtime production paths may not contain Demo/Test/Prototype implementations.
@@ -51,7 +56,7 @@ Gameplay Developer
 9. Under high participation, present a concise implementation plan before meaningful edits.
 10. Under low/medium participation, implement directly unless the edit is high-risk.
 11. Run compile, focused tests, integration smoke, and the task acceptance checks. A feature is not done if only an isolated component works but its actual scene/UI/data flow is unwired.
-14. Run `tools/test-presentation-architecture.ps1` and `tools/test-production-code.ps1` for production tasks. Resolve errors; convert warnings into fixes or recorded debt with a removal milestone.
+14. After edits, mark the task context/plan implemented, record the actual changed paths, run post-impact analysis when required, then run `tools/test-code-conformance.ps1` and `tools/test-production-code.ps1 -TaskId <id> -ChangedPaths <paths>`.
 13. Run `tools/validate-changes.ps1` and reject edits outside project planning paths or approved Unity write paths.
 14. Record:
     - files changed

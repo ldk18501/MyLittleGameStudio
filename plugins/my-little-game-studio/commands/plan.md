@@ -41,6 +41,8 @@ Game Designer
 - project `design/art/visual-scene-contract.json`
 - project `design/framework-adoption.json`
 - project `design/presentation-architecture.json`
+- project `design/code/codebase-profile.json`
+- project `design/code/module-map.json`
 - project `production/assets/asset-manifest.json`
 - optional project `design/assets/asset-requirements.md`
 - optional project `design/ux/[screen].md`
@@ -60,7 +62,11 @@ Game Designer
    - dependencies
    - UI/VFX/audio hooks
    - acceptance criteria
-5. Unity Architect runs `tools/inspect-unity-framework.ps1 -Apply`, reviews its candidates, and approves `design/framework-adoption.json`: existing asmdefs, bootstrap/composition root, module lifecycle, events, configuration, persistence, UI framework, tests, and asset loading. Existing projects default to adopting these integration points; replacing them requires an explicit architecture decision.
+5. Unity Architect runs `tools/inspect-codebase.ps1 -Apply`, reviews the automatic classification, and approves the codebase profile/module map. Use an explicit override with a reason when the automatic result is wrong:
+   - `new-project/lightweight`: minimal foundation, no exemplar requirement, structural indexing optional.
+   - `small-existing/standard`: module neighborhood, at least two real exemplars, structural analysis recommended.
+   - `large-framework/deep`: dependency graph, at least three exemplars, pre/post impact evidence required through CodeGraph, Roslyn, or manual structural review.
+6. Run `tools/inspect-unity-framework.ps1 -Apply`, then reconcile it with the module map. Existing projects prefer reuse, but adaptation, replacement, a new foundation, or an isolated module are allowed through an approved task change plan.
 6. Unity Architect writes:
    - Unity version/platform assumptions
    - architecture boundaries
@@ -84,7 +90,7 @@ Game Designer
 14. Under low participation, write the plan and ask only for phase approval.
 15. Under medium/high participation, show concise options when architecture or scope choices matter.
 16. Update state and next action.
-20. Run the three contract validators in planning mode, then record trace.
+21. Run the codebase-understanding, framework, presentation, and visual contract validators in planning mode, then record trace.
 
 ## Completion
 
@@ -99,7 +105,7 @@ Every production task is also a machine-readable work package. Use one verifiabl
 2. Expand every `releaseScopeRequirement` into release-scope items with matching `profileRequirementIds` and sufficient `plannedCount`.
 3. Enumerate every profile-required UI screen in `design/ui/screen-inventory.json`, including states, controls, visual targets, implementation path, formal asset IDs, audio IDs, and evidence.
 4. Run `tools/validate-game-profile-coverage.ps1`.
-5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`, including the visual scene, framework-adoption, and presentation-architecture contracts. Production cannot start from a draft or stale baseline.
+5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`, including the codebase profile/module map, visual scene, framework-adoption, and presentation-architecture contracts. Production cannot start from a draft or stale baseline.
 ## Capability and orchestration plan
 
 Refresh `production/capabilities/capability-manifest.json` while planning the asset list. Missing image, Sprite, mesh, animation, audio, video, Unity import/validation, or visual-comparison providers become explicit dependencies and budget risks. For non-direct tasks, create `production/execution/<work-package-id>.json` with `tools/new-execution-strategy.ps1`; cap parallel logical groups and synthesis rounds.

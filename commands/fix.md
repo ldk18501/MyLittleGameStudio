@@ -20,10 +20,11 @@ Gameplay Developer or UI/UX Developer based on issue type.
 1. Capture symptom, expected behavior, and available evidence.
 2. Reproduce or inspect the narrowest relevant evidence.
 3. Identify the smallest responsible area.
+4. For production code, create or refresh the task context and change plan. A focused fix may stay lightweight, but an existing-project fix must still identify the owning module, failure path, affected callers, and the style exemplars required by its selected intensity.
 4. Use `mlgs-unity-mechanics` for gameplay feel, timing, feedback, pooling, or performance bugs.
-5. Run `tools/preflight-task.ps1 -Command fix`; only use `-AcceptRisk` after explicit owner acceptance.
+5. Run `tools/preflight-task.ps1 -Command fix -TaskId <id>`; only use `-AcceptRisk` after explicit owner acceptance. Risk acceptance never waives missing code context.
 6. Make a focused fix inside approved paths.
-7. Run the most relevant verification, then `tools/validate-changes.ps1`.
+7. Run code conformance against the actual changed paths, including post-impact review for deep projects, then run the most relevant verification and `tools/validate-changes.ps1`.
 8. Record fix, evidence, remaining risk, and next action.
 9. Record trace.
 

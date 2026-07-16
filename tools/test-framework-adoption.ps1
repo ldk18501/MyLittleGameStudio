@@ -12,6 +12,9 @@ $issues = @()
 try { $contractPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch { $issues += $_.Exception.Message }
 if ($issues.Count -eq 0 -and -not (Test-Path $contractPath)) { $issues += "Missing framework adoption contract: $Path" }
 if ($issues.Count -eq 0) {
+  $projectKind = ""
+  $profilePath = Join-Path $ProjectRoot "design/code/codebase-profile.json"
+  if (Test-Path $profilePath) { try { $projectKind = [string](Get-Content $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json).projectKind } catch { } }
   try { $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { $issues += "Invalid framework adoption JSON: $($_.Exception.Message)" }
 }
 if ($issues.Count -eq 0) {
@@ -34,12 +37,16 @@ if ($issues.Count -eq 0) {
     $point = $contract.selectedIntegration.$name
     if ([string]$point.decision -ne "not-applicable") {
       if ([string]::IsNullOrWhiteSpace([string]$point.path)) { $issues += "Framework integration point '$name' has no path." }
+      elseif ($projectKind -eq "new-project" -and [string]$point.decision -eq "create") {
+        try { Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$point.path) | Out-Null } catch { $issues += "Planned framework integration point '$name' is outside the project: $($point.path)" }
+      }
       else {
         $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$point.path) -Label "Framework integration point '$name'"
         if ($pathIssue) { $issues += $pathIssue }
       }
     }
   }
+  if ($projectKind -eq "new-project" -and [string]$contract.projectMode -ne "new-foundation") { $issues += "New-project profile must use a new-foundation framework contract." }
   foreach ($relative in @($contract.implementationRoots)) {
     $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "Framework implementation root"
     if ($pathIssue) { $issues += $pathIssue }

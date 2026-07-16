@@ -4,6 +4,9 @@ These rules apply after prototype approval. The goal is maintainable game code s
 
 ## Boundaries
 
+- Read the approved `design/code/codebase-profile.json` and `design/code/module-map.json`. Apply lightweight, standard, or deep context requirements according to the selected project kind; do not impose a large-project process on a new game.
+- Every production code task needs `production/context-packs/<task-id>.json` and `production/change-plans/<task-id>.json`. The context pack records actual code, symbols, neighboring examples, integration points, planned files, Unity surfaces, and freshness hashes.
+- Existing code consistency is a preference, not captivity. A task may extend, adapt, replace legacy code, create a minimal foundation, or create an isolated module. Existing-project replacement/new-foundation choices require an explicit legacy tradeoff and approval.
 - Before changing production code, complete and pass `design/framework-adoption.json`. Existing projects must adopt or explicitly adapt their composition root, module lifecycle, events, configuration, persistence, UI framework, assemblies, and asset loading instead of creating parallel one-off managers.
 - Complete `design/presentation-architecture.json` before implementation. For 2D games, core gameplay defaults to scene objects using `SpriteRenderer`/`TilemapRenderer`, `Animator`, particles, shaders, and world cameras. UGUI/UI Toolkit is limited to HUD, menus, overlays, dialogs, inventories, tooltips, and other presentation surfaces.
 - A 2D core gameplay implementation may use UGUI only when the whole game is explicitly classified as `pureUIGame` and owner-approved, or a narrow path is recorded as an owner-approved exception.
@@ -37,5 +40,5 @@ These rules apply after prototype approval. The goal is maintainable game code s
 
 - Give pure rules EditMode tests where practical; give Unity integration and lifecycle behavior PlayMode or smoke evidence.
 - Cover normal, edge, failure, feedback, performance, and cleanup paths.
-- Run `tools/test-framework-adoption.ps1`, `tools/test-presentation-architecture.ps1`, and `tools/test-production-code.ps1` for milestone reviews. All three fail closed; then perform architecture review on the changed module.
+- Before edits run `tools/test-codebase-understanding.ps1` and `tools/test-code-task.ps1`. After edits run `tools/test-code-conformance.ps1` and `tools/test-production-code.ps1 -TaskId <id> -ChangedPaths <paths>`. Deep projects additionally require post-change structural impact evidence.
 - Record intentional debt with owner, reason, removal milestone, and acceptance impact.

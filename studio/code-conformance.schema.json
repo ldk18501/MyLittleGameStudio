@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/code-conformance.schema.json",
+  "title": "MLGS code change conformance report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "projectKind", "intensity", "verdict", "changedPaths", "unplannedPaths", "findings", "postImpactVerdict", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "taskId": { "type": "string", "minLength": 1 },
+    "projectKind": { "enum": ["new-project", "small-existing", "large-framework"] },
+    "intensity": { "enum": ["lightweight", "standard", "deep"] },
+    "verdict": { "enum": ["pass", "fail", "blocked"] },
+    "changedPaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "unplannedPaths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "rule", "path", "message"],
+        "properties": {
+          "severity": { "enum": ["error", "warning"] },
+          "rule": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "postImpactVerdict": { "enum": ["not-required", "pending", "pass", "fail", "blocked"] },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

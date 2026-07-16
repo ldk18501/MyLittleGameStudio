@@ -40,6 +40,14 @@
 - Use Unity greybox prototypes when risk comes from physics, input, camera, UI, rendering, or engine integration.
 - If the owner wants to skip, record `prototype.policy: skipped-with-risk` and the reason.
 
+## Adaptive Code Strategy
+
+- Classify Unity code work as `new-project/lightweight`, `small-existing/standard`, or `large-framework/deep`; allow an owner/architect override with a recorded reason.
+- New projects may establish the smallest useful foundation without imitating nonexistent legacy patterns.
+- Small existing projects learn neighboring modules and at least two representative code examples, but may introduce a better isolated foundation when the tradeoff is explicit.
+- Large framework projects require dependency-graph structural evidence through CodeGraph, Roslyn, or a documented manual review; no single provider is mandatory.
+- Existing code is evidence, not an absolute rule. `extend`, `adapt`, `replace`, `create-new-foundation`, and `isolated-new-module` are all valid when the selected intensity and approved change plan support them.
+
 ## Productization Strategy
 
 Product versions do not advance phases. `0.1.x` is a prototype/pre-release label. A game may be called `1.0.0` or later only after the Release gate passes against an explicit `production/scope/release-scope.json`; all required scope items must be verified, all formal art approved against the visual targets, and no release-scope placeholders may remain.
