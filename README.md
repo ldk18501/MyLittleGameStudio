@@ -1,166 +1,236 @@
 # MyLittleGameStudio
 
-MyLittleGameStudio is a Codex-first AI game studio workflow for Unity + C# indie development.
+MyLittleGameStudio (MLGS) is a Codex-first AI game studio workflow for building production-oriented Unity + C# games.
 
-It is inspired by Claude Code Game Studios, but intentionally simplified:
+It keeps the useful idea of a specialist game studio, but replaces heavyweight agent choreography with one `/mlgs` entry, a compact Unity-focused staff, machine-readable production contracts, and evidence-driven quality gates.
 
-- Codex plugin entry instead of Claude Code hooks/settings.
-- Unity + C# only.
-- A compact specialist staff instead of dozens of agents.
-- A single `/mlgs` entry; describe the work in natural language and the studio routes it to start, brainstorm, plan, implement, fix, test, build, or review.
-- Owner participation levels so the studio can be either autonomous or collaborative.
-- A dashboard that shows staff activity and project state.
+MLGS is designed to prevent three common failure modes:
+
+- a polished concept image turning into placeholder panels and flat-color UGUI;
+- a prototype being renamed `1.0` without the content, onboarding, configuration, art, audio, QA, and release evidence needed to ship;
+- new Unity code ignoring the existing framework—or being forced to copy legacy patterns that are wrong for the new work.
+
+## Current Scope
+
+- Codex only; no Claude Code compatibility layer, hooks, or settings.
+- Unity + C# only, using Unity 2022 LTS or Unity 6 conventions.
+- One public command: `/mlgs`, followed by a natural-language request.
+- New projects, existing-project adoption, planning, prototyping, formal art, implementation, testing, productization, builds, and release preparation.
+- Configurable owner participation: low, medium, or high.
+- A dashboard and trace log for project state and specialist activity.
 
 ## Quick Start
 
-Install the local Codex plugin from this repository root:
+From this repository root, register the local marketplace:
 
 ```powershell
 codex plugin marketplace add .
 ```
 
-Then install **my-little-game-studio** from the Codex app plugin page. CLI builds that expose `codex plugin add` may instead run `codex plugin add my-little-game-studio@my-little-game-studio-local`; check `codex plugin --help` first because current desktop builds do not all expose the same subcommands.
-
-Open a new Codex thread and run:
+Install **my-little-game-studio** from the Codex app plugin page, open a new Codex task, and enter:
 
 ```text
 /mlgs I want to start a new Unity game with low participation
 ```
 
-MLGS will ask whether you want to:
+If the marketplace was already registered and the source was updated, remove and re-add it, then open a new task so Codex loads the new plugin version:
 
-- A) start a new game
-- B) adopt an existing Unity project
-- C) continue the current project
-- D) repair or switch project
+```powershell
+codex plugin marketplace remove my-little-game-studio-local
+codex plugin marketplace add .
+```
 
-It will also ask your owner participation level:
+Some CLI builds expose additional plugin commands. Check `codex plugin --help` instead of assuming those commands are available.
 
-- A) Low: hands-off owner, MLGS acts autonomously and asks only at major gates
-- B) Medium: balanced collaboration, the default
-- C) High: hands-on owner, more options and draft review
+## One Entry, Natural-Language Routing
 
-## Common Phrases
-
-You only need to memorize one entry:
+You only need to remember:
 
 ```text
 /mlgs your request
 ```
 
-Examples:
-
-| Phrase | Purpose |
+| Example | Internal intent |
 |---|---|
-| `/mlgs start a new Unity game with low participation` | Guided start, participation, or pointer recovery |
-| `/mlgs adopt D:\path\to\YourUnityGame` | Inspect and attach an existing Unity project |
-| `/mlgs show current status and next step` | Project state, staff activity, risks, next options |
-| `/mlgs brainstorm a cozy roguelite farming game` | Explore ideas, references, pitch, pillars, concept package |
-| `/mlgs turn the current concept into a plan` | Systems, Unity tech plan, tasks, prototype policy |
-| `/mlgs build a small prototype for the core feel` | Build/evaluate a focused prototype or skip with risk |
-| `/mlgs implement the next task` | Implement an approved Unity/C# task |
-| `/mlgs generate and integrate the next final art assets` | Generate, process, slice/import, reference, and approve art in Unity |
-| `/mlgs move the game to Vertical Slice` | Enforce final-look, integration, architecture, performance, and art-pipeline evidence |
-| `/mlgs review Content Complete readiness` | Reject placeholders, unwired features, missing references, and production-code blockers |
-| `/mlgs prepare icon localization and crash checks` | Validate the MLGS-owned game-content release subset |
+| `/mlgs start a new Unity game with low participation` | Guided start and participation setup |
+| `/mlgs adopt D:\path\to\YourUnityGame` | Inspect and attach an existing project |
+| `/mlgs show current status and next step` | State, risks, staff activity, and next action |
+| `/mlgs brainstorm a cozy roguelite farming game` | References, pitch, pillars, and concept package |
+| `/mlgs turn the current concept into a production plan` | Systems, technical plan, scope, tasks, and prototype policy |
+| `/mlgs build a focused prototype for the core feel` | HTML interaction prototype or Unity greybox |
+| `/mlgs implement the next approved task` | Context-aware Unity/C# implementation |
+| `/mlgs generate and integrate the next formal art assets` | Generate, process, import, reference, and review art in Unity |
+| `/mlgs move the game to Vertical Slice` | Prove one representative final-quality journey |
+| `/mlgs review Content Complete readiness` | Find placeholders, missing content, unwired flows, and code blockers |
+| `/mlgs prepare icon localization and crash checks` | Release preparation owned by the game project |
+| `/mlgs fix this compile error` | Diagnose and fix a scoped issue |
+| `/mlgs run verification` | Compile, tests, smoke checks, or QA evidence |
+| `/mlgs do a build preflight` | Unity build readiness |
+| `/mlgs open dashboard` | Refresh/open project activity data |
 
-Product version policy: `0.1.x` is prototype/pre-release. `1.0.0` means the final Release gate passed against an explicit release-scope manifest: all planned features and content quantities, onboarding, UI, configuration, audio, formal art, localization, operations readiness, and build evidence are verified. An HTML prototype or a completed feature list cannot be promoted to `1.0.0` by renaming it.
-| `/mlgs fix this compile error` | Diagnose and fix a bug, compile issue, or QA failure |
-| `/mlgs review whether this task is ready` | Review code, design, task, phase, build, or workflow |
-| `/mlgs run verification` | Run or define verification |
-| `/mlgs do a build preflight` | Unity build or build preflight |
-| `/mlgs open dashboard` | Refresh dashboard data |
-| `/mlgs help` | Compact menu |
+The generated grouped menu lives in `workflow/command-index.md`.
 
-See `workflow/command-index.md` for the grouped intent index.
+## Production Lifecycle
+
+```text
+concept -> plan -> prototype -> vertical slice -> production
+        -> content complete -> alpha -> beta -> release candidate -> release
+```
+
+Version numbers do not advance this lifecycle. `0.1.x` is prototype/pre-release. A game may be called `1.0.0` or release-ready only after the final Release gate passes.
+
+Before production, MLGS requires an explicit release scope covering applicable:
+
+- features and content quantities;
+- player journey, onboarding, and tutorial beats;
+- UI screens and states;
+- configuration/data sources;
+- formal art, animation, VFX, and audio;
+- localization and target-platform behavior;
+- performance, error handling, operations readiness, and builds.
+
+“Complete” means every required item in that approved scope is verified—not merely that the current implementation has no open TODO list.
+
+## Adaptive Unity Code Strategy
+
+MLGS scales code analysis and architecture discipline to the project instead of applying one rigid rule everywhere.
+
+| Project kind | Intensity | Default behavior |
+|---|---|---|
+| New project | `lightweight` | Establish the smallest useful foundation; no fake requirement to imitate nonexistent legacy code |
+| Small existing project | `standard` | Read the target module plus at least two sibling/style examples; prefer local consistency while allowing a better isolated design |
+| Large framework project | `deep` | Read at least three exemplars and five context files; require dependency/impact evidence before and after implementation |
+
+Classification is automatic and may be overridden by the owner or Unity Architect with a recorded reason. CodeGraph is optional: deep projects require structural evidence, but that evidence may come from CodeGraph, Roslyn, or a documented manual analysis.
+
+Existing code is evidence, not a prison. A reviewed change plan may choose to:
+
+- extend an existing integration point;
+- adapt a framework convention;
+- replace a harmful legacy implementation;
+- create a minimal new foundation;
+- introduce an isolated new module.
+
+Production code tasks follow this chain:
+
+```text
+work package -> codebase profile/module map -> task context
+             -> change plan -> preflight -> implementation
+             -> conformance/impact checks -> objective evidence
+```
+
+This prevents design-document-only implementation, undeclared managers/services, unplanned file changes, and demo-only components from being accepted as production work.
+
+## Visual Fidelity and Formal Art
+
+HTML prototypes are interaction evidence only. Their placeholder panels, colors, buttons, and layout are never the production visual specification.
+
+Formal art is governed by:
+
+- an approved visual target and style bible;
+- a screen-level visual scene contract;
+- a fixed Unity scene, camera, resolution, and capture setup;
+- composition anchors, depth layers, renderer ownership, lighting/material language, and detail-density targets;
+- an asset manifest and import recipes;
+- real Unity references and in-game screenshots;
+- fail-closed Art Director and QA comparison reviews.
+
+The lifecycle is:
+
+```text
+planned -> prompt-ready -> generated -> selected -> processed
+        -> imported -> referenced -> approved in game
+```
+
+A good isolated image is not an approved game asset. The representative Unity scene must match the approved whole-screen target closely enough to pass its contract.
+
+For 2D games, core gameplay defaults to `SpriteRenderer`/`TilemapRenderer` scene content. UGUI or UI Toolkit is for HUD, menus, overlays, dialogs, inventories, and approved exceptions. UI views never own authoritative gameplay rules unless the owner explicitly approves a pure-UI game.
+
+## Evidence-Driven Gates
+
+MLGS uses machine-readable artifacts instead of optimistic completion statements:
+
+- work packages separate declared completion from objective verdicts and cap rework attempts;
+- game profiles define the minimum scope for the selected game type;
+- frozen design hashes invalidate affected work when source decisions change;
+- every production UI screen has a state, asset, implementation, and evidence contract;
+- capability manifests fail closed when required image, sprite, mesh, animation, audio, video, Unity import, or visual-comparison capability is unavailable;
+- Vertical Slice through Release gates require structured reports with resolvable project evidence;
+- isolated Demo/Test scenes are not production integration evidence.
 
 ## Studio Staff
 
-- Producer: routing, scope, state, task assignment
-- Art Director: production visual target, style consistency, and final in-game approval
-- Creative Director: fantasy, pitch, pillars, references
-- Game Designer: systems, rules, tuning, acceptance criteria
-- Unity Architect: Unity architecture, packages, scenes, build risk
-- Gameplay Developer: C# gameplay implementation
-- UI/UX Developer: HUD, runtime UI, input ergonomics
-- Technical Artist: shaders, VFX, formal generated-art lifecycle, Unity import/slicing/references
-- QA Lead: verification, smoke checks, build readiness
+- **Producer** — routing, scope, state, work packages, and phase gates
+- **Creative Director** — fantasy, pitch, pillars, and reference interpretation
+- **Art Director** — visual targets, composition fidelity, style consistency, and final in-game approval
+- **Game Designer** — systems, rules, tuning, onboarding, and acceptance criteria
+- **Unity Architect** — codebase profile, module boundaries, packages, scenes, data, and build risk
+- **Gameplay Developer** — modular C# gameplay implementation
+- **UI/UX Developer** — HUD, menus, runtime UI, input ergonomics, and screen contracts
+- **Technical Artist** — shaders, VFX, asset processing/import, renderer integration, and visual performance
+- **QA Lead** — objective checks, smoke tests, regression, and release evidence
 
-## Production Guarantees
+These are logical specialist passes inside the current Codex task unless the owner explicitly requests separate tasks.
 
-- Machine-readable work packages separate declared completion from objective evidence and cap rework attempts.
-- Formal art is reviewed fail-closed against approved target images by the Art Director and QA in the real Unity game view.
-- Unity game profiles define minimum systems, content quantity, onboarding, UI, configuration, art, audio, performance, and validation scope.
-- Frozen design hashes produce explicit change-impact invalidation instead of silently letting production drift.
-- Every production UI screen has a state, asset, implementation, and evidence contract.
-- Multimodal capability readiness covers image/Sprite, mesh, animation, audio, video, Unity import/validation, and visual comparison.
-- Risk-based execution strategies remain bounded by work-package rounds, objective checks, and stop conditions.
+## Project State and Runtime Data
 
-## Project State
-
-The root `studio/state.json` is only a validated template.
-
-Live project state belongs in:
+The repository file `studio/state.json` is a validated template. Each game has one canonical state file:
 
 ```text
 <UnityProject>/.mlgs/state.json
 ```
 
-The local pointer is:
+User-specific runtime data defaults to:
 
 ```text
 $CODEX_HOME/mlgs/current-project.json
-```
-
-Legacy `.mlgs/state.yaml` and `studio/current-project.local.yaml` remain readable until explicitly migrated.
-
-It is ignored by git.
-
-## Dashboard
-
-MLGS records routed work in:
-
-```text
-$CODEX_HOME/mlgs/logs/activity.jsonl
 $CODEX_HOME/mlgs/runtime.json
+$CODEX_HOME/mlgs/logs/activity.jsonl
 $CODEX_HOME/mlgs/dashboard/studio-data.js
 ```
 
-Open:
+When `CODEX_HOME` is unset, MLGS uses `~/.codex/mlgs/`. Legacy `.mlgs/state.yaml` and `studio/current-project.local.yaml` remain readable until explicitly migrated.
 
-```text
-dashboard/index.html
-```
+Open `dashboard/index.html` to view the active project, observed phase, participation level, recent work, specialist status, risks, and recommended next command.
 
-The dashboard shows staff status, recent events, active project, phase, owner participation, and next command.
-
-## Tools
+## Useful Repository Tools
 
 ```powershell
+# State and adoption
 powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate
 powershell -ExecutionPolicy Bypass -File tools/detect-project-stage.ps1 -ProjectRoot E:/path/to/project
 powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project -Apply
 powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
-powershell -ExecutionPolicy Bypass -File tools/init-project-state.ps1 -ProjectRoot E:/path/to/project -Name "My Game"
-powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/repair-pointer.ps1 -Clear
-powershell -ExecutionPolicy Bypass -File tools/check-state.ps1
-powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
-powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement
+
+# Initialize production contracts and classify code intensity
+powershell -ExecutionPolicy Bypass -File tools/init-production-pipeline.ps1 -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/inspect-codebase.ps1 -ProjectRoot E:/path/to/project -Apply
+
+# Prepare and validate one production code task
+powershell -ExecutionPolicy Bypass -File tools/new-code-task.ps1 -ProjectRoot E:/path/to/project -TaskId feature-id
+powershell -ExecutionPolicy Bypass -File tools/test-code-task.ps1 -ProjectRoot E:/path/to/project -TaskId feature-id
+powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement -TaskId feature-id
+
+# Project and package verification
+powershell -ExecutionPolicy Bypass -File tools/test-production-code.ps1 -ProjectRoot E:/path/to/project
 powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1
-powershell -ExecutionPolicy Bypass -File tools/migrate-state.ps1 -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
+powershell -ExecutionPolicy Bypass -File tools/generate-workflow.ps1 -Check
+powershell -ExecutionPolicy Bypass -File tools/build-plugin-package.ps1 -Check
 ```
 
-## Design Position
+`tools/new-code-task.ps1` expects a matching production work package to exist first. The command route normally creates and coordinates these artifacts for the owner.
 
-MLGS keeps the useful studio structure from larger agent templates, but avoids their heavy process:
+## Repository Structure
 
-- no Claude Code compatibility layer
-- no Claude hooks
-- no approval before every file write
-- no multi-engine abstraction
-- no long mandatory document chain
+- `commands/` — internal natural-language routes
+- `agents/` — specialist role contracts
+- `rules/` — state, production-code, and workflow rules
+- `studio/` — schemas, config, and state template
+- `templates/` — project artifact templates
+- `profiles/unity/` — minimum production profiles for Unity game types
+- `tools/` — state, planning, art, code, gate, build, trace, and packaging helpers
+- `plugins/my-little-game-studio/` — generated self-contained plugin package
+- `dashboard/` — local activity viewer
 
-The default goal is simple: let Codex behave like a small Unity studio that can ask good questions when needed, then get real work done.
-
+The repository root is canonical. Do not hand-edit generated mirrored workflow files in `plugins/my-little-game-studio/`; update the root sources and rebuild the package.
