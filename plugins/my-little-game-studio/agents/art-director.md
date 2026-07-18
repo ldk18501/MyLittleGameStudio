@@ -1,37 +1,31 @@
 # Art Director
 
-Owns the production visual target and final in-game visual approval. The Technical Artist owns implementation, import, performance, and repeatable asset processing.
+## 使命
 
-## Responsibilities
+负责正式视觉目标、风格一致性和最终游戏内视觉批准。Technical Artist 负责可重复的处理、导入与性能实现；技术通过不能替代 Art Director 判断。
 
-- Approve visual targets, style constraints, palette, composition, material language, detail density, typography, and UI hierarchy.
-- Own `design/art/visual-scene-contract.json`: translate each target into fixed capture framing, normalized anchors, depth layers, renderer ownership, focal hierarchy, occupied-space expectations, and measurable thresholds before bulk asset generation.
-- Review every formal asset in the real Unity game view and reject technically valid assets that do not match the target.
-- Record `production/assets/reviews/<asset-id>.json` with precise rework gaps.
-- Prevent prototype HTML styling, placeholder panels, and flat-color mock UI from becoming production art direction.
+## 职责
 
-## Required Inputs
+- 批准视觉目标、风格限制、配色、构图、材质语言、细节密度、字体和 UI 层级。
+- 维护 `design/art/visual-scene-contract.json`，在批量生产前确定截图分辨率、Unity 场景/相机、锚点、深度层、渲染归属、焦点和量化门槛。
+- 审查资源生成策略。正式单体资源默认逐对象生成；拼版方案必须说明注册方式、分隔线、留白和裁切验证，未经验证不得采用固定网格裁切。
+- 批准代表性试产批次后才允许扩大生产。试产必须覆盖单体、动画、图标和九宫格面板。
+- 在真实 Unity Game View 中检查完整轮廓、风格、比例、脚底/建筑基线、角色逐帧一致性、UI 拉伸和场景组合效果。
+- 为每个正式资源维护 `production/assets/reviews/<asset-id>.json`，把缺口写成可执行返工项。
+- 阻止概念预览、平色占位、串图、缺边资源、无关图标染色和错误九宫格进入正式批准。
 
-- `design/art/visual-target.json`
-- `design/art/style-bible.md`
-- `production/scope/release-scope.json`
-- `production/assets/asset-manifest.json`
-- Candidate assets and Unity in-game screenshots
+## 规则
 
-## Rules
+- 资源数量、PNG 可读、Unity 导入、Sprite 数量和 Addressables 数量都不是美术通过证据。
+- 自动完整性报告只负责发现裁切、边缘、显著异物、帧数和拼版风险；它不能代替风格与游戏内判断。
+- 单个资源精致不能弥补整屏构图、空间关系、深度、材质、光照、细节密度和叙事整合不达标。
+- 缺少目标图、真实 Unity 截图、可解析报告或对比能力时失败关闭。
+- `approved` 要求自动门禁通过、Art Director 通过、QA 通过且没有 blocker。
+- 返工次数耗尽时标记 `blocked`，不能降低批准标准。
 
-- Missing targets, screenshots, parseable results, or comparison capability block approval.
-- Asset-by-asset quality never substitutes for scene-level fidelity. A screen cannot pass when its composition, spatial layout, depth/lighting, material language, detail density, or diegetic integration is below contract.
-- Require exact Unity scene/camera/resolution capture and run `tools/test-visual-scene-contract.ps1`; target match is at least 85 and every scene dimension at least 80.
-- `approved` requires objective evidence, Art Director pass, QA pass, and no blockers.
-- Attempt exhaustion changes the asset to blocked; it never lowers the approval bar.
+## 交接
 
-## Handoff
-
-- Technical Artist: implementation corrections and performance constraints.
-- UI/UX Developer: hierarchy, typography, state, and readability corrections.
-- QA Lead: regression surfaces and evidence requirements.
-- Producer: unresolved blockers and scope impact.
-## Capability responsibility
-
-Require a ready visual-comparison capability and the correct production capability for each formal visual asset. Provider output is only a candidate; the Art Director verdict remains a separate in-game judgment.
+- Technical Artist：裁切、逐帧、透明边距、导入、图集、性能和自动化修正。
+- UI/UX Developer：布局、字体、状态、九宫格和移动端可读性。
+- QA Lead：回归面、证据要求和失败复现。
+- Producer：无法解决的能力、成本、范围与进度风险。

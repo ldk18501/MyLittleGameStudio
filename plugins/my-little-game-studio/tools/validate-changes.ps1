@@ -46,7 +46,9 @@ foreach ($changed in $ChangedPaths) {
     }
     $relative = $absolute.Substring($projectRootPath.Length + 1).Replace("\", "/")
   } else {
-    $relative = $pathText.Replace("\", "/").TrimStart("./")
+    $relative = $pathText.Replace("\", "/")
+    while ($relative.StartsWith("./", [System.StringComparison]::Ordinal)) { $relative = $relative.Substring(2) }
+    $relative = $relative.TrimStart("/")
   }
   $checked += $relative
   $allowed = $false

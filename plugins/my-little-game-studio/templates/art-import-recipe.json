@@ -14,6 +14,16 @@
   "wrapMode": "Clamp",
   "maxSize": 2048,
   "compression": "Compressed",
+  "sourceLayout": "individual",
+  "extractionMode": "single-object",
+  "integrityGate": {
+    "minimumTransparentMargin": 8,
+    "minimumFrameMargin": 2,
+    "expectedFrames": 1,
+    "maxSignificantComponents": 1,
+    "requireNoEdgeContact": true,
+    "requireIndependentFrameValidation": true
+  },
   "slicing": {
     "mode": "none",
     "cellSize": [0, 0],

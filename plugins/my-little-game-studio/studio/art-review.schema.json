@@ -10,11 +10,11 @@
     "schemaVersion": { "const": "1.0" },
     "assetId": { "type": "string", "minLength": 1 },
     "visualTargetIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
-    "targetImages": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
-    "candidateSource": { "type": "string", "minLength": 1 },
-    "processedAsset": { "type": "string", "minLength": 1 },
-    "unityReferences": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
-    "inGameScreenshots": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "targetImages": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "candidateSource": { "type": "string" },
+    "processedAsset": { "type": "string" },
+    "unityReferences": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "inGameScreenshots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "scores": {
       "type": "object",
       "additionalProperties": false,
@@ -37,6 +37,25 @@
     "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 5 },
     "blockers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "notes": { "type": "string" },
-    "updated": { "type": "string", "minLength": 1 }
-  }
+    "updated": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "finalVerdict": { "const": "pass" } }, "required": ["finalVerdict"] },
+      "then": {
+        "properties": {
+          "targetImages": { "minItems": 1 },
+          "candidateSource": { "minLength": 1 },
+          "processedAsset": { "minLength": 1 },
+          "unityReferences": { "minItems": 1 },
+          "inGameScreenshots": { "minItems": 1 },
+          "automatedVerdict": { "const": "pass" },
+          "artDirectorVerdict": { "const": "pass" },
+          "qaVerdict": { "const": "pass" },
+          "blockers": { "maxItems": 0 },
+          "updated": { "minLength": 1 }
+        }
+      }
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "../../.mlgs/art-asset-manifest.schema.json",
-  "schemaVersion": "1.2",
+  "schemaVersion": "1.3",
   "updated": "",
   "visualTargetPath": "design/art/visual-target.json",
   "assets": [
@@ -19,6 +19,16 @@
       "status": "planned",
       "placeholder": false,
       "importRecipe": "production/assets/import-recipes/example-player-idle.json",
+      "integrity": {
+        "sourceLayout": "individual",
+        "extractionMode": "single-object",
+        "minimumTransparentMargin": 8,
+        "minimumFrameMargin": 2,
+        "expectedFrames": 1,
+        "maxSignificantComponents": 1,
+        "reportPath": "",
+        "verdict": "pending"
+      },
       "references": [],
       "evidence": [],
       "reviewPath": "production/assets/reviews/example-player-idle.json"

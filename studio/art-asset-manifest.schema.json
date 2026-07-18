@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mylittlegamestudio.local/schemas/art-asset-manifest.schema.json",
-  "title": "MLGS art asset manifest",
+  "title": "MLGS 正式美术资源清单",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "updated", "visualTargetPath", "assets"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.2" },
+    "schemaVersion": { "const": "1.3" },
     "updated": { "type": "string" },
     "visualTargetPath": { "type": "string", "minLength": 1 },
     "assets": {
@@ -15,7 +15,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "references", "evidence", "reviewPath"],
+        "required": ["id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "kind": { "type": "string", "minLength": 1 },
@@ -31,6 +31,21 @@
           "status": { "enum": ["planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved"] },
           "placeholder": { "type": "boolean" },
           "importRecipe": { "type": "string", "minLength": 1 },
+          "integrity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourceLayout", "extractionMode", "minimumTransparentMargin", "minimumFrameMargin", "expectedFrames", "maxSignificantComponents", "reportPath", "verdict"],
+            "properties": {
+              "sourceLayout": { "enum": ["individual", "registered-sheet", "unverified-sheet", "procedural"] },
+              "extractionMode": { "enum": ["single-object", "object-aware", "explicit-rectangles", "fixed-grid", "procedural"] },
+              "minimumTransparentMargin": { "type": "integer", "minimum": 0 },
+              "minimumFrameMargin": { "type": "integer", "minimum": 0 },
+              "expectedFrames": { "type": "integer", "minimum": 1 },
+              "maxSignificantComponents": { "type": "integer", "minimum": 1 },
+              "reportPath": { "type": "string" },
+              "verdict": { "enum": ["pending", "pass", "fail", "unavailable", "error"] }
+            }
+          },
           "references": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
           "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
           "reviewPath": { "type": "string" }

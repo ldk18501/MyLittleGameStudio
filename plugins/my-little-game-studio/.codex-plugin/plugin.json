@@ -1,7 +1,7 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.9.0+codex.20260716172038",
-  "description": "Codex-first Unity/C# 独立游戏工作室流程，通过 /mlgs 推进规划、正式美术、生产实现、质量门禁与发布准备。",
+  "version": "0.9.0+codex.20260718080711",
+  "description": "Codex-first Unity/C# \u72ec\u7acb\u6e38\u620f\u5de5\u4f5c\u5ba4\u6d41\u7a0b\uff0c\u901a\u8fc7 /mlgs \u63a8\u8fdb\u89c4\u5212\u3001\u6b63\u5f0f\u7f8e\u672f\u3001\u751f\u4ea7\u5b9e\u73b0\u3001\u8d28\u91cf\u95e8\u7981\u4e0e\u53d1\u5e03\u51c6\u5907\u3002",
   "author": {
     "name": "MyLittleGameStudio"
   },
@@ -16,8 +16,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "MyLittleGameStudio",
-    "shortDescription": "从游戏概念、正式美术到可发布质量的 Unity 工作室",
-    "longDescription": "一个 Codex-first、Unity/C# only 的轻量 AI 游戏工作室。通过 /mlgs 单入口推进概念、规划、原型、正式美术、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、Release Candidate、构建与 dashboard。结构化质量门禁避免项目长期停留在 Demo 状态。",
+    "shortDescription": "\u4ece\u6e38\u620f\u6982\u5ff5\u3001\u6b63\u5f0f\u7f8e\u672f\u5230\u53ef\u53d1\u5e03\u8d28\u91cf\u7684 Unity \u5de5\u4f5c\u5ba4",
+    "longDescription": "\u4e00\u4e2a Codex-first\u3001Unity/C# only \u7684\u8f7b\u91cf AI \u6e38\u620f\u5de5\u4f5c\u5ba4\u3002\u901a\u8fc7 /mlgs \u5355\u5165\u53e3\u63a8\u8fdb\u6982\u5ff5\u3001\u89c4\u5212\u3001\u539f\u578b\u3001\u6b63\u5f0f\u7f8e\u672f\u3001\u6a21\u5757\u5316\u5b9e\u73b0\u3001Vertical Slice\u3001Content Complete\u3001Alpha/Beta\u3001Release Candidate\u3001\u6784\u5efa\u4e0e dashboard\u3002\u7ed3\u6784\u5316\u8d28\u91cf\u95e8\u7981\u907f\u514d\u9879\u76ee\u957f\u671f\u505c\u7559\u5728 Demo \u72b6\u6001\u3002",
     "developerName": "MyLittleGameStudio",
     "category": "Engineering",
     "capabilities": [
@@ -26,9 +26,9 @@
       "Interactive"
     ],
     "defaultPrompt": [
-      "/mlgs 我想开始一个新的 Unity 游戏，低参与度",
-      "/mlgs 接管 E:\\path\\to\\UnityProject",
-      "/mlgs 把当前项目推进到 Vertical Slice 并补齐正式美术"
+      "/mlgs \u6211\u60f3\u5f00\u59cb\u4e00\u4e2a\u65b0\u7684 Unity \u6e38\u620f\uff0c\u4f4e\u53c2\u4e0e\u5ea6",
+      "/mlgs \u63a5\u7ba1 E:\\path\\to\\UnityProject",
+      "/mlgs \u628a\u5f53\u524d\u9879\u76ee\u63a8\u8fdb\u5230 Vertical Slice \u5e76\u8865\u9f50\u6b63\u5f0f\u7f8e\u672f"
     ],
     "brandColor": "#2563EB",
     "screenshots": []

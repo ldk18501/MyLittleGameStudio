@@ -62,7 +62,7 @@ $manifestPath = Join-Path $ProjectRoot "production/assets/asset-manifest.json"
 if ($Force -or -not (Test-Path $manifestPath)) {
   $manifest = [ordered]@{
     '$schema' = "../../.mlgs/art-asset-manifest.schema.json"
-    schemaVersion = "1.2"
+    schemaVersion = "1.3"
     updated = (Get-Date).ToString("o")
     visualTargetPath = "design/art/visual-target.json"
     assets = @()
@@ -73,7 +73,7 @@ if ($Force -or -not (Test-Path $manifestPath)) {
 elseif (-not $Force) {
   $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
   $changed = $false
-  if (@("1.0", "1.1") -contains [string]$manifest.schemaVersion) { $manifest.schemaVersion = "1.2"; $changed = $true }
+  if (@("1.0", "1.1", "1.2") -contains [string]$manifest.schemaVersion) { $manifest.schemaVersion = "1.3"; $changed = $true }
   if ($manifest.PSObject.Properties.Name -notcontains "visualTargetPath") {
     $manifest | Add-Member -MemberType NoteProperty -Name visualTargetPath -Value "design/art/visual-target.json"
     $changed = $true
@@ -85,6 +85,19 @@ elseif (-not $Force) {
     }
     if ($asset.PSObject.Properties.Name -notcontains "reviewPath") {
       $asset | Add-Member -MemberType NoteProperty -Name reviewPath -Value ""
+      $changed = $true
+    }
+    if ($asset.PSObject.Properties.Name -notcontains "integrity") {
+      $asset | Add-Member -MemberType NoteProperty -Name integrity -Value ([pscustomobject]@{
+        sourceLayout = "individual"
+        extractionMode = "single-object"
+        minimumTransparentMargin = 8
+        minimumFrameMargin = 2
+        expectedFrames = 1
+        maxSignificantComponents = 1
+        reportPath = ""
+        verdict = "pending"
+      })
       $changed = $true
     }
   }

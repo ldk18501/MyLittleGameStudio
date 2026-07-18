@@ -560,7 +560,7 @@ function Test-MLGSArtManifest {
     if ($manifestNames -notcontains $name) { $issues += "Art manifest property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $manifestPath; requiredFor = $RequiredFor; checkedAssets = 0; issues = @($issues) } }
-  if ([string]$manifest.schemaVersion -ne "1.2") { $issues += "Art manifest schemaVersion must be 1.2." }
+  if ([string]$manifest.schemaVersion -ne "1.3") { $issues += "Art manifest schemaVersion must be 1.3." }
   $visualTargetResult = Test-MLGSVisualTarget -ProjectRoot $ProjectRoot -Path ([string]$manifest.visualTargetPath)
   if (-not $visualTargetResult.passed) { $issues += @($visualTargetResult.issues) }
   $approvedVisualTargets = @{}
@@ -570,7 +570,7 @@ function Test-MLGSArtManifest {
   $requiredAssets = @()
   foreach ($asset in @($manifest.assets)) {
     $assetNames = @($asset.PSObject.Properties.Name)
-    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "references", "evidence", "reviewPath")
+    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath")
     $missingAssetProperties = @($requiredAssetProperties | Where-Object { $assetNames -notcontains $_ })
     if ($missingAssetProperties.Count -gt 0) { $issues += "Art asset is missing properties: $($missingAssetProperties -join ', ')"; continue }
     $id = [string]$asset.id
@@ -609,6 +609,24 @@ function Test-MLGSArtManifest {
       else {
         try { $promptPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$asset.promptMetadata) } catch { $issues += "${id}: $($_.Exception.Message)"; $promptPath = "" }
         if ($promptPath -and -not (Test-Path $promptPath)) { $issues += "${id}: missing prompt metadata: $($asset.promptMetadata)" }
+      }
+    }
+    $integrityNames = if ($asset.integrity) { @($asset.integrity.PSObject.Properties.Name) } else { @() }
+    $requiredIntegrityProperties = @("sourceLayout", "extractionMode", "minimumTransparentMargin", "minimumFrameMargin", "expectedFrames", "maxSignificantComponents", "reportPath", "verdict")
+    $missingIntegrityProperties = @($requiredIntegrityProperties | Where-Object { $integrityNames -notcontains $_ })
+    if ($missingIntegrityProperties.Count -gt 0) {
+      $issues += "${id}: integrity contract is missing properties: $($missingIntegrityProperties -join ', ')"
+    }
+    elseif ($statusRank -ge [array]::IndexOf($statusOrder, "processed")) {
+      if ([string]$asset.integrity.sourceLayout -eq "unverified-sheet") { $issues += "${id}: unverified composite sheets cannot enter formal processing." }
+      if ([string]$asset.integrity.extractionMode -eq "fixed-grid" -and [string]$asset.integrity.sourceLayout -ne "registered-sheet") {
+        $issues += "${id}: fixed-grid extraction requires a registered-sheet with verified gutters and registration."
+      }
+      if ([string]$asset.integrity.verdict -ne "pass") { $issues += "${id}: Sprite integrity verdict must be pass before import/reference/approval." }
+      if ([string]::IsNullOrWhiteSpace([string]$asset.integrity.reportPath)) { $issues += "${id}: processed art needs an integrity report path." }
+      else {
+        $integrityIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$asset.integrity.reportPath) -Label "${id} integrity report"
+        if ($integrityIssue) { $issues += $integrityIssue }
       }
     }
     if ($statusRank -ge [array]::IndexOf($statusOrder, "referenced") -and @($asset.references).Count -eq 0) { $issues += "${id}: referenced/approved asset needs Unity references." }

@@ -134,6 +134,7 @@ MLGS is Unity + C# only.
 - Before formal asset production, refresh `production/capabilities/capability-manifest.json`. Required image, sprite, mesh, animation, audio, video, Unity import/validation, and visual-comparison capabilities must be `ready` with evidence; `manual`, `missing`, or `blocked` fails closed.
 - Choose execution strategy from task risk: direct for bounded work, pipeline for dependent stages, fan-out-and-synthesize for independent specialist analyses, adversarial-review for high-risk decisions, and loop-until-done for objectively checkable rework. Roles remain logical passes in the current thread unless the owner explicitly requests separate threads.
 - Formal art approval is fail-closed: missing comparison evidence, unavailable/error verdicts, low target-match scores, or exhausted rework attempts block approval.
+- 正式 Sprite 默认逐对象生成。未经注册验证的 AI 拼版禁止按固定网格裁切；导入前必须通过 `tools/test-sprite-integrity.ps1` 的透明边距、边缘、显著异物和动画逐帧检查。Unity 导入、Sprite/Addressables 数量通过不等于美术批准。
 - `0.1.x` means prototype/pre-release. Never call a game `1.0.0` or release-ready until the Release gate passes with every release-scope item verified, every formal art asset approved in game, and game-side operations readiness plus external publishing handoffs recorded.
 - Avoid `Find`, `FindObjectOfType`, `SendMessage`, repeated hot-path `GetComponent`, and hot-path allocations.
 - A feature is incomplete until its real scene/UI/data/error path is wired and verified; an isolated Demo/Test scene is not production evidence.
