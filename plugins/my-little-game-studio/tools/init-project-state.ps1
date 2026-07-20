@@ -10,6 +10,7 @@ param(
   [ValidateSet("high", "medium", "low")][string]$ProductionAutomation = "medium",
   [ValidateSet("low", "medium", "high")][string]$OwnerParticipation = "medium",
   [string]$RuntimeRoot = "",
+  [switch]$SetCurrent,
   [switch]$SkipPointer,
   [switch]$Force
 )
@@ -28,8 +29,11 @@ $mlgsDir = Join-Path $resolvedProjectRoot ".mlgs"
 $statePath = Join-Path $mlgsDir "state.json"
 $legacyStatePath = Join-Path $mlgsDir "state.yaml"
 $projectPath = Join-Path $mlgsDir "project.md"
-$RuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
-$pointerPath = Join-Path $RuntimeRoot "current-project.json"
+$runtimeWasExplicit = -not [string]::IsNullOrWhiteSpace($RuntimeRoot)
+$globalRuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
+$projectRuntimeRoot = Get-MLGSProjectRuntimeRoot -GlobalRuntimeRoot $globalRuntimeRoot -ProjectRoot $resolvedProjectRoot
+$projectId = Get-MLGSProjectId -ProjectRoot $resolvedProjectRoot
+$pointerPath = Join-Path $globalRuntimeRoot "current-project.json"
 
 if (((Test-Path $statePath) -or (Test-Path $legacyStatePath)) -and -not $Force) {
   throw "Project state already exists. Use migrate-state.ps1 for legacy YAML or pass -Force intentionally."
@@ -106,10 +110,11 @@ $project = @"
 "@
 $project | Set-Content -LiteralPath $projectPath -Encoding UTF8
 
-if (-not $SkipPointer) {
+if ($SetCurrent -and -not $SkipPointer) {
   $pointer = [ordered]@{
-    schemaVersion = "1.0"
+    schemaVersion = "1.1"
     updated = $now
+    projectId = $projectId
     statePath = $statePath.Replace("\", "/")
     projectRoot = $resolvedProjectRoot.Replace("\", "/")
   }
@@ -119,6 +124,9 @@ if (-not $SkipPointer) {
 [pscustomobject]@{
   state_path = $statePath
   project_path = $projectPath
-  pointer_path = $(if ($SkipPointer) { "" } else { $pointerPath })
-  runtime_root = $RuntimeRoot
+  project_id = $projectId
+  pointer_path = $(if ($SetCurrent -and -not $SkipPointer) { $pointerPath } else { "" })
+  global_runtime_root = $globalRuntimeRoot
+  project_runtime_root = $projectRuntimeRoot
+  runtime_root = $projectRuntimeRoot
 } | ConvertTo-Json -Depth 6

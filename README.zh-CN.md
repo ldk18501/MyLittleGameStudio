@@ -186,12 +186,14 @@ MLGS 不接受一句“已经完成”，而是检查机器可读的生产证据
 
 ```text
 $CODEX_HOME/mlgs/current-project.json
-$CODEX_HOME/mlgs/runtime.json
-$CODEX_HOME/mlgs/logs/activity.jsonl
-$CODEX_HOME/mlgs/dashboard/studio-data.js
+$CODEX_HOME/mlgs/projects/<project-id>/contexts/<invocation-id>.json
+$CODEX_HOME/mlgs/projects/<project-id>/leases/<invocation-id>.json
+$CODEX_HOME/mlgs/projects/<project-id>/runtime.json
+$CODEX_HOME/mlgs/projects/<project-id>/logs/activity.jsonl
+$CODEX_HOME/mlgs/projects/<project-id>/dashboard/studio-data.js
 ```
 
-没有设置 `CODEX_HOME` 时使用 `~/.codex/mlgs/`。旧 `.mlgs/state.yaml` 和 `studio/current-project.local.yaml` 仍可读取，只有明确执行迁移时才会转换。
+没有设置 `CODEX_HOME` 时使用 `~/.codex/mlgs/`。当前项目指针只用于只读导航，不能授权写入。项目任务绑定固定 context，并用互不重叠的 lease 协调写入，因此不同项目可以并行。旧 `.mlgs/state.yaml` 仍可读取；checkout 旧指针只用于显式恢复。
 
 打开 `dashboard/index.html` 可以查看当前项目、实际阶段、参与度、最近工作、角色状态、风险和推荐的下一条指令。
 

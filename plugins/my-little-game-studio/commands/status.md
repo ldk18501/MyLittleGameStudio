@@ -24,9 +24,9 @@ Producer
 
 ## Flow
 
-1. Run:
+1. When a path or nearest project exists, bind it with `tools/new-project-context.ps1`, then run:
    ```powershell
-   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
+   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -ContextPath <context-path> -AllowTemplate
    ```
 2. If pointer is stale, report broken paths and ask one recovery question.
 3. If only template exists, report no active project and ask:
@@ -53,7 +53,7 @@ Producer
    - recommended command
 5. Offer the status object's A/B/C/D next options.
    Prefer natural-language phrases such as `/mlgs 把当前概念拆成开发计划`; keep old direct aliases only as compatibility.
-6. Record trace.
+6. Record trace in the bound project's runtime. Pointer-only status remains read-only and must not authorize later writes.
 
 ## Completion
 

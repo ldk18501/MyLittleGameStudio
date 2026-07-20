@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyLittleGameStudio bound project context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "invocationId", "taskId", "projectId", "projectRoot", "statePath", "runtimeRoot", "sourceMode", "pointerMismatch", "pointerProjectRoot", "created", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "invocationId": { "type": "string", "minLength": 1 },
+    "taskId": { "type": "string" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "projectRoot": { "type": "string", "minLength": 1 },
+    "statePath": { "type": "string", "minLength": 1 },
+    "runtimeRoot": { "type": "string", "minLength": 1 },
+    "sourceMode": { "enum": ["explicit-state", "explicit-project", "nearest-project"] },
+    "pointerMismatch": { "type": "boolean" },
+    "pointerProjectRoot": { "type": "string" },
+    "created": { "type": "string", "minLength": 1 },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

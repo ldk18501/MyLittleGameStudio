@@ -2,7 +2,9 @@ param(
   [string]$Root = "",
   [string]$ProjectRoot = "",
   [string]$StatePath = "",
+  [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
+  [switch]$AllowLegacyPointer,
   [switch]$AllowTemplate
 )
 
@@ -14,8 +16,11 @@ $RuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
 $resolveArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/resolve-state.ps1"), "-Root", $Root, "-RuntimeRoot", $RuntimeRoot)
 if ($ProjectRoot) { $resolveArgs += @("-ProjectRoot", $ProjectRoot) }
 if ($StatePath) { $resolveArgs += @("-StatePath", $StatePath) }
+if ($ContextPath) { $resolveArgs += @("-ContextPath", $ContextPath) }
+if ($AllowLegacyPointer) { $resolveArgs += "-AllowLegacyPointer" }
 if ($AllowTemplate) { $resolveArgs += "-AllowTemplate" }
 $resolved = & powershell @resolveArgs | ConvertFrom-Json
+$projectRuntimeRoot = [string]$resolved.project_runtime_root
 
 $state = $null
 if ($resolved.exists) {
@@ -26,18 +31,18 @@ if ($resolved.exists) {
 
 $detection = $null
 if ($resolved.project_exists -and $resolved.mode -ne "template") {
-  $detection = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/detect-project-stage.ps1") -Root $Root -ProjectRoot $resolved.project_root -RuntimeRoot $RuntimeRoot | ConvertFrom-Json
+  $detection = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/detect-project-stage.ps1") -Root $Root -ProjectRoot $resolved.project_root -RuntimeRoot $resolved.global_runtime_root | ConvertFrom-Json
 }
 
 $latestEvents = @()
-$activityPath = Join-Path $RuntimeRoot "logs/activity.jsonl"
+$activityPath = Join-Path $projectRuntimeRoot "logs/activity.jsonl"
 if (Test-Path $activityPath) {
   foreach ($line in @(Get-Content -LiteralPath $activityPath -Encoding UTF8 | Where-Object { $_.Trim() } | Select-Object -Last 5)) {
     try { $latestEvents += ($line | ConvertFrom-Json) } catch { }
   }
 }
 $runtimeSummary = ""
-$runtimePath = Join-Path $RuntimeRoot "runtime.json"
+$runtimePath = Join-Path $projectRuntimeRoot "runtime.json"
 if (Test-Path $runtimePath) {
   try { $runtimeSummary = [string](Get-Content -LiteralPath $runtimePath -Raw -Encoding UTF8 | ConvertFrom-Json).summary } catch { }
 }
@@ -124,6 +129,10 @@ for ($i = 0; $i -lt @($gate.options).Count; $i++) {
     project_root = $resolved.project_root
     state_path = $resolved.state_path
     state_format = $resolved.state_format
+    project_id = $resolved.project_id
+    project_runtime_root = $resolved.project_runtime_root
+    pointer_mismatch = $resolved.pointer_mismatch
+    pointer_project_root = $resolved.pointer_project_root
     migration_available = $resolved.state_format -eq "legacy-yaml"
     mode = $state.activeProject.mode
     unity_version = $state.activeProject.engineVersion

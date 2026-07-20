@@ -1,5 +1,8 @@
 param(
   [string]$Root = "",
+  [string]$ProjectRoot = "",
+  [string]$StatePath = "",
+  [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
   [string]$DashboardRoot = "",
   [int]$Limit = 25
@@ -8,10 +11,15 @@ param(
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
-$runtimeWasExplicit = -not [string]::IsNullOrWhiteSpace($RuntimeRoot)
-$RuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
+$resolveArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/resolve-state.ps1"), "-Root", $Root, "-AllowTemplate")
+if ($ProjectRoot) { $resolveArgs += @("-ProjectRoot", $ProjectRoot) }
+if ($StatePath) { $resolveArgs += @("-StatePath", $StatePath) }
+if ($ContextPath) { $resolveArgs += @("-ContextPath", $ContextPath) }
+if ($RuntimeRoot) { $resolveArgs += @("-RuntimeRoot", $RuntimeRoot) }
+$resolved = & powershell @resolveArgs | ConvertFrom-Json
+$RuntimeRoot = [System.IO.Path]::GetFullPath([string]$resolved.project_runtime_root)
 if ([string]::IsNullOrWhiteSpace($DashboardRoot)) {
-  $DashboardRoot = if ($runtimeWasExplicit -or (Test-Path (Join-Path $Root ".codex-plugin/plugin.json"))) { Join-Path $RuntimeRoot "dashboard" } else { Join-Path $Root "dashboard" }
+  $DashboardRoot = Join-Path $RuntimeRoot "dashboard"
 }
 $DashboardRoot = [System.IO.Path]::GetFullPath($DashboardRoot)
 New-Item -ItemType Directory -Path $DashboardRoot -Force | Out-Null
@@ -39,7 +47,10 @@ if (Test-Path $activityPath) {
 
 $status = $null
 try {
-  $status = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/get-project-status.ps1") -Root $Root -RuntimeRoot $RuntimeRoot -AllowTemplate | ConvertFrom-Json
+  $statusArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/get-project-status.ps1"), "-Root", $Root, "-RuntimeRoot", [string]$resolved.global_runtime_root, "-AllowTemplate")
+  if ($resolved.project_root -and $resolved.mode -ne "template") { $statusArgs += @("-ProjectRoot", [string]$resolved.project_root) }
+  if ($ContextPath) { $statusArgs += @("-ContextPath", $ContextPath) }
+  $status = & powershell @statusArgs | ConvertFrom-Json
 } catch { }
 
 $payload = [ordered]@{
@@ -47,6 +58,8 @@ $payload = [ordered]@{
   runtime = $runtime
   events = @($events)
   status = $status
+  projectId = [string]$resolved.project_id
+  projectRoot = [string]$resolved.project_root
 }
 $content = "window.MLGS_STUDIO_DATA = " + ($payload | ConvertTo-Json -Depth 30) + ";"
 $outputPath = Join-Path $DashboardRoot "studio-data.js"

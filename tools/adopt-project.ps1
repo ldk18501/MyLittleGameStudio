@@ -5,6 +5,7 @@ param(
   [ValidateSet("low", "medium", "high")][string]$OwnerParticipation = "medium",
   [string[]]$ApprovedWritePaths = @("Assets"),
   [string]$RuntimeRoot = "",
+  [switch]$SetCurrent,
   [switch]$Apply
 )
 
@@ -41,9 +42,13 @@ if ($detection.is_unity_project -or $detection.is_partial_unity_project) {
 }
 if ($Apply) {
   if ($detection.state_exists) {
-    $repairArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/repair-pointer.ps1"), "-Root", $Root, "-StatePath", $detection.state_path)
-    if ($RuntimeRoot) { $repairArgs += @("-RuntimeRoot", $RuntimeRoot) }
-    $applyResult = & powershell @repairArgs | ConvertFrom-Json
+    if ($SetCurrent) {
+      $repairArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/repair-pointer.ps1"), "-Root", $Root, "-StatePath", $detection.state_path)
+      if ($RuntimeRoot) { $repairArgs += @("-RuntimeRoot", $RuntimeRoot) }
+      $applyResult = & powershell @repairArgs | ConvertFrom-Json
+    } else {
+      $applyResult = [pscustomobject]@{ status = "attached"; state_path = $detection.state_path; project_root = $resolvedProjectRoot; pointer_path = "" }
+    }
   } else {
     $mode = if ($detection.is_unity_project -or $detection.is_partial_unity_project) { "external-adopted" } else { "internal" }
     $initArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/init-project-state.ps1"), "-Root", $Root, "-ProjectRoot", $resolvedProjectRoot, "-Name", $Name, "-Mode", $mode, "-UnityVersion", $detection.unity_version, "-OwnerParticipation", $OwnerParticipation)
@@ -52,6 +57,7 @@ if ($Apply) {
       $initArgs += @($ApprovedWritePaths)
     }
     if ($RuntimeRoot) { $initArgs += @("-RuntimeRoot", $RuntimeRoot) }
+    if ($SetCurrent) { $initArgs += "-SetCurrent" }
     $applyResult = & powershell @initArgs | ConvertFrom-Json
   }
 }

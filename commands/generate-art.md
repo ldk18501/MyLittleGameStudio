@@ -44,7 +44,7 @@ planned -> prompt-ready -> generated -> selected -> processed -> imported -> ref
 
 ## 正式流程
 
-1. 读取视觉目标、风格圣经、场景合同、发布范围、目标平台、渲染管线和资源清单。
+1. 用 `tools/new-project-context.ps1` 绑定目标项目，再读取视觉目标、风格圣经、场景合同、发布范围、目标平台、渲染管线和资源清单。
 2. 先锁定代表性场景的分辨率、相机、锚点、深度层、渲染归属、视觉焦点和最低分数；场景构图未对齐前不进行大批量生产。
 3. 把发布范围展开为逐项资源清单。每个资源必须关联已批准的 `visualTargets`、真实 `sourceFile`、使用位置、导入配方和 `integrity` 合同。
 4. 先制作小规模代表性试产批次，至少覆盖：单体建筑或道具、角色动画、普通 UI 图标和九宫格面板。试产批次未通过完整性检查与 Unity 预览时，禁止扩大批量。
@@ -60,10 +60,10 @@ planned -> prompt-ready -> generated -> selected -> processed -> imported -> ref
 
    空图、边缘接触、安全边距不足、显著异物超限、动画缺帧/串帧、未验证拼版或非法固定网格裁切均失败关闭。把报告路径和 `pass` 结果写回资源的 `integrity`；报告失败不得进入 Unity 正式目录。
 10. 导入前写完整 import recipe：Texture Type、Sprite Mode、PPU、Pivot、Border、Mesh Type、Filter/Wrap、压缩、平台覆盖、切片、图集和 Addressables 决策。运行 `tools/test-art-import-recipe.ps1`；导入后写入 Unity Importer 证据，九宫格批准前必须有三种尺寸证据。不得手改 `.meta`。
-11. 运行 `tools/preflight-task.ps1 -Command generate-art`，再通过 Unity 自动化或经批准的项目内 Editor 工具导入、切片和登记 Addressables。
+11. 为计划中的资源、配方、Prefab/场景引用申请项目 lease，运行 `tools/preflight-task.ps1 -Command generate-art -ContextPath <context-path>`，再通过 Unity 自动化或经批准的项目内 Editor 工具导入、切片和登记 Addressables。
 12. 通过序列化字段、Prefab、ScriptableObject、UI 文档或 Addressables 接线；不得用未审查的运行时字符串路径或 `Resources.Load` 代替正式引用。
 13. 在场景合同规定的 Unity Game View、相机和分辨率下截图。使用 `tools/test-visual-comparison.ps1` 生成逐资源与整屏可复现对比报告；它只提供客观漂移信号，不能替代 Art Director/QA。随后运行 `tools/test-visual-scene-contract.ps1`、`tools/test-art-review.ps1` 和 `tools/validate-art-manifest.ps1`。
-14. 运行 `tools/validate-changes.ps1`，记录改动、生命周期变化、自动报告、Unity 证据和 trace。
+14. 运行 `tools/validate-changes.ps1 -ContextPath <context-path>`，记录改动、生命周期变化、自动报告和 Unity 证据；用同一 context/invocation 写 trace 后释放 lease。
 
 ## 失败关闭规则
 

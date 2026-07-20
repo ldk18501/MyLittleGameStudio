@@ -22,10 +22,12 @@
 ## State Strategy
 
 - Root state template: `studio/state.json`.
-- User runtime pointer: `$CODEX_HOME/mlgs/current-project.json` or `~/.codex/mlgs/current-project.json`.
+- User runtime pointer: `$CODEX_HOME/mlgs/current-project.json` or `~/.codex/mlgs/current-project.json`; it is navigation convenience, not write authority.
+- Per-project runtime: `$CODEX_HOME/mlgs/projects/<project-id>/` with bound contexts, leases, trace, runtime, and dashboard data.
 - Canonical project state: `.mlgs/state.json` inside the active game project.
 - Legacy `.mlgs/state.yaml` remains readable and can be explicitly migrated.
 - Do not duplicate active project, phase, or participation in other root files.
+- Bind every routed task to one immutable project context. Different projects may run in parallel; same-project writes require non-overlapping leases.
 - Project notes can live under the active project, but must not conflict with `.mlgs/state.json`.
 
 ## Safety Strategy

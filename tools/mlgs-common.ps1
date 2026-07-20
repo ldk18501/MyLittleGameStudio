@@ -21,6 +21,92 @@ function Get-MLGSRuntimeRoot {
   return [System.IO.Path]::GetFullPath((Join-Path $Root "studio"))
 }
 
+function Get-MLGSNormalizedProjectRoot {
+  param([Parameter(Mandatory = $true)][string]$ProjectRoot)
+
+  return [System.IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\', '/').ToLowerInvariant()
+}
+
+function Get-MLGSProjectId {
+  param([Parameter(Mandatory = $true)][string]$ProjectRoot)
+
+  $normalized = Get-MLGSNormalizedProjectRoot -ProjectRoot $ProjectRoot
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($normalized)
+    $hash = $sha.ComputeHash($bytes)
+  } finally {
+    $sha.Dispose()
+  }
+  $hex = -join ($hash | ForEach-Object { $_.ToString("x2") })
+  $slug = (Split-Path -Leaf ([System.IO.Path]::GetFullPath($ProjectRoot))).ToLowerInvariant() -replace '[^a-z0-9]+', '-'
+  $slug = $slug.Trim('-')
+  if ([string]::IsNullOrWhiteSpace($slug)) { $slug = "project" }
+  return "$slug-$($hex.Substring(0, 12))"
+}
+
+function Get-MLGSProjectRuntimeRoot {
+  param(
+    [Parameter(Mandatory = $true)][string]$GlobalRuntimeRoot,
+    [Parameter(Mandatory = $true)][string]$ProjectRoot
+  )
+
+  $projectId = Get-MLGSProjectId -ProjectRoot $ProjectRoot
+  return [System.IO.Path]::GetFullPath((Join-Path $GlobalRuntimeRoot ("projects/" + $projectId)))
+}
+
+function Test-MLGSPathOverlap {
+  param(
+    [Parameter(Mandatory = $true)][string]$Left,
+    [Parameter(Mandatory = $true)][string]$Right
+  )
+
+  $leftPath = $Left.Replace("\", "/").Trim("/").ToLowerInvariant()
+  $rightPath = $Right.Replace("\", "/").Trim("/").ToLowerInvariant()
+  if (-not $leftPath -or -not $rightPath) { return $false }
+  if ($leftPath -eq "*" -or $rightPath -eq "*") { return $true }
+  return $leftPath -eq $rightPath -or $leftPath.StartsWith($rightPath + "/") -or $rightPath.StartsWith($leftPath + "/")
+}
+
+function Test-MLGSPathWithinClaim {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Claim
+  )
+
+  $pathValue = $Path.Replace("\", "/").Trim("/").ToLowerInvariant()
+  $claimValue = $Claim.Replace("\", "/").Trim("/").ToLowerInvariant()
+  if (-not $pathValue -or -not $claimValue) { return $false }
+  return $claimValue -eq "*" -or $pathValue -eq $claimValue -or $pathValue.StartsWith($claimValue + "/")
+}
+
+function Test-MLGSActiveProjectLease {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRuntimeRoot,
+    [Parameter(Mandatory = $true)][string]$ProjectId,
+    [Parameter(Mandatory = $true)][string]$InvocationId
+  )
+
+  $issues = @()
+  $leasePath = Join-Path $ProjectRuntimeRoot ("leases/" + $InvocationId + ".json")
+  $lease = $null
+  if (-not (Test-Path $leasePath)) {
+    $issues += "Missing active project write lease for invocation '$InvocationId'."
+  } else {
+    try { $lease = Get-Content -LiteralPath $leasePath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { $issues += "Project write lease is unreadable." }
+  }
+  if ($lease) {
+    if ([string]$lease.projectId -ne $ProjectId) { $issues += "Project write lease belongs to a different project." }
+    if ([string]$lease.invocationId -ne $InvocationId) { $issues += "Project write lease invocation does not match." }
+    if ([bool]$lease.readOnly) { $issues += "A read-only lease cannot authorize project writes." }
+    if (@($lease.paths).Count -eq 0) { $issues += "Project write lease has no declared paths." }
+    try {
+      if ([DateTimeOffset]::Parse([string]$lease.expiresAt) -le [DateTimeOffset]::Now) { $issues += "Project write lease has expired." }
+    } catch { $issues += "Project write lease expiry is invalid." }
+  }
+  return [pscustomobject]@{ valid = $issues.Count -eq 0; path = $leasePath; lease = $lease; issues = @($issues) }
+}
+
 function Resolve-MLGSPath {
   param([string]$Base, [string]$Path)
 

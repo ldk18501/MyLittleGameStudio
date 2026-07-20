@@ -25,7 +25,7 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
 
 ## Flow
 
-1. Resolve state and evaluate catalog gates.
+1. Bind the requested or nearest project with `tools/new-project-context.ps1`, then resolve state through that context and evaluate catalog gates.
 2. Select the earliest incomplete stage; do not work from the declared phase alone.
 3. Create or refresh its report with:
 
@@ -33,7 +33,7 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
    powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-quality-gate.ps1 -ProjectRoot <UnityProject> -Stage <stage>
    ```
 
-4. Convert every failed or missing check into a bounded task with acceptance criteria and evidence path.
+4. Convert every failed or missing check into a bounded task with acceptance criteria and evidence path. Acquire non-overlapping leases before executing project writes.
 5. Validate the explicit release scope with `tools/validate-release-scope.ps1`; never infer completeness from implemented files alone. Missing planned counts, tutorial beats, UI screens, configuration sources, audio, or art are blockers.
 6. For production code, read `rules/production-code.md`; run `tools/test-production-code.ps1` and attach the report at Content Complete or earlier.
 7. For art, run the formal `generate-art` route and validate the screen-level visual scene contract before asset approval. Every product gate revalidates the stage-scoped art manifest and approved scene contract, so stale comparison, lifecycle, import, reference, or in-game evidence fails later stages too. A correctly skinned UGUI panel over a background is not final-look evidence when the target requires a layered scene or diegetic display.
@@ -50,7 +50,7 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
    ```
 
 10. Update state phase from the unified gate evaluator, not from intention or a version string.
-11. Record trace and the next incomplete check.
+11. Record trace with the bound context/invocation, release completed leases, and report the next incomplete check.
 
 ## Completion
 

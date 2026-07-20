@@ -58,7 +58,7 @@ try {
   }
 
   $results += Invoke-Step "adopt-isolated-project" {
-    $adopted = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/adopt-project.ps1") -Root $Root -ProjectRoot $project -Name "Colon: Smoke" -OwnerParticipation high -ApprovedWritePaths Assets -RuntimeRoot $runtimeRoot -Apply | ConvertFrom-Json
+    $adopted = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/adopt-project.ps1") -Root $Root -ProjectRoot $project -Name "Colon: Smoke" -OwnerParticipation high -ApprovedWritePaths Assets -RuntimeRoot $runtimeRoot -SetCurrent -Apply | ConvertFrom-Json
     if (-not (Test-Path $adopted.apply_result.state_path)) { throw "Adoption did not create state.json." }
     if (-not (Test-Path (Join-Path $runtimeRoot "current-project.json"))) { throw "Isolated pointer was not written." }
   }
@@ -91,10 +91,16 @@ try {
     $state | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $statePath -Encoding UTF8
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -ProjectRoot $project -RuntimeRoot $runtimeRoot 2>$null | Out-Null
     if ($LASTEXITCODE -ne 2) { throw "Unlocked production without architecture contracts was not blocked." }
-    $valid = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -ChangedPaths "Assets/Scripts/PlayerController.cs","production/task-plan.md" | ConvertFrom-Json
-    if (-not $valid.valid) { throw "Approved paths were rejected." }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -ChangedPaths "ProjectSettings/ProjectSettings.asset" 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 3) { throw "Out-of-bound path was not rejected." }
+    $context = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId validate-boundaries -TaskId validate-boundaries | ConvertFrom-Json
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -InvocationId validate-boundaries -TaskId validate-boundaries -Paths "Assets/Scripts/PlayerController.cs","production/task-plan.md" | Out-Null
+    try {
+      $valid = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -ChangedPaths "Assets/Scripts/PlayerController.cs","production/task-plan.md" | ConvertFrom-Json
+      if (-not $valid.valid) { throw "Approved paths were rejected." }
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-changes.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -ChangedPaths "ProjectSettings/ProjectSettings.asset" 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 3) { throw "Out-of-bound path was not rejected." }
+    } finally {
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/release-project-lease.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -InvocationId validate-boundaries 2>$null | Out-Null
+    }
   }
 
   $results += Invoke-Step "framework-reconnaissance" {
@@ -449,8 +455,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Approved lightweight codebase profile did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-task.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Approved lightweight code task did not pass." }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -TaskId smoke-feature -ProjectRoot $project -RuntimeRoot $runtimeRoot | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Approved architecture contracts did not unlock production preflight." }
+    $context = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId approved-preflight -TaskId smoke-feature | ConvertFrom-Json
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -InvocationId approved-preflight -TaskId smoke-feature -Paths "Assets/Scripts/PlayerController.cs" | Out-Null
+    try {
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -Command implement -TaskId smoke-feature -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw "Approved architecture contracts did not unlock production preflight." }
+    } finally {
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/release-project-lease.ps1") -Root $Root -ContextPath $context.contextPath -RuntimeRoot $runtimeRoot -InvocationId approved-preflight 2>$null | Out-Null
+    }
 
     $sceneContractPath = Join-Path $project "design/art/visual-scene-contract.json"
     $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -642,14 +654,72 @@ staff:
   }
 
   $results += Invoke-Step "isolated-trace-dashboard" {
-    $trace = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -RuntimeRoot $runtimeRoot -Command test -Title "Isolated smoke trace" -LeadAgent qa-lead -AgentsUsed qa-lead,producer -Verification "isolated" -Summary "Smoke trace"
+    $trace = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -Command test -Title "Isolated smoke trace" -LeadAgent qa-lead -AgentsUsed qa-lead,producer -Verification "isolated" -Summary "Smoke trace"
     if (($trace -join "`n") -notmatch "Trace recorded") { throw "Trace did not complete." }
-    if (-not (Test-Path (Join-Path $runtimeRoot "dashboard/studio-data.js"))) { throw "Dashboard was not exported to the isolated runtime." }
+    $projectRuntime = (& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot | ConvertFrom-Json).project_runtime_root
+    if (-not (Test-Path (Join-Path $projectRuntime "dashboard/studio-data.js"))) { throw "Dashboard was not exported to the isolated project runtime." }
+  }
+
+  $results += Invoke-Step "multi-project-context-and-leases" {
+    $secondProject = Join-Path $sandbox "SecondProject"
+    New-Item -ItemType Directory -Path $secondProject -Force | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/init-project-state.ps1") -Root $Root -ProjectRoot $secondProject -Name "Second Smoke" -Mode internal -ApprovedWritePaths Assets -RuntimeRoot $runtimeRoot | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Second project initialization failed." }
+
+    $contextA = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId smoke-a -TaskId task-a | ConvertFrom-Json
+    $contextB = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $secondProject -RuntimeRoot $runtimeRoot -InvocationId smoke-b -TaskId task-b | ConvertFrom-Json
+    if ($contextA.projectId -eq $contextB.projectId -or $contextA.runtimeRoot -eq $contextB.runtimeRoot) { throw "Different projects shared identity or runtime root." }
+    if (-not (Test-Path $contextA.contextPath) -or -not (Test-Path $contextB.contextPath)) { throw "Bound project contexts were not persisted." }
+
+    Push-Location $secondProject
+    try { $nearest = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -RuntimeRoot $runtimeRoot | ConvertFrom-Json }
+    finally { Pop-Location }
+    if ($nearest.mode -ne "nearest-project" -or $nearest.project_id -ne $contextB.projectId -or -not [bool]$nearest.pointer_mismatch) { throw "Nearest project did not safely override the different global pointer." }
+
+    $pointerOnly = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -RuntimeRoot $runtimeRoot -Command implement 2>$null | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 2 -or @($pointerOnly.blockers | Where-Object { $_ -match "global pointer" }).Count -eq 0) { throw "Pointer-only project write was not blocked." }
+
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $contextA.contextPath -RuntimeRoot $runtimeRoot -InvocationId smoke-a -TaskId task-a -Command test -Title "Project A trace" -Summary "A" | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $contextB.contextPath -RuntimeRoot $runtimeRoot -InvocationId smoke-b -TaskId task-b -Command test -Title "Project B trace" -Summary "B" | Out-Null
+    $eventsA = @(Get-Content -LiteralPath (Join-Path $contextA.runtimeRoot "logs/activity.jsonl") -Encoding UTF8 | ForEach-Object { $_ | ConvertFrom-Json })
+    $eventsB = @(Get-Content -LiteralPath (Join-Path $contextB.runtimeRoot "logs/activity.jsonl") -Encoding UTF8 | ForEach-Object { $_ | ConvertFrom-Json })
+    if (@($eventsA | Where-Object { $_.projectId -ne $contextA.projectId }).Count -gt 0 -or @($eventsB | Where-Object { $_.projectId -ne $contextB.projectId }).Count -gt 0) { throw "Project trace events crossed runtime boundaries." }
+
+    $activeA = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId active-a -TaskId active-task-a | ConvertFrom-Json
+    $activeB = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId active-b -TaskId active-task-b | ConvertFrom-Json
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $activeA.contextPath -RuntimeRoot $runtimeRoot -Command implement -Title "Active A" -Status started | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $activeB.contextPath -RuntimeRoot $runtimeRoot -Command implement -Title "Active B" -Status started | Out-Null
+    $activeRuntime = Get-Content -LiteralPath (Join-Path $contextA.runtimeRoot "runtime.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($activeRuntime.activeTasks).Count -ne 2) { throw "Concurrent active task roster did not retain both tasks." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $activeA.contextPath -RuntimeRoot $runtimeRoot -Command implement -Title "Active A" -Status completed | Out-Null
+    $activeRuntime = Get-Content -LiteralPath (Join-Path $contextA.runtimeRoot "runtime.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($activeRuntime.activeTasks).Count -ne 1 -or [string]$activeRuntime.activeTasks[0].invocationId -ne "active-b") { throw "Completing one task removed or corrupted another active task." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $activeB.contextPath -RuntimeRoot $runtimeRoot -Command implement -Title "Active B" -Status completed | Out-Null
+
+    $leaseA = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId lease-a -TaskId task-a | ConvertFrom-Json
+    $leaseOverlap = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId lease-overlap -TaskId task-overlap | ConvertFrom-Json
+    $leaseDisjoint = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot -InvocationId lease-disjoint -TaskId task-disjoint | ConvertFrom-Json
+    $leaseB = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-project-context.ps1") -Root $Root -ProjectRoot $secondProject -RuntimeRoot $runtimeRoot -InvocationId lease-b -TaskId task-b | ConvertFrom-Json
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $leaseA.contextPath -RuntimeRoot $runtimeRoot -InvocationId lease-a -TaskId task-a -Paths "Assets/Scripts" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Primary project lease failed." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $leaseOverlap.contextPath -RuntimeRoot $runtimeRoot -InvocationId lease-overlap -TaskId task-overlap -Paths "Assets/Scripts/Player.cs" 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 9) { throw "Overlapping same-project lease was not blocked." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $leaseDisjoint.contextPath -RuntimeRoot $runtimeRoot -InvocationId lease-disjoint -TaskId task-disjoint -Paths "Assets/Art" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Disjoint same-project lease was blocked." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/acquire-project-lease.ps1") -Root $Root -ContextPath $leaseB.contextPath -RuntimeRoot $runtimeRoot -InvocationId lease-b -TaskId task-b -Paths "Assets/Scripts" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Different-project lease was blocked by another project." }
+    foreach ($lease in @(
+      [pscustomobject]@{ ContextPath = $leaseA.contextPath; InvocationId = "lease-a" },
+      [pscustomobject]@{ ContextPath = $leaseDisjoint.contextPath; InvocationId = "lease-disjoint" },
+      [pscustomobject]@{ ContextPath = $leaseB.contextPath; InvocationId = "lease-b" }
+    )) {
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/release-project-lease.ps1") -Root $Root -ContextPath $lease.ContextPath -RuntimeRoot $runtimeRoot -InvocationId $lease.InvocationId | Out-Null
+    }
   }
 
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

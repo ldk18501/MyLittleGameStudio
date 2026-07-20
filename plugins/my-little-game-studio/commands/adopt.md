@@ -35,7 +35,7 @@ Only after owner confirmation:
 
 - `<ProjectRoot>/.mlgs/state.json`
 - `<ProjectRoot>/.mlgs/project.md`
-- user runtime `current-project.json`
+- user runtime `current-project.json` only when the owner explicitly requests `-SetCurrent`
 
 Do not copy the Unity project into MLGS. Do not rewrite existing design docs during adoption.
 
@@ -61,7 +61,7 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    - recommended project kind and intensity: new/lightweight, small-existing/standard, or large-framework/deep
    - confidence and the signals used; low-confidence classifications must be confirmed or overridden during planning
 4. Recommend one action:
-   - existing state -> repair pointer and run `/mlgs 看看当前状态`; offer explicit migration for legacy YAML
+   - existing state -> bind that project directly and run `/mlgs 看看当前状态`; offer optional `-SetCurrent` navigation and explicit migration for legacy YAML
    - Unity project without MLGS state -> initialize as `external-adopted`
    - docs/code without Unity project -> initialize internal workspace or ask for Unity path
    - empty/unrelated folder -> internal `start`
@@ -73,7 +73,7 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    ```powershell
    powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot <path> -Apply
    ```
-   Include `-OwnerParticipation low|medium|high` and `-ApprovedWritePaths` when known.
+   Include `-OwnerParticipation low|medium|high` and `-ApprovedWritePaths` when known. Add `-SetCurrent` only when the owner explicitly wants to change the navigation pointer; normal adoption remains project-local.
 7. Do not force the adopted project into its current architecture. The report is evidence for planning; it may lead to extending, lightly adapting, replacing a harmful legacy area, or creating an isolated new module.
 7. Ask or recommend next work:
    - missing concept -> `/mlgs 帮我头脑风暴这个游戏概念`

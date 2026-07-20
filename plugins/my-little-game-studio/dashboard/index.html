@@ -427,9 +427,10 @@
     const data = window.MLGS_STUDIO_DATA || {};
     const runtime = data.runtime || {};
     const operations = data.operations || {};
-    const status = operations.status || {};
+    const status = data.status || operations.status || {};
     const project = runtime.project || status.active_project || {};
     const events = Array.isArray(data.events) ? data.events.slice().reverse() : [];
+    const activeTasks = Array.isArray(runtime.activeTasks) ? runtime.activeTasks : [];
     const agents = Array.isArray(runtime.agents) && runtime.agents.length ? runtime.agents : defaultAgents;
     const agentInsights = Array.isArray(operations.agentInsights) ? operations.agentInsights : [];
 
@@ -500,6 +501,7 @@
       ["生产状态", approvals.production_unblocked === "true" ? "unblocked" : "locked"],
       ["原型", text(prototype.verdict, "pending")],
       ["模式", text(activeProject.mode, "none")],
+      ["并行任务", String(activeTasks.length)],
       ["更新时间", formatTime(runtime.updated || data.generatedAt)]
     ];
 
@@ -561,6 +563,10 @@
       producerRows.push(row("推荐指令", `<span class="command">${nextCommand}</span>`));
     }
     producerRows.push(row("运行摘要", text(runtime.summary, "没有摘要记录。")));
+    activeTasks.forEach(task => producerRows.push(row(
+      `运行中：${text(task.title, task.taskId || task.invocationId)}`,
+      `${text(task.command, "unknown")} · invocation: ${text(task.invocationId)}`
+    )));
     const control = document.getElementById("producerControl");
     producerRows.forEach(item => control.appendChild(item));
 
@@ -576,6 +582,8 @@
       const statusName = normalizeStatus(event.status);
       const chips = array(event.agentsUsed).map(value => `<span class="chip">agent: ${value}</span>`)
         .concat(array(event.filesWritten).slice(0, 3).map(value => `<span class="chip">write: ${value}</span>`))
+        .concat(event.taskId ? [`<span class="chip">task: ${event.taskId}</span>`] : [])
+        .concat(event.projectId ? [`<span class="chip">project: ${event.projectId}</span>`] : [])
         .join("");
       return row(
         text(event.title, "Untitled activity"),
@@ -586,7 +594,9 @@
 
     document.getElementById("summaryText").textContent = runtime.summary || "还没有记录 MLGS 活动。";
     document.getElementById("updatedText").textContent = `Updated: ${formatTime(runtime.updated || data.generatedAt)}`;
-    document.getElementById("activeCommandText").textContent = `Command: ${runtime.activeCommand || "none"}`;
+    document.getElementById("activeCommandText").textContent = activeTasks.length
+      ? `Active tasks: ${activeTasks.length}`
+      : `Command: ${runtime.activeCommand || "none"}`;
   </script>
 </body>
 </html>

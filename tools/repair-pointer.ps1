@@ -45,8 +45,9 @@ $validation = Test-MLGSState -State $state
 if (-not $validation.valid) { throw ("Refusing invalid project state: " + ($validation.errors -join "; ")) }
 
 $pointer = [ordered]@{
-  schemaVersion = "1.0"
+  schemaVersion = "1.1"
   updated = (Get-Date).ToString("o")
+  projectId = (Get-MLGSProjectId -ProjectRoot $resolvedProjectRoot)
   statePath = $resolvedStatePath.Replace("\", "/")
   projectRoot = $resolvedProjectRoot.Replace("\", "/")
 }
@@ -59,4 +60,3 @@ Write-MLGSJsonAtomic -Path $pointerPath -Value $pointer
   project_root = $resolvedProjectRoot
   state_format = $(if ($resolvedStatePath.EndsWith(".json")) { "json" } else { "legacy-yaml" })
 } | ConvertTo-Json -Depth 5
-

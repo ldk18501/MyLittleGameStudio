@@ -19,4 +19,6 @@ studio/current-project.local.json
 studio/runtime.json
 studio/logs/*
 !studio/logs/.gitkeep
+studio/projects/
+studio/dashboard/
 dashboard/studio-data.js

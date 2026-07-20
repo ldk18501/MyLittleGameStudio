@@ -5,6 +5,8 @@
   "required": [
     "id",
     "timestamp",
+    "invocationId",
+    "projectId",
     "command",
     "title",
     "status",
@@ -19,6 +21,16 @@
     "timestamp": {
       "type": "string",
       "format": "date-time"
+    },
+    "invocationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "taskId": {
+      "type": "string"
+    },
+    "projectId": {
+      "type": "string"
     },
     "command": {
       "type": "string"
@@ -81,11 +93,13 @@
     "project": {
       "type": "object",
       "properties": {
+        "id": { "type": "string" },
         "name": { "type": "string" },
         "phase": { "type": "string" },
         "participation": { "type": "string" },
         "nextCommand": { "type": "string" },
-        "projectRoot": { "type": "string" }
+        "projectRoot": { "type": "string" },
+        "statePath": { "type": "string" }
       }
     }
   }

@@ -69,6 +69,15 @@ Before ordinary project work:
    - empty folder -> internal `start`
 5. If production work is requested before the project is unblocked, route to internal `status`, `plan`, or `prototype` unless the user explicitly accepts the risk.
 
+## Multi-Project Context
+
+- At the beginning of every project-bound route, create or reuse one context with `tools/new-project-context.ps1 -ProjectRoot <path>`. Keep its `contextPath`, `projectId`, `projectRoot`, `runtimeRoot`, and `invocationId` fixed for the entire task.
+- A write route may use an explicit path, a bound context, or the nearest parent `.mlgs/state.json`. It must never use the user or legacy pointer as write authority.
+- Pass `-ContextPath` to preflight, status, trace, dashboard, and validation. Pass the bound `projectRoot` to every project artifact tool. Do not call `resolve-state.ps1` again without that context during a running task.
+- Different projects have separate runtime roots under `$CODEX_HOME/mlgs/projects/<project-id>/`. `current-project.json` is only a read/navigation fallback.
+- Before a project write, acquire a lease with the planned project-relative paths. Overlapping same-project leases block; different projects and disjoint same-project paths may proceed. Release the lease after the terminal trace event.
+- `adopt` and project initialization do not change the user pointer unless `-SetCurrent` is explicit.
+
 ## Participation Levels
 
 Every active project records `owner_participation.level`.
@@ -151,6 +160,8 @@ Every routed MLGS task must leave an audit trail:
 3. Append an event under the resolved MLGS runtime root.
 4. Update runtime state under that same runtime root.
 5. Refresh the runtime dashboard data.
+
+Trace events must carry the bound `projectId`, `projectRoot`, `invocationId`, and task ID. Never record a project task into a runtime selected from a different or newly changed pointer.
 
 Prefer `tools/trace.ps1`. If unavailable, update files according to `studio/trace.schema.json`.
 

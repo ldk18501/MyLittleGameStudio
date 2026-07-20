@@ -18,7 +18,7 @@ principles:
 
 state_signals:
   pointer_valid:
-    meaning: user runtime current-project.json or a legacy pointer resolves to a project state.
+    meaning: user runtime current-project.json resolves to a project state for read-only navigation; bind an explicit or nearest project context before writing.
     next: status
   pointer_stale:
     meaning: local pointer exists but state_path or project_root is missing.
@@ -52,7 +52,7 @@ start_paths:
     recommended_next: adopt
   continue_current:
     label: "C) Continue current project"
-    description: "Use the active project pointer if it is valid."
+    description: "Inspect the active project pointer, then bind that project explicitly before any write."
     first_question: "Do you want a status report or should the studio pick the next useful task?"
     recommended_next: status
   repair_or_switch:

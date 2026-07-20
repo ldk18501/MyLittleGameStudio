@@ -1,6 +1,6 @@
 {
   "name": "my-little-game-studio",
-  "version": "0.9.0+codex.20260720114155",
+  "version": "0.9.0+codex.20260720174041",
   "description": "Codex-first Unity/C# \u72ec\u7acb\u6e38\u620f\u5de5\u4f5c\u5ba4\u6d41\u7a0b\uff0c\u901a\u8fc7 /mlgs \u63a8\u8fdb\u89c4\u5212\u3001\u6b63\u5f0f\u7f8e\u672f\u3001\u751f\u4ea7\u5b9e\u73b0\u3001\u8d28\u91cf\u95e8\u7981\u4e0e\u53d1\u5e03\u51c6\u5907\u3002",
   "author": {
     "name": "MyLittleGameStudio"

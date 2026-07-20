@@ -5,9 +5,16 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "updated", "statePath", "projectRoot"],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "enum": ["1.0", "1.1"] },
     "updated": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
     "statePath": { "type": "string", "minLength": 1 },
     "projectRoot": { "type": "string", "minLength": 1 }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "1.1" } } },
+      "then": { "required": ["projectId"] }
+    }
+  ]
 }

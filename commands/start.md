@@ -27,12 +27,12 @@ Producer
 ## Write
 
 - project `.mlgs/state.json` only after the owner chooses or confirms a project
-- user runtime `current-project.json`
+- user runtime `current-project.json` only when the owner explicitly chooses to set the navigation default
 - project `.mlgs/project.md`
 
 ## Flow
 
-1. Run or equivalently execute `tools/resolve-state.ps1 -AllowTemplate`.
+1. Run or equivalently execute `tools/resolve-state.ps1 -AllowTemplate`. Prefer an explicit/nearest project over any user pointer; use `-AllowLegacyPointer` only for deliberate recovery.
 2. If pointer is stale, report broken `state_path` and `project_root`, then ask one question: repair to what path, or clear pointer?
 3. If a valid active project exists and the user did not request a new project, show project/phase/next action and recommend `/mlgs 看看当前状态`.
 4. If no active project exists, ask:
@@ -49,7 +49,7 @@ Producer
    - Existing Unity project -> run `tools/adopt-project.ps1 -ProjectRoot <path>` for report, then internal `adopt`
    - Continue current -> run `tools/get-project-status.ps1 -AllowTemplate`, then internal `status`
    - Repair/switch -> `tools/repair-pointer.ps1` or clear pointer
-7. When initializing state, prefer `tools/init-project-state.ps1`.
+7. When initializing state, prefer `tools/init-project-state.ps1`. It does not change the navigation pointer unless `-SetCurrent` is explicit.
 8. Record trace.
 
 ## Defaults

@@ -1,10 +1,15 @@
 param(
   [string]$Root = "",
+  [string]$ProjectRoot = "",
+  [string]$StatePath = "",
+  [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
   [string]$DashboardRoot = "",
   [Parameter(Mandatory = $true)][string]$Command,
   [Parameter(Mandatory = $true)][string]$Title,
   [ValidateSet("started", "completed", "partial", "blocked")][string]$Status = "completed",
+  [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]*$')][string]$InvocationId = "",
+  [string]$TaskId = "",
   [string]$LeadAgent = "producer",
   [string[]]$AgentsUsed = @("producer"),
   [string[]]$SkillsUsed = @(),
@@ -13,19 +18,36 @@ param(
   [string[]]$Assumptions = @(),
   [string[]]$Decisions = @(),
   [string[]]$Verification = @(),
-  [string]$Summary = ""
+  [string]$Summary = "",
+  [switch]$AllowUnbound
 )
 
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
-$runtimeWasExplicit = -not [string]::IsNullOrWhiteSpace($RuntimeRoot)
-$RuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
-$isPluginRoot = Test-Path (Join-Path $Root ".codex-plugin/plugin.json")
-if ([string]::IsNullOrWhiteSpace($DashboardRoot)) {
-  $DashboardRoot = if ($runtimeWasExplicit -or $isPluginRoot) { Join-Path $RuntimeRoot "dashboard" } else { Join-Path $Root "dashboard" }
+
+$resolveArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/resolve-state.ps1"), "-Root", $Root, "-AllowTemplate")
+if ($ProjectRoot) { $resolveArgs += @("-ProjectRoot", $ProjectRoot) }
+if ($StatePath) { $resolveArgs += @("-StatePath", $StatePath) }
+if ($ContextPath) { $resolveArgs += @("-ContextPath", $ContextPath) }
+if ($RuntimeRoot) { $resolveArgs += @("-RuntimeRoot", $RuntimeRoot) }
+if (-not $AllowUnbound) { $resolveArgs += "-RequireProjectContext" }
+$resolved = & powershell @resolveArgs | ConvertFrom-Json
+if (-not $AllowUnbound -and (-not $resolved.exists -or -not [bool]$resolved.context_safe)) {
+  throw "Trace requires a bound project context. $($resolved.context_reason)"
 }
-$logsDir = Join-Path $RuntimeRoot "logs"
+if ($resolved.context_invocation_id) {
+  if ($InvocationId -and $InvocationId -ne [string]$resolved.context_invocation_id) { throw "Trace invocationId does not match the bound project context." }
+  $InvocationId = [string]$resolved.context_invocation_id
+  if (-not $TaskId) { $TaskId = [string]$resolved.context_task_id }
+}
+if ([string]::IsNullOrWhiteSpace($InvocationId)) {
+  $InvocationId = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmmss") + "-" + [guid]::NewGuid().ToString("N").Substring(0, 10)
+}
+
+$projectRuntimeRoot = [System.IO.Path]::GetFullPath([string]$resolved.project_runtime_root)
+if ([string]::IsNullOrWhiteSpace($DashboardRoot)) { $DashboardRoot = Join-Path $projectRuntimeRoot "dashboard" }
+$logsDir = Join-Path $projectRuntimeRoot "logs"
 New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
 
 function Expand-Values {
@@ -60,10 +82,8 @@ function New-AgentRoster {
 }
 
 function Get-ProjectSnapshot {
-  $snapshot = [pscustomobject]@{ name = ""; phase = ""; participation = ""; nextCommand = ""; projectRoot = "" }
+  $snapshot = [pscustomobject]@{ id = [string]$resolved.project_id; name = ""; phase = ""; participation = ""; nextCommand = ""; projectRoot = [string]$resolved.project_root; statePath = [string]$resolved.state_path }
   try {
-    $resolved = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -RuntimeRoot $RuntimeRoot -AllowTemplate | ConvertFrom-Json
-    $snapshot.projectRoot = $resolved.project_root
     if ($resolved.exists -and $resolved.mode -ne "template") {
       $state = Import-MLGSState -Path $resolved.state_path
       $gate = Get-MLGSGateEvaluation -Root $Root -ProjectRoot $resolved.project_root -State $state
@@ -85,9 +105,13 @@ $leadId = ConvertTo-AgentId $LeadAgent
 if ($agentIds -notcontains $leadId) { $agentIds = @($leadId) + $agentIds }
 $agentIds = @($agentIds | Select-Object -Unique)
 $timestamp = (Get-Date).ToString("o")
+$projectSnapshot = Get-ProjectSnapshot
 $event = [ordered]@{
   id = ((Get-Date).ToUniversalTime().ToString("yyyyMMddHHmmss") + "-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
   timestamp = $timestamp
+  invocationId = $InvocationId
+  taskId = $TaskId
+  projectId = [string]$resolved.project_id
   command = $Command
   title = $Title
   status = $Status
@@ -100,46 +124,55 @@ $event = [ordered]@{
   decisions = @($Decisions | Where-Object { $_ })
   verification = @($Verification | Where-Object { $_ })
   summary = $Summary
+  project = $projectSnapshot
 }
 
-$lockPath = Join-Path $RuntimeRoot ".trace.lock"
+$lockPath = Join-Path $projectRuntimeRoot ".trace.lock"
 $lock = $null
+New-Item -ItemType Directory -Path $projectRuntimeRoot -Force | Out-Null
 for ($attempt = 0; $attempt -lt 50 -and $null -eq $lock; $attempt++) {
   try { $lock = [System.IO.File]::Open($lockPath, 'OpenOrCreate', 'ReadWrite', 'None') } catch { Start-Sleep -Milliseconds 100 }
 }
-if ($null -eq $lock) { throw "Could not acquire MLGS trace lock." }
+if ($null -eq $lock) { throw "Could not acquire MLGS trace lock for project $($resolved.project_id)." }
 try {
   $activityPath = Join-Path $logsDir "activity.jsonl"
   Add-Content -LiteralPath $activityPath -Value ($event | ConvertTo-Json -Depth 20 -Compress) -Encoding UTF8
-  $runtimePath = Join-Path $RuntimeRoot "runtime.json"
+  $runtimePath = Join-Path $projectRuntimeRoot "runtime.json"
   $runtime = if (Test-Path $runtimePath) { Get-Content -LiteralPath $runtimePath -Raw -Encoding UTF8 | ConvertFrom-Json } else {
-    [pscustomobject]@{ version = "0.2"; updated = ""; activeCommand = ""; activeTask = ""; summary = ""; project = $null; agents = (New-AgentRoster); latestEvents = @() }
+    [pscustomobject]@{ version = "0.3"; updated = ""; activeCommand = ""; activeTask = ""; activeTasks = @(); summary = ""; project = $null; agents = (New-AgentRoster); latestEvents = @() }
+  }
+  $activeTasks = @()
+  if ($runtime.PSObject.Properties.Name -contains "activeTasks") { $activeTasks = @($runtime.activeTasks | Where-Object { $_.invocationId -ne $InvocationId }) }
+  if ($Status -eq "started") {
+    $activeTasks += [pscustomobject]@{ invocationId = $InvocationId; taskId = $TaskId; command = $Command; title = $Title; leadAgent = $leadId; agentsUsed = $agentIds; startedAt = $timestamp }
   }
   $roster = @(New-AgentRoster)
   foreach ($agent in $roster) {
-    $old = @($runtime.agents | Where-Object { $_.id -eq $agent.id }) | Select-Object -First 1
-    if ($old) {
-      $agent.status = $old.status; $agent.lastEvent = $old.lastEvent; $agent.currentTask = $old.currentTask
-    }
-    if ($agentIds -contains $agent.id) {
-      $agent.status = if ($Status -eq "started") { "active" } else { $Status }
+    $matchingTasks = @($activeTasks | Where-Object { @($_.agentsUsed) -contains $agent.id })
+    if ($matchingTasks.Count -gt 0) {
+      $latestTask = $matchingTasks | Select-Object -Last 1
+      $agent.status = "active"
+      $agent.lastEvent = [string]$latestTask.startedAt
+      $agent.currentTask = [string]$latestTask.title
+    } elseif ($agentIds -contains $agent.id) {
+      $agent.status = $Status
       $agent.lastEvent = $timestamp
       $agent.currentTask = $Title
-    } elseif ($Status -ne "started" -and $agent.status -eq "active") {
-      $agent.status = "idle"; $agent.currentTask = ""
     }
   }
   $recent = @()
   foreach ($line in @(Get-Content -LiteralPath $activityPath -Encoding UTF8 | Where-Object { $_.Trim() } | Select-Object -Last 10)) {
     try { $recent += ($line | ConvertFrom-Json) } catch { }
   }
+  $primaryTask = @($activeTasks) | Select-Object -First 1
   $runtime = [ordered]@{
-    version = "0.2"
+    version = "0.3"
     updated = $timestamp
-    activeCommand = $(if ($Status -eq "started") { $Command } else { "" })
-    activeTask = $(if ($Status -eq "started") { $Title } else { "" })
+    activeCommand = $(if ($primaryTask) { [string]$primaryTask.command } else { "" })
+    activeTask = $(if ($primaryTask) { [string]$primaryTask.title } else { "" })
+    activeTasks = @($activeTasks)
     summary = $Summary
-    project = Get-ProjectSnapshot
+    project = $projectSnapshot
     agents = $roster
     latestEvents = $recent
   }
@@ -149,7 +182,11 @@ try {
   if (Test-Path $lockPath) { Remove-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue }
 }
 
-$exportArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/export-dashboard.ps1"), "-Root", $Root, "-RuntimeRoot", $RuntimeRoot, "-DashboardRoot", $DashboardRoot)
+$exportArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/export-dashboard.ps1"), "-Root", $Root, "-RuntimeRoot", [string]$resolved.global_runtime_root, "-DashboardRoot", $DashboardRoot)
+if ([bool]$resolved.context_safe) { $exportArgs += @("-ProjectRoot", [string]$resolved.project_root) }
+if ($resolved.context_path) { $exportArgs += @("-ContextPath", [string]$resolved.context_path) }
 $dashboard = & powershell @exportArgs | ConvertFrom-Json
 Write-Output "Trace recorded: $($event.id)"
+Write-Output "Invocation: $InvocationId"
+Write-Output "Project: $($resolved.project_id)"
 Write-Output "Dashboard: $($dashboard.output_path)"

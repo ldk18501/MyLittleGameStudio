@@ -9,7 +9,7 @@
 3. Match the request to one catalog command using `commands[].intents`.
 4. Read only that command file, its lead agent, and necessary supporting agents.
 5. Read `workflow/onboarding.yaml` only for start, adopt, status, or pointer recovery.
-6. Before implementation, fixes, formal art integration, or productization writes, run `tools/preflight-task.ps1`; after writes, run `tools/validate-changes.ps1`.
+6. Before implementation, fixes, formal art integration, or productization writes, bind a project context, acquire a path lease, and run `tools/preflight-task.ps1 -ContextPath <context-path>`; after writes, run `tools/validate-changes.ps1 -ContextPath <context-path>` with that same active lease, then trace and release it.
 7. At Vertical Slice or later, evaluate the structured quality report and any configured art manifest gate; file presence is insufficient.
 8. Record trace.
 

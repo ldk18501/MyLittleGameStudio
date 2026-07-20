@@ -12,9 +12,14 @@ $required = @(
   "studio/state.json",
   "studio/state.schema.json",
   "studio/pointer.schema.json",
+  "studio/project-context.schema.json",
+  "studio/project-lease.schema.json",
   "workflow/catalog.json",
   "workflow/onboarding.yaml",
   "tools/resolve-state.ps1",
+  "tools/new-project-context.ps1",
+  "tools/acquire-project-lease.ps1",
+  "tools/release-project-lease.ps1",
   "tools/detect-project-stage.ps1",
   "tools/repair-pointer.ps1",
   "tools/migrate-state.ps1"
@@ -50,4 +55,3 @@ if (-not $validation.valid) { throw ("Resolved state is invalid: " + ($validatio
   runtime_root = $RuntimeRoot
   legacy_migration_available = $resolved.state_format -eq "legacy-yaml"
 } | ConvertTo-Json -Depth 5
-

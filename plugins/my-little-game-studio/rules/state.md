@@ -13,20 +13,26 @@ Installed plugins are immutable. User-specific data defaults to:
 ```text
 $CODEX_HOME/mlgs/
   current-project.json
-  runtime.json
-  logs/activity.jsonl
-  dashboard/
+  projects/<project-id>/
+    contexts/<invocation-id>.json
+    leases/<invocation-id>.json
+    runtime.json
+    logs/activity.jsonl
+    dashboard/
 ```
 
 When `CODEX_HOME` is unset, use `~/.codex/mlgs/`. In the MLGS source checkout, tools may continue using ignored `studio/` and `dashboard/` runtime files for local development. `studio/current-project.local.yaml` is a read-only legacy fallback.
 
 ## Resolution Order
 
-1. Explicit state or project path.
-2. User runtime `current-project.json`.
-3. Legacy checkout pointer.
-4. Nearest parent project state from the current directory.
-5. `studio/state.json` template when `-AllowTemplate` is present.
+1. Bound task context created by `tools/new-project-context.ps1`.
+2. Explicit state or project path.
+3. Nearest parent project state from the current directory.
+4. User runtime `current-project.json` as a compatibility fallback for read-only navigation.
+5. Legacy checkout pointer only when `-AllowLegacyPointer` is explicit.
+6. `studio/state.json` template when `-AllowTemplate` is present.
+
+Project write routes must resolve through items 1-3. A global or legacy pointer cannot authorize `implement`, `fix`, `generate-art`, or `productize`. Resolve once at task start, retain the returned context path, and pass it through preflight, trace, dashboard, and post-change validation; never re-resolve a running task through the global pointer.
 
 If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1`. Do not silently clear or overwrite a real pointer during tests.
 
@@ -47,4 +53,6 @@ If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1
 
 ## Write Safety
 
-Before `implement` or `fix`, run `tools/preflight-task.ps1`. After edits, run `tools/validate-changes.ps1`. Project planning/QA paths are always allowed; Unity production edits must also fall under `activeProject.approvedWritePaths`.
+Before `implement` or `fix`, bind a project context, acquire a path lease, and run `tools/preflight-task.ps1 -ContextPath <context-path>`. After edits, run `tools/validate-changes.ps1 -ContextPath <context-path>` before releasing that lease. Project planning/QA paths are always allowed by project policy, but every actual write must also be covered by the active lease; Unity production edits must additionally fall under `activeProject.approvedWritePaths`.
+
+Different projects use different project runtime roots. Parallel writes inside one project require an active lease from `tools/acquire-project-lease.ps1`; overlapping declared paths fail closed. Release the lease after the terminal trace event. Atomic JSON replacement prevents partial files but does not replace task-level path ownership.
