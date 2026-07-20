@@ -1,4 +1,5 @@
 {
+  "$schema": "../../../.mlgs/art-import-recipe.schema.json",
   "schemaVersion": "1.0",
   "assetId": "",
   "texturePath": "Assets/",
@@ -21,6 +22,8 @@
     "minimumFrameMargin": 2,
     "expectedFrames": 1,
     "maxSignificantComponents": 1,
+    "maxBaselineVariance": 2,
+    "maxFrameSizeVarianceRatio": 0.15,
     "requireNoEdgeContact": true,
     "requireIndependentFrameValidation": true
   },
@@ -33,6 +36,8 @@
   },
   "atlas": "",
   "addressable": false,
-  "platformOverrides": []
+  "platformOverrides": [],
+  "unityImporterEvidence": [],
+  "nineSliceEvidence": []
 }
 

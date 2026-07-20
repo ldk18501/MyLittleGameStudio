@@ -7,14 +7,14 @@
   "required": ["schemaVersion", "updated", "scenes"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "updated": { "type": "string", "minLength": 1 },
     "scenes": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "requiredFor", "kind", "visualTargetIds", "targetImages", "targetResolution", "capture", "layers", "anchors", "thresholds", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "status", "attempt", "maxAttempts", "blockers"],
+        "required": ["id", "requiredFor", "kind", "visualTargetIds", "targetImages", "targetResolution", "capture", "layers", "anchors", "thresholds", "scores", "comparisonReport", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "status", "attempt", "maxAttempts", "blockers"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "requiredFor": { "enum": ["vertical-slice", "content-complete", "alpha", "beta", "release-candidate", "release"] },
@@ -78,6 +78,7 @@
           },
           "thresholds": { "$ref": "#/$defs/metrics" },
           "scores": { "$ref": "#/$defs/metrics" },
+          "comparisonReport": { "type": "string" },
           "automatedVerdict": { "enum": ["pending", "pass", "fail", "unavailable", "error"] },
           "artDirectorVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },
           "qaVerdict": { "enum": ["pending", "pass", "fail", "blocked"] },

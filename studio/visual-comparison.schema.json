@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/visual-comparison.schema.json",
+  "title": "MLGS deterministic visual comparison report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "mode", "targetImage", "candidateImage", "algorithm", "generatedAt", "scores", "thresholds", "verdict", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "mode": { "enum": ["asset", "scene"] },
+    "targetImage": { "type": "string", "minLength": 1 },
+    "candidateImage": { "type": "string", "minLength": 1 },
+    "algorithm": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "scores": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 100 } },
+    "thresholds": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 100 } },
+    "verdict": { "enum": ["pass", "fail", "error"] },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  }
+}

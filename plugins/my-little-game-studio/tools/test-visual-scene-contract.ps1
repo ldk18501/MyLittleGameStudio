@@ -24,8 +24,12 @@ try { $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | C
   $result = [pscustomobject]@{ passed = $false; path = $contractPath; requiredFor = $RequiredFor; issues = @("Invalid visual scene contract JSON: $($_.Exception.Message)") }
   $result | ConvertTo-Json -Depth 10; exit 16
 }
-if ([string]$contract.schemaVersion -ne "1.0") { $issues += "Visual scene contract schemaVersion must be 1.0." }
+if ([string]$contract.schemaVersion -ne "1.1") { $issues += "Visual scene contract schemaVersion must be 1.1." }
 if ([string]::IsNullOrWhiteSpace([string]$contract.updated)) { $issues += "Visual scene contract updated timestamp is required." }
+$visualTargetResult = Test-MLGSVisualTarget -ProjectRoot $ProjectRoot -Path "design/art/visual-target.json"
+if (-not $visualTargetResult.passed) { $issues += @($visualTargetResult.issues) }
+$approvedTargetIds = @{}
+foreach ($targetId in @($visualTargetResult.approvedIds)) { $approvedTargetIds[[string]$targetId] = $true }
 
 $statusRank = @{ planned = 0; specified = 1; implemented = 2; approved = 3; blocked = -1 }
 $minimumRank = $statusRank[$MinimumStatus]
@@ -42,6 +46,9 @@ foreach ($scene in $requiredScenes) {
   $rank = if ($statusRank.ContainsKey([string]$scene.status)) { $statusRank[[string]$scene.status] } else { -1 }
   if ($rank -lt $minimumRank) { $issues += "Visual scene '$id' status must be at least $MinimumStatus." }
   if (@($scene.visualTargetIds).Count -eq 0) { $issues += "Visual scene '$id' needs visualTargetIds." }
+  foreach ($targetId in @($scene.visualTargetIds)) {
+    if (-not $approvedTargetIds.ContainsKey([string]$targetId)) { $issues += "Visual scene '$id' references a missing or unapproved visual target: $targetId" }
+  }
   foreach ($target in @($scene.targetImages)) {
     $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$target) -Label "Visual scene '$id' target image"
     if ($pathIssue) { $issues += $pathIssue }
@@ -57,7 +64,8 @@ foreach ($scene in $requiredScenes) {
       $issues += "Visual scene '$id' anchor '$($anchor.id)' extends outside the normalized frame."
     }
   }
-  if ([int]$scene.attempt -gt [int]$scene.maxAttempts) { $issues += "Visual scene '$id' attempt exceeds maxAttempts." }
+  if ([int]$scene.maxAttempts -lt 1 -or [int]$scene.maxAttempts -gt 5) { $issues += "Visual scene '$id' maxAttempts must be between 1 and 5." }
+  if ([int]$scene.attempt -lt 0 -or [int]$scene.attempt -gt [int]$scene.maxAttempts) { $issues += "Visual scene '$id' attempt must be between 0 and maxAttempts." }
 
   if ($rank -ge 2) {
     foreach ($relative in @($scene.capture.screenshots)) {
@@ -78,12 +86,27 @@ foreach ($scene in $requiredScenes) {
         if ($pathIssue) { $issues += $pathIssue }
       }
     }
+    foreach ($anchor in @($scene.anchors)) {
+      if ([string]::IsNullOrWhiteSpace([string]$anchor.implementationPath)) { $issues += "Visual scene '$id' anchor '$($anchor.id)' needs an implementation path."; continue }
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$anchor.implementationPath) -Label "Visual scene '$id' anchor '$($anchor.id)' implementation"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
   }
 
   if ($rank -ge 3) {
+    if ([string]::IsNullOrWhiteSpace([string]$scene.comparisonReport)) { $issues += "Visual scene '$id' needs comparisonReport." }
+    else {
+      $comparisonResult = Test-MLGSVisualComparisonReport -ProjectRoot $ProjectRoot -Path ([string]$scene.comparisonReport) -ExpectedMode scene
+      if (-not $comparisonResult.passed) { $issues += @($comparisonResult.issues | ForEach-Object { "Visual scene '$id': $_" }) }
+      elseif ($comparisonResult.report) {
+        if (@($scene.targetImages) -notcontains [string]$comparisonResult.report.targetImage) { $issues += "Visual scene '$id' comparison target is not listed in targetImages." }
+        if (@($scene.capture.screenshots) -notcontains [string]$comparisonResult.report.candidateImage) { $issues += "Visual scene '$id' comparison candidate is not a captured Unity screenshot." }
+      }
+    }
     foreach ($metric in $metricNames) {
       $threshold = [int]$scene.thresholds.$metric
       $score = [int]$scene.scores.$metric
+      if ($threshold -lt 0 -or $threshold -gt 100 -or $score -lt 0 -or $score -gt 100) { $issues += "Visual scene '$id' $metric score/threshold must be between 0 and 100."; continue }
       if ($metric -eq "targetMatch" -and $threshold -lt 85) { $issues += "Visual scene '$id' targetMatch threshold cannot be below 85." }
       if ($metric -ne "targetMatch" -and $threshold -lt 80) { $issues += "Visual scene '$id' $metric threshold cannot be below 80." }
       if ($score -lt $threshold) { $issues += "Visual scene '$id' $metric score $score is below threshold $threshold." }

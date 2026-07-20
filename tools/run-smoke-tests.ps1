@@ -15,6 +15,12 @@ function Get-HashState {
   return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
 }
 
+function Write-SmokePng {
+  param([Parameter(Mandatory = $true)][string]$Path)
+  $bytes = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAQ0lEQVR4nO3RsQ0AIBBCUWQWC0d0BEe0cBfdQAuLK+6/mgQSJADZlVeg9bV/Cuao1w4rmBkgLghmBogLgpkByn4BAByFqAQg3WYqZgAAAABJRU5ErkJggg==")
+  [IO.File]::WriteAllBytes($Path, $bytes)
+}
+
 function Invoke-Step {
   param([string]$Name, [scriptblock]$Body)
   try {
@@ -135,7 +141,8 @@ try {
     )) {
       $path = Join-Path $project $relative
       New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
-      Set-Content -LiteralPath $path -Value "smoke" -Encoding UTF8
+      if ([IO.Path]::GetExtension($path) -eq ".png") { Write-SmokePng -Path $path }
+      else { Set-Content -LiteralPath $path -Value "smoke" -Encoding UTF8 }
     }
     foreach ($entry in @(
       @{ Path = "Assets/Game/World/GameplayRoot.prefab"; Content = "SpriteRenderer world gameplay" },
@@ -213,6 +220,12 @@ try {
     Write-MLGSJsonAtomic -Path $presentationPath -Value $presentation
 
     $sceneContractPath = Join-Path $project "design/art/visual-scene-contract.json"
+    $assetComparisonPath = "production/qa/evidence/visual-comparisons/hero-asset.json"
+    $sceneComparisonPath = "production/qa/evidence/visual-comparisons/gameplay-main-scene.json"
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-visual-comparison.ps1") -Root $Root -ProjectRoot $project -TargetPath "design/art/targets/final-gameplay-target.png" -CandidatePath "production/assets/reviews/hero-game-view.png" -ReportPath $assetComparisonPath -Mode asset | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Asset visual comparison did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-visual-comparison.ps1") -Root $Root -ProjectRoot $project -TargetPath "design/art/targets/final-gameplay-target.png" -CandidatePath "production/assets/reviews/hero-game-view.png" -ReportPath $sceneComparisonPath -Mode scene | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Scene visual comparison did not pass." }
     $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $sceneContract.updated = (Get-Date).ToString("o")
     $sceneContract.scenes = @([pscustomobject][ordered]@{
@@ -231,6 +244,7 @@ try {
       anchors = @([pscustomobject]@{ id = "focal"; purpose = "Primary gameplay focal area"; normalizedRect = [pscustomobject]@{ x = 0.1; y = 0.1; width = 0.8; height = 0.8 }; implementationPath = "Assets/Game/World/GameplayRoot.prefab" })
       thresholds = [pscustomobject]@{ targetMatch = 85; composition = 80; spatialLayout = 80; depthLighting = 80; materialLanguage = 80; detailDensity = 80; diegeticIntegration = 80; readability = 80 }
       scores = [pscustomobject]@{ targetMatch = 90; composition = 90; spatialLayout = 90; depthLighting = 90; materialLanguage = 90; detailDensity = 90; diegeticIntegration = 90; readability = 90 }
+      comparisonReport = $sceneComparisonPath
       automatedVerdict = "pass"
       artDirectorVerdict = "pass"
       qaVerdict = "pass"
@@ -240,6 +254,12 @@ try {
       blockers = @()
     })
     Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
+    $recipePath = Join-Path $project "production/assets/import-recipes/hero.json"
+    $recipe = Get-Content -LiteralPath (Join-Path $Root "templates/art-import-recipe.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $recipe.assetId = "hero"
+    $recipe.texturePath = "Assets/Art/Sprites/hero.png"
+    $recipe.unityImporterEvidence = @("production/assets/reviews/hero-game-view.png")
+    Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
     $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $manifest.assets = @([pscustomobject]@{
@@ -255,15 +275,37 @@ try {
       sourceFile = "Assets/Art/Source/hero.png"
       outputPath = "Assets/Art/Sprites/hero.png"
       status = "approved"
+      statusHistory = @(
+        [pscustomobject]@{ status = "planned"; at = (Get-Date).ToString("o"); evidence = @(); note = "Smoke plan" },
+        [pscustomobject]@{ status = "prompt-ready"; at = (Get-Date).ToString("o"); evidence = @("production/assets/prompts/hero.json"); note = "Prompt ready" },
+        [pscustomobject]@{ status = "generated"; at = (Get-Date).ToString("o"); evidence = @("Assets/Art/Source/hero.png"); note = "Generated" },
+        [pscustomobject]@{ status = "selected"; at = (Get-Date).ToString("o"); evidence = @("Assets/Art/Source/hero.png"); note = "Selected" },
+        [pscustomobject]@{ status = "processed"; at = (Get-Date).ToString("o"); evidence = @("Assets/Art/Sprites/hero.png", "production/qa/evidence/sprite-integrity.json"); note = "Processed" },
+        [pscustomobject]@{ status = "imported"; at = (Get-Date).ToString("o"); evidence = @("production/assets/import-recipes/hero.json", "production/assets/reviews/hero-game-view.png"); note = "Imported" },
+        [pscustomobject]@{ status = "referenced"; at = (Get-Date).ToString("o"); evidence = @("Assets/Prefabs/Hero.prefab"); note = "Referenced" },
+        [pscustomobject]@{ status = "approved"; at = (Get-Date).ToString("o"); evidence = @("production/assets/reviews/hero.json", "production/assets/reviews/hero-game-view.png"); note = "Approved" }
+      )
       placeholder = $false
       importRecipe = "production/assets/import-recipes/hero.json"
+      integrity = [pscustomobject]@{
+        sourceLayout = "individual"
+        extractionMode = "single-object"
+        minimumTransparentMargin = 8
+        minimumFrameMargin = 2
+        expectedFrames = 1
+        maxSignificantComponents = 1
+        maxBaselineVariance = 2
+        maxFrameSizeVarianceRatio = 0.15
+        reportPath = "production/qa/evidence/sprite-integrity.json"
+        verdict = "pass"
+      }
       references = @("Assets/Prefabs/Hero.prefab")
       evidence = @("production/assets/reviews/hero-game-view.png")
       reviewPath = "production/assets/reviews/hero.json"
     })
     $review = [ordered]@{
       '$schema' = "../../../.mlgs/art-review.schema.json"
-      schemaVersion = "1.0"
+      schemaVersion = "1.1"
       assetId = "hero"
       visualTargetIds = @("VT-001")
       targetImages = @("design/art/targets/final-gameplay-target.png")
@@ -271,6 +313,7 @@ try {
       processedAsset = "Assets/Art/Sprites/hero.png"
       unityReferences = @("Assets/Prefabs/Hero.prefab")
       inGameScreenshots = @("production/assets/reviews/hero-game-view.png")
+      comparisonReport = $assetComparisonPath
       scores = [ordered]@{ targetMatch = 90; composition = 85; palette = 85; value = 85; material = 85; detail = 85; readability = 90 }
       automatedVerdict = "pass"
       artDirectorVerdict = "pass"
@@ -284,8 +327,23 @@ try {
     }
     Write-MLGSJsonAtomic -Path (Join-Path $project "production/assets/reviews/hero.json") -Value $review
     Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-sprite-integrity.ps1") -Root $Root -ProjectRoot $project | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Sprite integrity evidence did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Approved art manifest did not pass." }
+    $originalHistory = @($manifest.assets[0].statusHistory)
+    $manifest.assets[0].statusHistory = @($originalHistory | Where-Object { [string]$_.status -ne "selected" })
+    Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 4) { throw "Skipped art lifecycle transition passed." }
+    $manifest.assets[0].statusHistory = $originalHistory
+    Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+    $recipe.texturePath = "Assets/Art/Sprites/wrong.png"
+    Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-import-recipe.ps1") -Root $Root -ProjectRoot $project -AssetId hero 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 20) { throw "Mismatched art import recipe passed." }
+    $recipe.texturePath = "Assets/Art/Sprites/hero.png"
+    Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
     $manifest.assets[0].placeholder = $true
     Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders 2>$null | Out-Null
@@ -507,8 +565,11 @@ try {
     Write-MLGSJsonAtomic -Path $created.path -Value $package
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/run-objective-checks.ps1") -Root $Root -ProjectRoot $project -Path "production/work-packages/smoke-work.json" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Work package objective check failed." }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-execution-strategy.ps1") -Root $Root -ProjectRoot $project -WorkPackagePath "production/work-packages/smoke-work.json" -Strategy pipeline -Reason "Exercise staged logical-role orchestration" | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-execution-strategy.ps1") -Root $Root -ProjectRoot $project -WorkPackagePath "production/work-packages/smoke-work.json" -Strategy pipeline -Domain art -Reason "Exercise staged art-role orchestration" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Execution strategy creation failed." }
+    $execution = Get-Content -LiteralPath (Join-Path $project "production/execution/smoke-work.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $executionRoles = @($execution.groups | ForEach-Object { [string]$_.role })
+    if ([string]$execution.domain -ne "art" -or $executionRoles -notcontains "technical-artist" -or $executionRoles -notcontains "art-director" -or $executionRoles -contains "gameplay-developer") { throw "Art execution strategy used incorrect roles." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/complete-work-package-attempt.ps1") -Root $Root -ProjectRoot $project -Path "production/work-packages/smoke-work.json" -Verdict pass -Evidence "production/quality/evidence/vertical-slice-smoke.md" | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-work-package.ps1") -Root $Root -ProjectRoot $project -Path "production/work-packages/smoke-work.json" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Completed work package did not pass." }
@@ -588,7 +649,7 @@ staff:
 
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

@@ -349,6 +349,9 @@ function Test-MLGSVisualTarget {
     $id = [string]$target.id
     if ([string]::IsNullOrWhiteSpace($id)) { $issues += "Visual target id is empty."; continue }
     if ($ids.ContainsKey($id)) { $issues += "Duplicate visual target id: $id" } else { $ids[$id] = $true }
+    foreach ($name in @("usage", "imagePath", "source", "targetResolution")) {
+      if ([string]::IsNullOrWhiteSpace([string]$target.$name)) { $issues += "${id}: visual target $name is required." }
+    }
     if (-not [bool]$target.approved) { continue }
     $approvedIds += $id
     if (@($target.nonNegotiables).Count -eq 0) { $issues += "${id}: approved visual target needs nonNegotiables." }
@@ -484,6 +487,118 @@ function Test-MLGSQualityReport {
   return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $reportPath; stage = $Stage; issues = @($issues) }
 }
 
+function Test-MLGSVisualComparisonReport {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRoot,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [ValidateSet("asset", "scene")][string]$ExpectedMode = "asset"
+  )
+
+  $issues = @()
+  try { $reportPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
+    return [pscustomobject]@{ passed = $false; path = $Path; issues = @($_.Exception.Message) }
+  }
+  if (-not (Test-Path $reportPath)) { return [pscustomobject]@{ passed = $false; path = $reportPath; issues = @("Missing visual comparison report: $Path") } }
+  try { $report = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
+    return [pscustomobject]@{ passed = $false; path = $reportPath; issues = @("Invalid visual comparison report JSON: $($_.Exception.Message)") }
+  }
+  foreach ($name in @("schemaVersion", "mode", "targetImage", "candidateImage", "algorithm", "generatedAt", "scores", "thresholds", "verdict", "limitations")) {
+    if (@($report.PSObject.Properties.Name) -notcontains $name) { $issues += "Visual comparison property is missing: $name" }
+  }
+  if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $reportPath; issues = @($issues) } }
+  if ([string]$report.schemaVersion -ne "1.0") { $issues += "Visual comparison schemaVersion must be 1.0." }
+  if ([string]$report.mode -ne $ExpectedMode) { $issues += "Visual comparison mode must be $ExpectedMode." }
+  if ([string]$report.verdict -ne "pass") { $issues += "Visual comparison verdict must be pass." }
+  if ([string]::IsNullOrWhiteSpace([string]$report.algorithm)) { $issues += "Visual comparison algorithm is required." }
+  if ([string]::IsNullOrWhiteSpace([string]$report.generatedAt)) { $issues += "Visual comparison generatedAt is required." }
+  if (@($report.limitations).Count -eq 0) { $issues += "Visual comparison limitations must be explicit." }
+  foreach ($property in @("targetImage", "candidateImage")) {
+    $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$report.$property) -Label "Visual comparison $property"
+    if ($pathIssue) { $issues += $pathIssue }
+  }
+  $expectedScoreNames = if ($ExpectedMode -eq "asset") { @("targetMatch", "composition", "palette", "value", "material", "detail", "readability") } else { @("targetMatch", "composition", "spatialLayout", "depthLighting", "materialLanguage", "detailDensity", "diegeticIntegration", "readability") }
+  $scoreNames = @($report.scores.PSObject.Properties.Name)
+  foreach ($name in $expectedScoreNames) {
+    if ($scoreNames -notcontains $name) { $issues += "Visual comparison score is missing: $name"; continue }
+    if (@($report.thresholds.PSObject.Properties.Name) -notcontains $name) { $issues += "Visual comparison threshold is missing: $name"; continue }
+    $score = [int]$report.scores.$name
+    $threshold = [int]$report.thresholds.$name
+    if ($score -lt 0 -or $score -gt 100 -or $threshold -lt 0 -or $threshold -gt 100) { $issues += "Visual comparison score/threshold is outside 0-100: $name" }
+    elseif ($score -lt $threshold) { $issues += "Visual comparison score is below threshold: $name ($score < $threshold)" }
+  }
+  return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $reportPath; report = $report; issues = @($issues) }
+}
+
+function Test-MLGSArtImportRecipe {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRoot,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)]$Asset
+  )
+
+  $issues = @()
+  $assetId = [string]$Asset.id
+  try { $recipePath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
+    return [pscustomobject]@{ passed = $false; path = $Path; assetId = $assetId; issues = @($_.Exception.Message) }
+  }
+  if (-not (Test-Path $recipePath)) { return [pscustomobject]@{ passed = $false; path = $recipePath; assetId = $assetId; issues = @("Missing art import recipe: $Path") } }
+  try { $recipe = Get-Content -LiteralPath $recipePath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
+    return [pscustomobject]@{ passed = $false; path = $recipePath; assetId = $assetId; issues = @("Invalid art import recipe JSON: $($_.Exception.Message)") }
+  }
+  $required = @("schemaVersion", "assetId", "texturePath", "textureType", "spriteMode", "pixelsPerUnit", "pivot", "border", "meshType", "alphaIsTransparency", "mipmaps", "filterMode", "wrapMode", "maxSize", "compression", "sourceLayout", "extractionMode", "integrityGate", "slicing", "atlas", "addressable", "platformOverrides", "unityImporterEvidence", "nineSliceEvidence")
+  foreach ($name in $required) {
+    if (@($recipe.PSObject.Properties.Name) -notcontains $name) { $issues += "Art import recipe property is missing: $name" }
+  }
+  if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $recipePath; assetId = $assetId; issues = @($issues) } }
+  if ([string]$recipe.schemaVersion -ne "1.0") { $issues += "Art import recipe schemaVersion must be 1.0." }
+  if ([string]$recipe.assetId -ne $assetId) { $issues += "Art import recipe assetId must be $assetId." }
+  if ([string]$recipe.texturePath -ne [string]$Asset.outputPath) { $issues += "Art import recipe texturePath must match the asset outputPath." }
+  $enumChecks = @{
+    textureType = @("Sprite", "Default", "NormalMap", "GUI")
+    spriteMode = @("Single", "Multiple", "Polygon")
+    meshType = @("Tight", "FullRect")
+    filterMode = @("Point", "Bilinear", "Trilinear")
+    wrapMode = @("Clamp", "Repeat", "Mirror", "MirrorOnce")
+    compression = @("Uncompressed", "Compressed", "CompressedHQ", "CompressedLQ")
+  }
+  foreach ($name in $enumChecks.Keys) {
+    if (@($enumChecks[$name]) -notcontains [string]$recipe.$name) { $issues += "Art import recipe $name is invalid: $($recipe.$name)" }
+  }
+  if (@(32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384) -notcontains [int]$recipe.maxSize) { $issues += "Art import recipe maxSize must be a supported power-of-two size." }
+  if ([double]$recipe.pixelsPerUnit -le 0) { $issues += "Art import recipe pixelsPerUnit must be greater than zero." }
+  if (@($recipe.pivot).Count -ne 2 -or @($recipe.pivot | Where-Object { [double]$_ -lt 0 -or [double]$_ -gt 1 }).Count -gt 0) { $issues += "Art import recipe pivot must contain two normalized values." }
+  if (@($recipe.border).Count -ne 4 -or @($recipe.border | Where-Object { [double]$_ -lt 0 }).Count -gt 0) { $issues += "Art import recipe border must contain four non-negative values." }
+  if ([string]$recipe.sourceLayout -ne [string]$Asset.integrity.sourceLayout) { $issues += "Art import recipe sourceLayout must match the asset integrity contract." }
+  if ([string]$recipe.extractionMode -ne [string]$Asset.integrity.extractionMode) { $issues += "Art import recipe extractionMode must match the asset integrity contract." }
+  if ([string]$recipe.sourceLayout -eq "unverified-sheet") { $issues += "Unverified sheets cannot be used by a formal import recipe." }
+  if ([string]$recipe.extractionMode -eq "fixed-grid") {
+    if ([string]$recipe.sourceLayout -ne "registered-sheet") { $issues += "Fixed-grid import requires registered-sheet sourceLayout." }
+    if ([string]$recipe.slicing.mode -ne "fixed-grid" -or [int]$recipe.slicing.cellSize[0] -le 0 -or [int]$recipe.slicing.cellSize[1] -le 0) { $issues += "Fixed-grid import requires positive slicing cellSize." }
+  }
+  if ([string]$recipe.extractionMode -eq "explicit-rectangles" -and @($recipe.slicing.rects).Count -eq 0) { $issues += "Explicit-rectangles import requires slicing rects." }
+  foreach ($name in @("minimumTransparentMargin", "minimumFrameMargin", "expectedFrames", "maxSignificantComponents", "maxBaselineVariance", "maxFrameSizeVarianceRatio")) {
+    if (@($recipe.integrityGate.PSObject.Properties.Name) -notcontains $name) { $issues += "Art import integrityGate property is missing: $name"; continue }
+    if ([double]$recipe.integrityGate.$name -ne [double]$Asset.integrity.$name) { $issues += "Art import integrityGate.$name must match the asset integrity contract." }
+  }
+  $statusOrder = @("planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved")
+  $statusRank = [array]::IndexOf($statusOrder, [string]$Asset.status)
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "imported")) {
+    if (@($recipe.unityImporterEvidence).Count -eq 0) { $issues += "Imported art needs Unity importer evidence in its recipe." }
+    foreach ($relative in @($recipe.unityImporterEvidence)) {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "$assetId Unity importer evidence"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+  }
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "approved") -and @($recipe.border | Where-Object { [double]$_ -gt 0 }).Count -gt 0) {
+    if (@($recipe.nineSliceEvidence).Count -lt 3) { $issues += "Approved nine-slice art needs evidence at three target sizes." }
+    foreach ($relative in @($recipe.nineSliceEvidence)) {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "$assetId nine-slice evidence"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+  }
+  return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $recipePath; assetId = $assetId; issues = @($issues) }
+}
+
 function Test-MLGSArtReview {
   param(
     [Parameter(Mandatory = $true)][string]$ProjectRoot,
@@ -501,14 +616,15 @@ function Test-MLGSArtReview {
   try { $review = Get-Content -LiteralPath $reviewPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
     return [pscustomobject]@{ passed = $false; path = $reviewPath; assetId = $AssetId; issues = @("Invalid art review JSON: $($_.Exception.Message)") }
   }
-  $required = @("schemaVersion", "assetId", "visualTargetIds", "targetImages", "candidateSource", "processedAsset", "unityReferences", "inGameScreenshots", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "finalVerdict", "attempt", "maxAttempts", "blockers", "updated")
+  $required = @("schemaVersion", "assetId", "visualTargetIds", "targetImages", "candidateSource", "processedAsset", "unityReferences", "inGameScreenshots", "comparisonReport", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "finalVerdict", "attempt", "maxAttempts", "blockers", "updated")
   foreach ($name in $required) {
     if (@($review.PSObject.Properties.Name) -notcontains $name) { $issues += "Art review property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $reviewPath; assetId = $AssetId; issues = @($issues) } }
-  if ([string]$review.schemaVersion -ne "1.0") { $issues += "Art review schemaVersion must be 1.0." }
+  if ([string]$review.schemaVersion -ne "1.1") { $issues += "Art review schemaVersion must be 1.1." }
   if ($AssetId -and [string]$review.assetId -ne $AssetId) { $issues += "Art review assetId must be $AssetId." }
-  if ([int]$review.attempt -gt [int]$review.maxAttempts) { $issues += "Art review attempt exceeds maxAttempts." }
+  if ([int]$review.maxAttempts -lt 1 -or [int]$review.maxAttempts -gt 5) { $issues += "Art review maxAttempts must be between 1 and 5." }
+  if ([int]$review.attempt -lt 1 -or [int]$review.attempt -gt [int]$review.maxAttempts) { $issues += "Art review attempt must be between 1 and maxAttempts." }
   if (@($review.visualTargetIds).Count -eq 0) { $issues += "Art review needs visualTargetIds." }
   foreach ($property in @("targetImages", "unityReferences", "inGameScreenshots")) {
     if (@($review.$property).Count -eq 0) { $issues += "Art review needs $property." }
@@ -521,9 +637,16 @@ function Test-MLGSArtReview {
     $issue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$review.$property) -Label "Art review $property"
     if ($issue) { $issues += $issue }
   }
-  if ([int]$review.scores.targetMatch -lt 80) { $issues += "Art review targetMatch score must be at least 80." }
+  if ([string]::IsNullOrWhiteSpace([string]$review.comparisonReport)) { $issues += "Art review needs comparisonReport." }
+  else {
+    $comparisonResult = Test-MLGSVisualComparisonReport -ProjectRoot $ProjectRoot -Path ([string]$review.comparisonReport) -ExpectedMode asset
+    if (-not $comparisonResult.passed) { $issues += @($comparisonResult.issues) }
+  }
+  if ([int]$review.scores.targetMatch -lt 0 -or [int]$review.scores.targetMatch -gt 100) { $issues += "Art review targetMatch score must be between 0 and 100." }
+  elseif ([int]$review.scores.targetMatch -lt 80) { $issues += "Art review targetMatch score must be at least 80." }
   foreach ($name in @("composition", "palette", "value", "material", "detail", "readability")) {
-    if ([int]$review.scores.$name -lt 70) { $issues += "Art review $name score must be at least 70." }
+    if ([int]$review.scores.$name -lt 0 -or [int]$review.scores.$name -gt 100) { $issues += "Art review $name score must be between 0 and 100." }
+    elseif ([int]$review.scores.$name -lt 70) { $issues += "Art review $name score must be at least 70." }
   }
   if ([string]$review.automatedVerdict -ne "pass") { $issues += "Art review automatedVerdict must be pass; unavailable and errors fail closed." }
   if ([string]$review.artDirectorVerdict -ne "pass") { $issues += "Art review requires Art Director pass." }
@@ -560,7 +683,7 @@ function Test-MLGSArtManifest {
     if ($manifestNames -notcontains $name) { $issues += "Art manifest property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $manifestPath; requiredFor = $RequiredFor; checkedAssets = 0; issues = @($issues) } }
-  if ([string]$manifest.schemaVersion -ne "1.3") { $issues += "Art manifest schemaVersion must be 1.3." }
+  if ([string]$manifest.schemaVersion -ne "1.4") { $issues += "Art manifest schemaVersion must be 1.4." }
   $visualTargetResult = Test-MLGSVisualTarget -ProjectRoot $ProjectRoot -Path ([string]$manifest.visualTargetPath)
   if (-not $visualTargetResult.passed) { $issues += @($visualTargetResult.issues) }
   $approvedVisualTargets = @{}
@@ -570,7 +693,7 @@ function Test-MLGSArtManifest {
   $requiredAssets = @()
   foreach ($asset in @($manifest.assets)) {
     $assetNames = @($asset.PSObject.Properties.Name)
-    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath")
+    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "statusHistory", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath")
     $missingAssetProperties = @($requiredAssetProperties | Where-Object { $assetNames -notcontains $_ })
     if ($missingAssetProperties.Count -gt 0) { $issues += "Art asset is missing properties: $($missingAssetProperties -join ', ')"; continue }
     $id = [string]$asset.id
@@ -591,16 +714,35 @@ function Test-MLGSArtManifest {
       if (-not ($asset.PSObject.Properties.Name -contains $name) -or [string]::IsNullOrWhiteSpace([string]$asset.$name)) { $issues += "${id}: missing $name" }
     }
     $statusRank = [array]::IndexOf($statusOrder, [string]$asset.status)
+    if ($statusRank -lt 0) { $issues += "${id}: invalid lifecycle status '$($asset.status)'." }
     if ($statusRank -lt $minimumRank) { $issues += "${id}: status '$($asset.status)' is below '$MinimumStatus'." }
+    $history = @($asset.statusHistory)
+    if ($history.Count -ne ($statusRank + 1)) { $issues += "${id}: statusHistory must contain every lifecycle step exactly once through '$($asset.status)'." }
+    for ($historyIndex = 0; $historyIndex -lt $history.Count; $historyIndex++) {
+      $event = $history[$historyIndex]
+      $expectedStatus = if ($historyIndex -lt $statusOrder.Count) { $statusOrder[$historyIndex] } else { "<overflow>" }
+      if ([string]$event.status -ne $expectedStatus) { $issues += "${id}: lifecycle step $historyIndex must be '$expectedStatus', got '$($event.status)'." }
+      if ([string]::IsNullOrWhiteSpace([string]$event.at)) { $issues += "${id}: lifecycle '$($event.status)' needs a timestamp." }
+      if ($historyIndex -gt 0 -and @($event.evidence).Count -eq 0) { $issues += "${id}: lifecycle '$($event.status)' needs transition evidence." }
+      foreach ($relative in @($event.evidence)) {
+        $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "${id} lifecycle '$($event.status)' evidence"
+        if ($pathIssue) { $issues += $pathIssue }
+      }
+    }
     if ($DisallowPlaceholders -and [bool]$asset.placeholder) { $issues += "${id}: placeholder assets are not allowed for $RequiredFor." }
     if (@($asset.visualTargets).Count -eq 0) { $issues += "${id}: formal art asset needs at least one approved visual target." }
     foreach ($visualTargetId in @($asset.visualTargets)) {
       if (-not $approvedVisualTargets.ContainsKey([string]$visualTargetId)) { $issues += "${id}: visual target is missing or not approved: $visualTargetId" }
     }
 
+    $pathRequirements = @{
+      sourceFile = [array]::IndexOf($statusOrder, "generated")
+      outputPath = [array]::IndexOf($statusOrder, "processed")
+      importRecipe = [array]::IndexOf($statusOrder, "imported")
+    }
     foreach ($assetPathProperty in @("sourceFile", "outputPath", "importRecipe")) {
       $relative = [string]$asset.$assetPathProperty
-      if ([string]::IsNullOrWhiteSpace($relative)) { continue }
+      if ([string]::IsNullOrWhiteSpace($relative) -or $statusRank -lt [int]$pathRequirements[$assetPathProperty]) { continue }
       try { $full = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $relative } catch { $issues += "${id}: $($_.Exception.Message)"; continue }
       if (-not (Test-Path $full)) { $issues += "${id}: missing $assetPathProperty file: $relative" }
     }
@@ -612,7 +754,7 @@ function Test-MLGSArtManifest {
       }
     }
     $integrityNames = if ($asset.integrity) { @($asset.integrity.PSObject.Properties.Name) } else { @() }
-    $requiredIntegrityProperties = @("sourceLayout", "extractionMode", "minimumTransparentMargin", "minimumFrameMargin", "expectedFrames", "maxSignificantComponents", "reportPath", "verdict")
+    $requiredIntegrityProperties = @("sourceLayout", "extractionMode", "minimumTransparentMargin", "minimumFrameMargin", "expectedFrames", "maxSignificantComponents", "maxBaselineVariance", "maxFrameSizeVarianceRatio", "reportPath", "verdict")
     $missingIntegrityProperties = @($requiredIntegrityProperties | Where-Object { $integrityNames -notcontains $_ })
     if ($missingIntegrityProperties.Count -gt 0) {
       $issues += "${id}: integrity contract is missing properties: $($missingIntegrityProperties -join ', ')"
@@ -630,6 +772,12 @@ function Test-MLGSArtManifest {
       }
     }
     if ($statusRank -ge [array]::IndexOf($statusOrder, "referenced") -and @($asset.references).Count -eq 0) { $issues += "${id}: referenced/approved asset needs Unity references." }
+    if ($statusRank -ge [array]::IndexOf($statusOrder, "imported") -and -not [string]::IsNullOrWhiteSpace([string]$asset.importRecipe)) {
+      $recipeResult = Test-MLGSArtImportRecipe -ProjectRoot $ProjectRoot -Path ([string]$asset.importRecipe) -Asset $asset
+      if (-not $recipeResult.passed) {
+        foreach ($recipeIssue in @($recipeResult.issues)) { $issues += "${id}: $recipeIssue" }
+      }
+    }
     if ($statusRank -ge [array]::IndexOf($statusOrder, "referenced")) {
       foreach ($referencePath in @($asset.references)) {
         $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$referencePath) -Label "${id} Unity reference"

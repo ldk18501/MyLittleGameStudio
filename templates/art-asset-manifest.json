@@ -1,6 +1,6 @@
 {
   "$schema": "../../.mlgs/art-asset-manifest.schema.json",
-  "schemaVersion": "1.3",
+  "schemaVersion": "1.4",
   "updated": "",
   "visualTargetPath": "design/art/visual-target.json",
   "assets": [
@@ -17,6 +17,9 @@
       "sourceFile": "Assets/Game/Art/Source/example-player-idle.png",
       "outputPath": "Assets/Game/Art/Sprites/example-player-idle.png",
       "status": "planned",
+      "statusHistory": [
+        { "status": "planned", "at": "", "evidence": [], "note": "Asset entered the formal production manifest." }
+      ],
       "placeholder": false,
       "importRecipe": "production/assets/import-recipes/example-player-idle.json",
       "integrity": {
@@ -26,6 +29,8 @@
         "minimumFrameMargin": 2,
         "expectedFrames": 1,
         "maxSignificantComponents": 1,
+        "maxBaselineVariance": 2,
+        "maxFrameSizeVarianceRatio": 0.15,
         "reportPath": "",
         "verdict": "pending"
       },

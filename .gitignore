@@ -10,6 +10,8 @@ projects/
 *.log
 tmp/
 temp/
+__pycache__/
+*.py[cod]
 
 # Generated MLGS runtime data
 studio/current-project.local.yaml

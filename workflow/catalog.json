@@ -650,6 +650,11 @@
                                                                                "requiredCapabilityKinds":  [
 
                                                                                                            ]
+                                                                           },
+                                                    "visualSceneContract":  {
+                                                                                  "path":  "design/art/visual-scene-contract.json",
+                                                                                  "requiredFor":  "content-complete",
+                                                                                  "minimumStatus":  "approved"
                                                                            }
                                                 },
                   "alpha-approved":  {
@@ -657,6 +662,7 @@
                                                      "production/quality/alpha.json",
                                                      "production/qa/alpha-qa.md",
                                                      "production/qa/crash-check.md",
+                                                     "production/assets/asset-manifest.json",
                                                      "production/scope/release-scope.json"
                                                  ],
                                          "qualityReport":  {
@@ -673,6 +679,12 @@
                                                                                       "localization-integrity",
                                                                                       "crash-free-smoke"
                                                                                   ]
+                                                           },
+                                         "artManifest":  {
+                                                               "path":  "production/assets/asset-manifest.json",
+                                                               "requiredFor":  "alpha",
+                                                               "minimumStatus":  "approved",
+                                                               "disallowPlaceholders":  true
                                                            },
                                          "scopeManifest":  {
                                                                "path":  "production/scope/release-scope.json",
@@ -709,6 +721,11 @@
                                                                     "requiredCapabilityKinds":  [
 
                                                                                                 ]
+                                                                },
+                                         "visualSceneContract":  {
+                                                                       "path":  "design/art/visual-scene-contract.json",
+                                                                       "requiredFor":  "alpha",
+                                                                       "minimumStatus":  "approved"
                                                                 }
                                      },
                   "beta-approved":  {
@@ -718,6 +735,7 @@
                                                     "production/release/icon-checklist.md",
                                                     "production/localization/localization-report.md",
                                                     "production/qa/crash-check.md",
+                                                    "production/assets/asset-manifest.json",
                                                     "production/scope/release-scope.json"
                                                 ],
                                         "qualityReport":  {
@@ -733,6 +751,12 @@
                                                                                      "known-issues",
                                                                                      "regression"
                                                                                  ]
+                                                          },
+                                        "artManifest":  {
+                                                              "path":  "production/assets/asset-manifest.json",
+                                                              "requiredFor":  "beta",
+                                                              "minimumStatus":  "approved",
+                                                              "disallowPlaceholders":  true
                                                           },
                                         "scopeManifest":  {
                                                               "path":  "production/scope/release-scope.json",
@@ -771,6 +795,11 @@
                                                                    "requiredCapabilityKinds":  [
 
                                                                                                ]
+                                                               },
+                                        "visualSceneContract":  {
+                                                                      "path":  "design/art/visual-scene-contract.json",
+                                                                      "requiredFor":  "beta",
+                                                                      "minimumStatus":  "approved"
                                                                }
                                     },
                   "release-candidate-approved":  {
@@ -845,6 +874,11 @@
                                                                                 "requiredCapabilityKinds":  [
 
                                                                                                             ]
+                                                                            },
+                                                     "visualSceneContract":  {
+                                                                                   "path":  "design/art/visual-scene-contract.json",
+                                                                                   "requiredFor":  "release-candidate",
+                                                                                   "minimumStatus":  "approved"
                                                                             }
                                                  },
                   "release-approved":  {
@@ -854,6 +888,7 @@
                                                        "production/release/icon-checklist.md",
                                                        "production/localization/localization-report.md",
                                                        "production/qa/crash-check.md",
+                                                       "production/assets/asset-manifest.json",
                                                        "production/release/operations-readiness.md",
                                                        "production/scope/release-scope.json"
                                                    ],
@@ -869,6 +904,15 @@
                                                                                         "localization",
                                                                                         "crash-error-check"
                                                                                     ]
+                                                             },
+                                           "artManifest":  {
+                                                                 "path":  "production/assets/asset-manifest.json",
+                                                                 "requiredFor":  "release",
+                                                                 "minimumStatus":  "approved",
+                                                                 "disallowPlaceholders":  true,
+                                                                 "requiredKinds":  [
+                                                                                       "app-icon"
+                                                                                   ]
                                                              },
                                            "scopeManifest":  {
                                                                  "path":  "production/scope/release-scope.json",
@@ -907,6 +951,11 @@
                                                                       "requiredCapabilityKinds":  [
 
                                                                                                   ]
+                                                                  },
+                                           "visualSceneContract":  {
+                                                                         "path":  "design/art/visual-scene-contract.json",
+                                                                         "requiredFor":  "release",
+                                                                         "minimumStatus":  "approved"
                                                                   }
                                        }
               },

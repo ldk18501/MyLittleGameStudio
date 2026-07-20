@@ -110,7 +110,11 @@ def inspect_asset(project_root: Path, asset: dict, alpha_threshold: int, compone
 
     expected_frames = max(1, int(integrity.get("expectedFrames", 1)))
     maximum_components = max(1, int(integrity.get("maxSignificantComponents", 1)))
+    maximum_baseline_variance = max(0, int(integrity.get("maxBaselineVariance", 2)))
+    maximum_frame_size_variance = max(0.0, float(integrity.get("maxFrameSizeVarianceRatio", 0.15)))
     frame_results: list[dict] = []
+    frame_baselines: list[int] = []
+    frame_sizes: list[tuple[int, int]] = []
     if expected_frames > 1:
         if image.width % expected_frames != 0:
             findings.append(f"宽度 {image.width} 不能整除预期帧数 {expected_frames}。")
@@ -125,6 +129,8 @@ def inspect_asset(project_root: Path, asset: dict, alpha_threshold: int, compone
                     frame_results.append({"index": frame_index, "bounds": None})
                     continue
                 fl, ft, fr, fb = frame_bounds
+                frame_baselines.append(fb)
+                frame_sizes.append((fr - fl, fb - ft))
                 frame_margins = {"left": fl, "top": ft, "right": frame_width - fr, "bottom": image.height - fb}
                 if min(frame_margins.values()) < frame_margin:
                     findings.append(f"第 {frame_index + 1} 帧安全边距不足：要求 >= {frame_margin}px，实际 {frame_margins}。")
@@ -138,6 +144,20 @@ def inspect_asset(project_root: Path, asset: dict, alpha_threshold: int, compone
                     "significantComponents": frame_component_count,
                     "componentAreas": frame_component_areas,
                 })
+            if frame_baselines and max(frame_baselines) - min(frame_baselines) > maximum_baseline_variance:
+                findings.append(
+                    f"动画帧基线偏差 {max(frame_baselines) - min(frame_baselines)}px 超过允许值 {maximum_baseline_variance}px。"
+                )
+            if frame_sizes:
+                mean_width = sum(size[0] for size in frame_sizes) / len(frame_sizes)
+                mean_height = sum(size[1] for size in frame_sizes) / len(frame_sizes)
+                width_variance = max(abs(size[0] - mean_width) / max(1.0, mean_width) for size in frame_sizes)
+                height_variance = max(abs(size[1] - mean_height) / max(1.0, mean_height) for size in frame_sizes)
+                if max(width_variance, height_variance) > maximum_frame_size_variance:
+                    findings.append(
+                        "动画帧轮廓尺寸变化超过合同："
+                        f"允许 {maximum_frame_size_variance:.3f}，实际 {max(width_variance, height_variance):.3f}。"
+                    )
 
     component_count = 0
     component_areas: list[int] = []
@@ -155,6 +175,9 @@ def inspect_asset(project_root: Path, asset: dict, alpha_threshold: int, compone
         "significantComponents": component_count,
         "componentAreas": component_areas,
         "expectedFrames": expected_frames,
+        "baselineVariance": (max(frame_baselines) - min(frame_baselines)) if frame_baselines else 0,
+        "maxBaselineVariance": maximum_baseline_variance,
+        "maxFrameSizeVarianceRatio": maximum_frame_size_variance,
         "frames": frame_results,
         "verdict": "pass" if not findings else "fail",
         "findings": findings,

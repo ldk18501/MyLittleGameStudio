@@ -4,6 +4,7 @@
   "id": "replace-me",
   "workPackageId": "replace-me",
   "strategy": "direct",
+  "domain": "gameplay",
   "reason": "Explain why this strategy matches the risk.",
   "groups": [
     {

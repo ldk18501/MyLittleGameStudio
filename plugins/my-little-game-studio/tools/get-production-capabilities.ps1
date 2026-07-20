@@ -27,6 +27,22 @@ $imageProvider = ""
 if ($configPath) {
   try { $config = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json; if ([string]$config.provider -ne "none") { $imageProvider = [string]$config.provider } } catch { }
 }
+$spriteReportRelative = "production/qa/evidence/sprite-integrity.json"
+$spriteReportPath = Join-Path $ProjectRoot $spriteReportRelative
+$spriteReportPassed = $false
+if (Test-Path $spriteReportPath) {
+  try { $spriteReportPassed = [string](Get-Content -LiteralPath $spriteReportPath -Raw -Encoding UTF8 | ConvertFrom-Json).verdict -eq "pass" } catch { }
+}
+$comparisonEvidence = @()
+$comparisonRoot = Join-Path $ProjectRoot "production/qa/evidence/visual-comparisons"
+if (Test-Path $comparisonRoot) {
+  foreach ($reportFile in Get-ChildItem -LiteralPath $comparisonRoot -Filter *.json -File) {
+    try {
+      $report = Get-Content -LiteralPath $reportFile.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+      if ([string]$report.verdict -eq "pass") { $comparisonEvidence += $reportFile.FullName.Substring($ProjectRoot.Length).TrimStart('\', '/').Replace('\', '/') }
+    } catch { }
+  }
+}
 foreach ($capability in @($manifest.capabilities)) {
   if ([string]$capability.source -eq "manual" -and [string]$capability.status -eq "ready") { continue }
   switch ([string]$capability.kind) {
@@ -37,11 +53,22 @@ foreach ($capability in @($manifest.capabilities)) {
         $capability.source = "detected"
         $capability.outputs = @("raster-image")
         $capability.constraints = @("Provider credentials and cost must still pass preflight.")
+        $configFull = [System.IO.Path]::GetFullPath([string]$configPath)
+        if ($configFull.StartsWith($ProjectRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+          $capability.evidence = @($configFull.Substring($ProjectRoot.Length + 1).Replace('\', '/'))
+        }
       }
     }
     "sprite-processing" {
-      if ($unityDetected) {
-        $capability.provider = "Unity texture/sprite importer; live automation confirmation required"
+      if ($spriteReportPassed) {
+        $capability.provider = "MLGS Pillow Sprite integrity validator"
+        $capability.status = "ready"
+        $capability.source = "detected"
+        $capability.outputs = @("sprite", "sprite-atlas")
+        $capability.evidence = @($spriteReportRelative)
+      }
+      elseif ($unityDetected) {
+        $capability.provider = "Unity texture/sprite importer; Sprite integrity evidence required"
         $capability.status = "manual"
         $capability.source = "detected"
         $capability.outputs = @("sprite", "sprite-atlas")
@@ -62,6 +89,17 @@ foreach ($capability in @($manifest.capabilities)) {
         $capability.source = "detected"
         $capability.supportsVerification = $true
         $capability.outputs = @("compile-report", "scene-evidence", "build-report")
+      }
+    }
+    "visual-comparison" {
+      if ($comparisonEvidence.Count -gt 0) {
+        $capability.provider = "MLGS deterministic Pillow visual comparison"
+        $capability.status = "ready"
+        $capability.source = "detected"
+        $capability.supportsVerification = $true
+        $capability.outputs = @("asset-comparison-report", "scene-comparison-report")
+        $capability.constraints = @("Objective drift signal only; Art Director and QA review remain mandatory.")
+        $capability.evidence = @($comparisonEvidence)
       }
     }
   }

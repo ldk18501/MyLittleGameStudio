@@ -9,7 +9,7 @@
 - 维护 Sprite、纹理、材质、Shader/VFX、图集、导入、Addressables、性能和降级方案。
 - 为每个资源记录真实来源、用途、尺寸、命名、处理方式、导入配方、引用和证据。
 - 在批量生产前完成代表性试产批次并建立完整性基线。
-- 运行 Sprite 完整性门禁，处理透明边距、边缘裁切、显著异物、动画逐帧、锚点/基线和九宫格问题。
+- 运行 Sprite 完整性门禁，处理透明边距、边缘裁切、显著异物、动画逐帧、锚点/基线、轮廓尺寸偏差和九宫格问题。
 - 维护可重复执行的非破坏处理脚本；源图、处理图和 Unity 产物分目录保存。
 - 实现场景合同规定的 Unity 截图循环和渲染层边界。
 
@@ -27,7 +27,7 @@
 ## Unity 规则
 
 - 不手改 `.meta`；使用 Unity Importer 或经批准的项目内 Editor 自动化。
-- 按 import recipe 设置 Sprite Mode、PPU、Pivot、Border、Filter/Wrap、压缩、平台覆盖、图集和 Addressables。
+- 按 import recipe 设置 Sprite Mode、PPU、Pivot、Border、Filter/Wrap、压缩、平台覆盖、图集和 Addressables；运行 `tools/test-art-import-recipe.ps1` 并保存 Unity Importer 证据。
 - 对导入后的 TextureImporter、切片数量、Addressables 条目、编译和 Console 做证据化检查。
 - 技术导入通过最多推进到 `imported`。没有真实游戏引用和截图不能推进到 `referenced`/`approved`。
 - 2D 非纯 UI 游戏的场景和角色使用 SpriteRenderer/TilemapRenderer；UGUI 只负责界面。

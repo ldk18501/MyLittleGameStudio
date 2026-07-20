@@ -73,6 +73,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 
 - Use `tools/new-work-package.ps1`, `run-objective-checks.ps1`, and `test-work-package.ps1` for production tasks. Completion requires both declared and objective verdicts to pass; rework is bounded.
 - Formal assets require Art Director and QA pass in `production/assets/reviews/<asset-id>.json`; comparison errors, unavailable automation, low scores, missing evidence, and attempt exhaustion fail closed.
+- Formal assets use manifest schema 1.4. Every lifecycle step through the current status must appear in `statusHistory` with project-local evidence; imported assets require a validated import recipe and Unity Importer evidence.
+- Run `tools/test-visual-comparison.ps1` for deterministic asset and scene comparison reports. These metrics detect visual drift but never replace Art Director and QA judgment.
 - Select a profile from `profiles/unity/`, expand every profile requirement into release scope, validate coverage, enumerate UI screens, and freeze `design/baseline.json` before production.
 - A changed frozen design source invalidates its mapped product stages until impact is reviewed and a new baseline version is deliberately frozen.
 - Refresh and validate `production/capabilities/capability-manifest.json` before formal production. Required image/Sprite/mesh/animation/audio/video, Unity import/validation, and visual-comparison entries must be ready with evidence.

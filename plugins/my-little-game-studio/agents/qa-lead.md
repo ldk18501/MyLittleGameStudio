@@ -14,12 +14,12 @@
 ## 正式美术回归
 
 - 在批量生成前验证代表性试产批次，至少包含单体、角色动画、UI 图标和九宫格面板。
-- 运行 `tools/test-sprite-integrity.ps1`，检查空图、透明安全边距、边缘接触、显著异物、动画帧数/帧内边距和未验证拼版。
+- 运行 `tools/test-sprite-integrity.ps1`，检查空图、透明安全边距、边缘接触、显著异物、动画帧数/帧内边距、基线/轮廓尺寸偏差和未验证拼版。
 - 对高风险拼版抽查原图分隔线和对象边界；发现任一跨格、串图或缺边时，扩大检查范围，不能只修用户指出的样本。
 - 验证动画每帧的轮廓、基线、锚点和比例，确认没有相邻行角色头部或部件。
 - 验证九宫格的四角不拉伸、边缘连续、中心可扩展，并在至少三种目标尺寸下截图。
 - Unity 导入、Sprite 数量与 Addressables 数量一致只记录为技术证据；必须另有真实 Game View 引用、风格和布局证据。
-- `integrity.verdict` 不是 `pass`、报告缺失、Unity 证据缺失或 Art Director 未通过时，资源不能标记 `approved`。
+- `statusHistory` 不连续、导入配方失败、视觉对比报告失败、`integrity.verdict` 不是 `pass`、Unity 证据缺失或 Art Director 未通过时，资源不能标记 `approved`。
 
 ## 强制回归
 

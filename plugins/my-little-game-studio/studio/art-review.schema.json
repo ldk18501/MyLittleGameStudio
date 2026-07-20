@@ -4,10 +4,10 @@
   "title": "MLGS fail-closed art review",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "assetId", "visualTargetIds", "targetImages", "candidateSource", "processedAsset", "unityReferences", "inGameScreenshots", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "finalVerdict", "attempt", "maxAttempts", "blockers", "notes", "updated"],
+  "required": ["schemaVersion", "assetId", "visualTargetIds", "targetImages", "candidateSource", "processedAsset", "unityReferences", "inGameScreenshots", "comparisonReport", "scores", "automatedVerdict", "artDirectorVerdict", "qaVerdict", "finalVerdict", "attempt", "maxAttempts", "blockers", "notes", "updated"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "assetId": { "type": "string", "minLength": 1 },
     "visualTargetIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "targetImages": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
@@ -15,6 +15,7 @@
     "processedAsset": { "type": "string" },
     "unityReferences": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "inGameScreenshots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "comparisonReport": { "type": "string" },
     "scores": {
       "type": "object",
       "additionalProperties": false,
@@ -49,6 +50,7 @@
           "processedAsset": { "minLength": 1 },
           "unityReferences": { "minItems": 1 },
           "inGameScreenshots": { "minItems": 1 },
+          "comparisonReport": { "minLength": 1 },
           "automatedVerdict": { "const": "pass" },
           "artDirectorVerdict": { "const": "pass" },
           "qaVerdict": { "const": "pass" },

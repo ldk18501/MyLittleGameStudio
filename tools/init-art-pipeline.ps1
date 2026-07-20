@@ -16,6 +16,7 @@ $directories = @(
   "production/assets/prompts",
   "production/assets/import-recipes",
   "production/assets/reviews",
+  "production/qa/evidence/visual-comparisons",
   "production/quality",
   ".mlgs"
 )
@@ -38,6 +39,8 @@ Copy-MLGSTemplate "studio/visual-target.schema.json" ".mlgs/visual-target.schema
 Copy-MLGSTemplate "studio/quality-gate.schema.json" ".mlgs/quality-gate.schema.json"
 Copy-MLGSTemplate "studio/art-review.schema.json" ".mlgs/art-review.schema.json"
 Copy-MLGSTemplate "studio/visual-scene-contract.schema.json" ".mlgs/visual-scene-contract.schema.json"
+Copy-MLGSTemplate "studio/art-import-recipe.schema.json" ".mlgs/art-import-recipe.schema.json"
+Copy-MLGSTemplate "studio/visual-comparison.schema.json" ".mlgs/visual-comparison.schema.json"
 Copy-MLGSTemplate "templates/visual-scene-contract.json" "design/art/visual-scene-contract.json"
 
 $visualTargetPath = Join-Path $ProjectRoot "design/art/visual-target.json"
@@ -52,17 +55,26 @@ if (Test-Path $visualTargetPath) {
 $sceneContractPath = Join-Path $ProjectRoot "design/art/visual-scene-contract.json"
 if (Test-Path $sceneContractPath) {
   $sceneContract = Get-Content -LiteralPath $sceneContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $sceneChanged = $false
+  if ([string]$sceneContract.schemaVersion -eq "1.0") { $sceneContract.schemaVersion = "1.1"; $sceneChanged = $true }
+  foreach ($scene in @($sceneContract.scenes)) {
+    if ($scene.PSObject.Properties.Name -notcontains "comparisonReport") {
+      $scene | Add-Member -MemberType NoteProperty -Name comparisonReport -Value ""
+      $sceneChanged = $true
+    }
+  }
   if ([string]::IsNullOrWhiteSpace([string]$sceneContract.updated)) {
     $sceneContract.updated = (Get-Date).ToString("o")
-    Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract
+    $sceneChanged = $true
   }
+  if ($sceneChanged) { Write-MLGSJsonAtomic -Path $sceneContractPath -Value $sceneContract }
 }
 
 $manifestPath = Join-Path $ProjectRoot "production/assets/asset-manifest.json"
 if ($Force -or -not (Test-Path $manifestPath)) {
   $manifest = [ordered]@{
     '$schema' = "../../.mlgs/art-asset-manifest.schema.json"
-    schemaVersion = "1.3"
+    schemaVersion = "1.4"
     updated = (Get-Date).ToString("o")
     visualTargetPath = "design/art/visual-target.json"
     assets = @()
@@ -73,7 +85,7 @@ if ($Force -or -not (Test-Path $manifestPath)) {
 elseif (-not $Force) {
   $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
   $changed = $false
-  if (@("1.0", "1.1", "1.2") -contains [string]$manifest.schemaVersion) { $manifest.schemaVersion = "1.3"; $changed = $true }
+  if (@("1.0", "1.1", "1.2", "1.3") -contains [string]$manifest.schemaVersion) { $manifest.schemaVersion = "1.4"; $changed = $true }
   if ($manifest.PSObject.Properties.Name -notcontains "visualTargetPath") {
     $manifest | Add-Member -MemberType NoteProperty -Name visualTargetPath -Value "design/art/visual-target.json"
     $changed = $true
@@ -87,6 +99,15 @@ elseif (-not $Force) {
       $asset | Add-Member -MemberType NoteProperty -Name reviewPath -Value ""
       $changed = $true
     }
+    if ($asset.PSObject.Properties.Name -notcontains "statusHistory") {
+      $asset | Add-Member -MemberType NoteProperty -Name statusHistory -Value @([pscustomobject]@{
+        status = "planned"
+        at = (Get-Date).ToString("o")
+        evidence = @()
+        note = "Migrated manifest; reconstruct subsequent lifecycle evidence before approval."
+      })
+      $changed = $true
+    }
     if ($asset.PSObject.Properties.Name -notcontains "integrity") {
       $asset | Add-Member -MemberType NoteProperty -Name integrity -Value ([pscustomobject]@{
         sourceLayout = "individual"
@@ -95,10 +116,22 @@ elseif (-not $Force) {
         minimumFrameMargin = 2
         expectedFrames = 1
         maxSignificantComponents = 1
+        maxBaselineVariance = 2
+        maxFrameSizeVarianceRatio = 0.15
         reportPath = ""
         verdict = "pending"
       })
       $changed = $true
+    }
+    else {
+      if ($asset.integrity.PSObject.Properties.Name -notcontains "maxBaselineVariance") {
+        $asset.integrity | Add-Member -MemberType NoteProperty -Name maxBaselineVariance -Value 2
+        $changed = $true
+      }
+      if ($asset.integrity.PSObject.Properties.Name -notcontains "maxFrameSizeVarianceRatio") {
+        $asset.integrity | Add-Member -MemberType NoteProperty -Name maxFrameSizeVarianceRatio -Value 0.15
+        $changed = $true
+      }
     }
   }
   if ($changed) {
