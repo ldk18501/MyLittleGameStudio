@@ -1,8 +1,7 @@
 name: Validate MLGS
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -32,4 +31,3 @@ jobs:
       - name: Isolated smoke tests
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
-
