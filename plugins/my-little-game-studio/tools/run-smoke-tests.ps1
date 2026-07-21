@@ -350,6 +350,75 @@ try {
     if ($LASTEXITCODE -ne 20) { throw "Mismatched art import recipe passed." }
     $recipe.texturePath = "Assets/Art/Sprites/hero.png"
     Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
+    $baseRecipeJson = $recipe | ConvertTo-Json -Depth 30
+    $nineSliceEvidence = @(
+      "production/assets/reviews/nine-slice-reference.png",
+      "production/assets/reviews/nine-slice-narrow.png",
+      "production/assets/reviews/nine-slice-wide.png",
+      "production/assets/reviews/nine-slice-tall.png",
+      "production/assets/reviews/nine-slice-expanded.png"
+    )
+    foreach ($relative in $nineSliceEvidence) {
+      Copy-Item -LiteralPath (Join-Path $project "production/assets/reviews/hero-game-view.png") -Destination (Join-Path $project $relative) -Force
+    }
+
+    $missingPolicyRecipe = $baseRecipeJson | ConvertFrom-Json
+    $missingPolicyRecipe.border = @(18, 24, 18, 16)
+    $missingPolicyRecipe.slicing.mode = "sliced"
+    $missingPolicyRecipe.PSObject.Properties.Remove("nineSlice")
+    Write-MLGSJsonAtomic -Path $recipePath -Value $missingPolicyRecipe
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-import-recipe.ps1") -Root $Root -ProjectRoot $project -AssetId hero 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 20) { throw "Sliced art without a nine-slice policy passed." }
+
+    $asymmetricRecipe = $baseRecipeJson | ConvertFrom-Json
+    $asymmetricRecipe.border = @(18, 24, 18, 16)
+    $asymmetricRecipe.slicing.mode = "sliced"
+    $asymmetricRecipe.nineSlice.classification = "xy"
+    $asymmetricRecipe.nineSlice.textureSize = @(104, 104)
+    $asymmetricRecipe.nineSlice.safeCenterRect = @(18, 16, 86, 80)
+    $asymmetricRecipe.nineSlice.allowedAxes = @("x", "y")
+    $asymmetricRecipe.nineSlice.detection.colorEdgeChecked = $true
+    $asymmetricRecipe.nineSlice.protrusionPolicy = "none"
+    $asymmetricRecipe.nineSlice.validationModes = @("reference", "wide", "tall", "expanded")
+    $asymmetricRecipe.nineSlice.notes = "Asymmetric bottom shadow keeps a larger B border."
+    $asymmetricRecipe.nineSliceEvidence = @($nineSliceEvidence[0], $nineSliceEvidence[2], $nineSliceEvidence[3], $nineSliceEvidence[4])
+    Write-MLGSJsonAtomic -Path $recipePath -Value $asymmetricRecipe
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-import-recipe.ps1") -Root $Root -ProjectRoot $project -AssetId hero | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Valid asymmetric xy nine-slice recipe failed." }
+
+    $compositeRecipe = $baseRecipeJson | ConvertFrom-Json
+    $compositeRecipe.border = @(20, 16, 20, 16)
+    $compositeRecipe.slicing.mode = "sliced"
+    $compositeRecipe.nineSlice.classification = "composite"
+    $compositeRecipe.nineSlice.textureSize = @(120, 80)
+    $compositeRecipe.nineSlice.safeCenterRect = @(20, 16, 100, 64)
+    $compositeRecipe.nineSlice.allowedAxes = @()
+    $compositeRecipe.nineSlice.detection.colorEdgeChecked = $true
+    $compositeRecipe.nineSlice.protrusionPolicy = "separate-sprite"
+    $compositeRecipe.nineSlice.validationModes = @()
+    $compositeRecipe.nineSlice.notes = "Mid-edge tail must be split before two-axis slicing."
+    Write-MLGSJsonAtomic -Path $recipePath -Value $compositeRecipe
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-import-recipe.ps1") -Root $Root -ProjectRoot $project -AssetId hero 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 20) { throw "Composite mid-edge protrusion passed as a Sliced sprite." }
+
+    $xOnlyRecipe = $baseRecipeJson | ConvertFrom-Json
+    $xOnlyRecipe.border = @(20, 16, 20, 16)
+    $xOnlyRecipe.slicing.mode = "sliced"
+    $xOnlyRecipe.nineSlice.classification = "x-only"
+    $xOnlyRecipe.nineSlice.textureSize = @(120, 80)
+    $xOnlyRecipe.nineSlice.safeCenterRect = @(20, 16, 100, 64)
+    $xOnlyRecipe.nineSlice.allowedAxes = @("x")
+    $xOnlyRecipe.nineSlice.detection.colorEdgeChecked = $true
+    $xOnlyRecipe.nineSlice.protrusionPolicy = "fixed-band"
+    $xOnlyRecipe.nineSlice.validationModes = @("reference", "narrow", "wide")
+    $xOnlyRecipe.nineSlice.notes = "The mid-edge tail is valid only while height remains fixed."
+    $xOnlyRecipe.nineSliceEvidence = @($nineSliceEvidence[0], $nineSliceEvidence[1], $nineSliceEvidence[2])
+    Write-MLGSJsonAtomic -Path $recipePath -Value $xOnlyRecipe
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-import-recipe.ps1") -Root $Root -ProjectRoot $project -AssetId hero | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Valid x-only protrusion recipe failed." }
+
+    $recipe = $baseRecipeJson | ConvertFrom-Json
+    Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
     $manifest.assets[0].placeholder = $true
     Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders 2>$null | Out-Null

@@ -654,6 +654,108 @@ function Test-MLGSArtImportRecipe {
   if ([double]$recipe.pixelsPerUnit -le 0) { $issues += "Art import recipe pixelsPerUnit must be greater than zero." }
   if (@($recipe.pivot).Count -ne 2 -or @($recipe.pivot | Where-Object { [double]$_ -lt 0 -or [double]$_ -gt 1 }).Count -gt 0) { $issues += "Art import recipe pivot must contain two normalized values." }
   if (@($recipe.border).Count -ne 4 -or @($recipe.border | Where-Object { [double]$_ -lt 0 }).Count -gt 0) { $issues += "Art import recipe border must contain four non-negative values." }
+  $slicingMode = [string]$recipe.slicing.mode
+  if (@("none", "fixed-grid", "explicit-rectangles", "sliced") -notcontains $slicingMode) { $issues += "Art import recipe slicing.mode is invalid: $slicingMode" }
+  $hasBorder = @($recipe.border | Where-Object { [double]$_ -gt 0 }).Count -gt 0
+  $hasNineSlicePolicy = @($recipe.PSObject.Properties.Name) -contains "nineSlice"
+  $nineSlice = if ($hasNineSlicePolicy) { $recipe.nineSlice } else { $null }
+  $classification = if ($null -ne $nineSlice) { [string]$nineSlice.classification } else { "" }
+  $activeNineSliceClassifications = @("xy", "x-only", "y-only")
+  $allNineSliceClassifications = @("none", "xy", "x-only", "y-only", "composite", "reject")
+  if ($hasNineSlicePolicy) {
+    if ($null -eq $nineSlice) {
+      $issues += "Art import recipe nineSlice must be an object."
+    } else {
+      $nineSliceRequired = @("classification", "borderOrder", "coordinateOrigin", "textureSize", "safeCenterRect", "allowedAxes", "detection", "protrusionPolicy", "validationModes", "notes")
+      foreach ($name in $nineSliceRequired) {
+        if (@($nineSlice.PSObject.Properties.Name) -notcontains $name) { $issues += "Art import recipe nineSlice property is missing: $name" }
+      }
+      if ($allNineSliceClassifications -notcontains $classification) { $issues += "Art import recipe nineSlice.classification is invalid: $classification" }
+      if ([string]$nineSlice.borderOrder -ne "LBRT") { $issues += "Art import recipe nineSlice.borderOrder must be LBRT." }
+      if ([string]$nineSlice.coordinateOrigin -ne "top-left") { $issues += "Art import recipe nineSlice.coordinateOrigin must be top-left." }
+      if (@($nineSlice.allowedAxes | Select-Object -Unique).Count -ne @($nineSlice.allowedAxes).Count -or @($nineSlice.allowedAxes | Where-Object { @("x", "y") -notcontains [string]$_ }).Count -gt 0) { $issues += "Art import recipe nineSlice.allowedAxes must contain unique x/y values." }
+      if (@("none", "fixed-band", "separate-sprite", "reject") -notcontains [string]$nineSlice.protrusionPolicy) { $issues += "Art import recipe nineSlice.protrusionPolicy is invalid: $($nineSlice.protrusionPolicy)" }
+      $validValidationModes = @("reference", "narrow", "wide", "short", "tall", "expanded")
+      if (@($nineSlice.validationModes | Select-Object -Unique).Count -ne @($nineSlice.validationModes).Count -or @($nineSlice.validationModes | Where-Object { $validValidationModes -notcontains [string]$_ }).Count -gt 0) { $issues += "Art import recipe nineSlice.validationModes contains invalid or duplicate values." }
+    }
+  }
+  if ($hasBorder -or $slicingMode -eq "sliced") {
+    if (-not $hasBorder) { $issues += "Sliced art requires at least one positive Border value." }
+    if ($slicingMode -ne "sliced") { $issues += "Art with a positive Border must use slicing.mode sliced." }
+    if (-not $hasNineSlicePolicy -or $null -eq $nineSlice) {
+      $issues += "Sliced art requires a nineSlice policy."
+    } elseif ($activeNineSliceClassifications -notcontains $classification) {
+      $issues += "Sliced art nineSlice.classification must be xy, x-only, or y-only."
+    } else {
+      $textureSize = @($nineSlice.textureSize)
+      $safeCenterRect = @($nineSlice.safeCenterRect)
+      $geometryValid = $textureSize.Count -eq 2 -and $safeCenterRect.Count -eq 4
+      if (-not $geometryValid -or @($textureSize | Where-Object { [int]$_ -le 0 }).Count -gt 0) {
+        $issues += "Sliced art nineSlice.textureSize must contain two positive pixel dimensions."
+        $geometryValid = $false
+      }
+      if ($safeCenterRect.Count -ne 4 -or @($safeCenterRect | Where-Object { [int]$_ -lt 0 }).Count -gt 0) {
+        $issues += "Sliced art nineSlice.safeCenterRect must be [xMin,yMin,xMax,yMax] in non-negative top-left pixels."
+        $geometryValid = $false
+      }
+      if ($geometryValid) {
+        $width = [int]$textureSize[0]
+        $height = [int]$textureSize[1]
+        $xMin = [int]$safeCenterRect[0]
+        $yMin = [int]$safeCenterRect[1]
+        $xMax = [int]$safeCenterRect[2]
+        $yMax = [int]$safeCenterRect[3]
+        if ($xMin -ge $xMax -or $yMin -ge $yMax -or $xMax -gt $width -or $yMax -gt $height) {
+          $issues += "Sliced art nineSlice.safeCenterRect must be a non-empty rectangle inside textureSize."
+        } elseif (@($recipe.border).Count -eq 4) {
+          $expectedBorder = @($xMin, ($height - $yMax), ($width - $xMax), $yMin)
+          for ($index = 0; $index -lt 4; $index++) {
+            if ([double]$recipe.border[$index] -ne [double]$expectedBorder[$index]) {
+              $issues += "Art import recipe border must equal safeCenterRect converted to LBRT: [$($expectedBorder -join ', ')]."
+              break
+            }
+          }
+        }
+      }
+      $expectedAxes = @(switch ($classification) {
+        "xy" { @("x", "y") }
+        "x-only" { @("x") }
+        "y-only" { @("y") }
+      })
+      $actualAxes = @($nineSlice.allowedAxes | ForEach-Object { [string]$_ })
+      if ($actualAxes.Count -ne $expectedAxes.Count -or @($expectedAxes | Where-Object { $actualAxes -notcontains $_ }).Count -gt 0) { $issues += "Art import recipe nineSlice.allowedAxes does not match classification $classification." }
+      $detection = $nineSlice.detection
+      $detectionRequired = @("alphaThresholds", "colorEdgeChecked", "straightRun", "edgeTolerance", "safetyMargin")
+      if ($null -eq $detection) {
+        $issues += "Sliced art requires nineSlice.detection."
+      } else {
+        foreach ($name in $detectionRequired) {
+          if (@($detection.PSObject.Properties.Name) -notcontains $name) { $issues += "Art import recipe nineSlice.detection property is missing: $name" }
+        }
+        $thresholds = @($detection.alphaThresholds)
+        if ($thresholds.Count -lt 2 -or @($thresholds | Select-Object -Unique).Count -ne $thresholds.Count -or @($thresholds | Where-Object { [int]$_ -lt 1 -or [int]$_ -gt 254 }).Count -gt 0) { $issues += "Sliced art requires at least two unique alpha thresholds between 1 and 254." }
+        if (-not [bool]$detection.colorEdgeChecked) { $issues += "Sliced art requires RGB/luminance edge checking in addition to alpha." }
+        if ([int]$detection.straightRun -lt 4) { $issues += "Sliced art nineSlice.detection.straightRun must be at least 4 pixels." }
+        if ([int]$detection.edgeTolerance -lt 0 -or [int]$detection.edgeTolerance -gt 2) { $issues += "Sliced art nineSlice.detection.edgeTolerance must be between 0 and 2 pixels." }
+        if ([int]$detection.safetyMargin -lt 1 -or [int]$detection.safetyMargin -gt 2) { $issues += "Sliced art nineSlice.detection.safetyMargin must be 1 or 2 pixels." }
+      }
+      if ([string]$nineSlice.protrusionPolicy -eq "reject") { $issues += "Rejected protrusions cannot be imported as Sliced art." }
+      $requiredValidationModes = switch ($classification) {
+        "xy" { @("reference", "wide", "tall", "expanded") }
+        "x-only" { @("reference", "narrow", "wide") }
+        "y-only" { @("reference", "short", "tall") }
+      }
+      $declaredValidationModes = @($nineSlice.validationModes | ForEach-Object { [string]$_ })
+      foreach ($mode in $requiredValidationModes) {
+        if ($declaredValidationModes -notcontains $mode) { $issues += "Sliced art classification $classification requires validation mode: $mode" }
+      }
+    }
+  } elseif ($hasNineSlicePolicy -and $null -ne $nineSlice) {
+    if ($activeNineSliceClassifications -contains $classification) { $issues += "Active nineSlice classification requires positive Border values and slicing.mode sliced." }
+    if ($classification -eq "composite" -and [string]$nineSlice.protrusionPolicy -ne "separate-sprite") { $issues += "Composite nine-slice art requires protrusionPolicy separate-sprite." }
+    if ($classification -eq "reject" -and [string]$nineSlice.protrusionPolicy -ne "reject") { $issues += "Rejected nine-slice art requires protrusionPolicy reject." }
+    if (@($nineSlice.allowedAxes).Count -gt 0) { $issues += "Non-sliced nineSlice classifications cannot declare allowedAxes." }
+  }
   if ([string]$recipe.sourceLayout -ne [string]$Asset.integrity.sourceLayout) { $issues += "Art import recipe sourceLayout must match the asset integrity contract." }
   if ([string]$recipe.extractionMode -ne [string]$Asset.integrity.extractionMode) { $issues += "Art import recipe extractionMode must match the asset integrity contract." }
   if ([string]$recipe.sourceLayout -eq "unverified-sheet") { $issues += "Unverified sheets cannot be used by a formal import recipe." }
@@ -675,8 +777,9 @@ function Test-MLGSArtImportRecipe {
       if ($pathIssue) { $issues += $pathIssue }
     }
   }
-  if ($statusRank -ge [array]::IndexOf($statusOrder, "approved") -and @($recipe.border | Where-Object { [double]$_ -gt 0 }).Count -gt 0) {
-    if (@($recipe.nineSliceEvidence).Count -lt 3) { $issues += "Approved nine-slice art needs evidence at three target sizes." }
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "approved") -and $hasBorder) {
+    $minimumNineSliceEvidence = if ($classification -eq "xy") { 4 } else { 3 }
+    if (@($recipe.nineSliceEvidence).Count -lt $minimumNineSliceEvidence) { $issues += "Approved $classification nine-slice art needs at least $minimumNineSliceEvidence target-size evidence files." }
     foreach ($relative in @($recipe.nineSliceEvidence)) {
       $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "$assetId nine-slice evidence"
       if ($pathIssue) { $issues += $pathIssue }

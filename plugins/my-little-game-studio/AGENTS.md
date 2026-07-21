@@ -145,6 +145,7 @@ MLGS is Unity + C# only.
 - Formal art approval is fail-closed: missing comparison evidence, unavailable/error verdicts, low target-match scores, or exhausted rework attempts block approval.
 - Formal art lifecycle is machine-audited: every status from `planned` through the current status must appear exactly once in `statusHistory` with project-local transition evidence. Imported assets require a validated import recipe and Unity Importer evidence.
 - Asset and whole-screen approval require a deterministic `tools/test-visual-comparison.ps1` report plus Art Director and QA review. The local comparison metrics detect drift only and never replace semantic or in-game visual judgment.
+- Nine-slice UI follows `rules/nine-slice.md`: classify resize eligibility before setting Border, derive asymmetric LBRT from a recorded safe-center rectangle using alpha plus color-edge evidence, and split mid-edge protrusions when both axes must resize.
 - 正式 Sprite 默认逐对象生成。未经注册验证的 AI 拼版禁止按固定网格裁切；导入前必须通过 `tools/test-sprite-integrity.ps1` 的透明边距、边缘、显著异物和动画逐帧检查。Unity 导入、Sprite/Addressables 数量通过不等于美术批准。
 - `0.1.x` means prototype/pre-release. Never call a game `1.0.0` or release-ready until the Release gate passes with every release-scope item verified, every formal art asset approved in game, and game-side operations readiness plus external publishing handoffs recorded.
 - Avoid `Find`, `FindObjectOfType`, `SendMessage`, repeated hot-path `GetComponent`, and hot-path allocations.

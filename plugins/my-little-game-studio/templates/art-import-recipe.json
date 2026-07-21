@@ -38,6 +38,24 @@
   "addressable": false,
   "platformOverrides": [],
   "unityImporterEvidence": [],
+  "nineSlice": {
+    "classification": "none",
+    "borderOrder": "LBRT",
+    "coordinateOrigin": "top-left",
+    "textureSize": [0, 0],
+    "safeCenterRect": [0, 0, 0, 0],
+    "allowedAxes": [],
+    "detection": {
+      "alphaThresholds": [32, 128, 224],
+      "colorEdgeChecked": false,
+      "straightRun": 4,
+      "edgeTolerance": 1,
+      "safetyMargin": 2
+    },
+    "protrusionPolicy": "none",
+    "validationModes": [],
+    "notes": ""
+  },
   "nineSliceEvidence": []
 }
 

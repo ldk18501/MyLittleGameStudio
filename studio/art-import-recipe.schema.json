@@ -69,6 +69,7 @@
     "addressable": { "type": "boolean" },
     "platformOverrides": { "type": "array", "items": { "type": "object" } },
     "unityImporterEvidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "nineSlice": { "$ref": "#/$defs/nineSlicePolicy" },
     "nineSliceEvidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
   },
   "$defs": {
@@ -77,6 +78,37 @@
     },
     "vector2NonNegative": {
       "type": "array", "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }], "minItems": 2, "maxItems": 2
+    },
+    "vector4NonNegativeInteger": {
+      "type": "array", "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }], "minItems": 4, "maxItems": 4
+    },
+    "nineSlicePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "borderOrder", "coordinateOrigin", "textureSize", "safeCenterRect", "allowedAxes", "detection", "protrusionPolicy", "validationModes", "notes"],
+      "properties": {
+        "classification": { "enum": ["none", "xy", "x-only", "y-only", "composite", "reject"] },
+        "borderOrder": { "const": "LBRT" },
+        "coordinateOrigin": { "const": "top-left" },
+        "textureSize": { "$ref": "#/$defs/vector2NonNegative" },
+        "safeCenterRect": { "$ref": "#/$defs/vector4NonNegativeInteger" },
+        "allowedAxes": { "type": "array", "items": { "enum": ["x", "y"] }, "uniqueItems": true, "maxItems": 2 },
+        "detection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["alphaThresholds", "colorEdgeChecked", "straightRun", "edgeTolerance", "safetyMargin"],
+          "properties": {
+            "alphaThresholds": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 254 }, "minItems": 2, "uniqueItems": true },
+            "colorEdgeChecked": { "type": "boolean" },
+            "straightRun": { "type": "integer", "minimum": 4 },
+            "edgeTolerance": { "type": "integer", "minimum": 0, "maximum": 2 },
+            "safetyMargin": { "type": "integer", "minimum": 1, "maximum": 2 }
+          }
+        },
+        "protrusionPolicy": { "enum": ["none", "fixed-band", "separate-sprite", "reject"] },
+        "validationModes": { "type": "array", "items": { "enum": ["reference", "narrow", "wide", "short", "tall", "expanded"] }, "uniqueItems": true },
+        "notes": { "type": "string" }
+      }
     },
     "vector4NonNegative": {
       "type": "array", "prefixItems": [{ "type": "number", "minimum": 0 }, { "type": "number", "minimum": 0 }, { "type": "number", "minimum": 0 }, { "type": "number", "minimum": 0 }], "minItems": 4, "maxItems": 4
