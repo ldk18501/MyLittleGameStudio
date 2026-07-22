@@ -46,6 +46,7 @@ try {
   Set-Content -LiteralPath (Join-Path $project "ProjectSettings/ProjectVersion.txt") -Value "m_EditorVersion: 6000.0.0f1" -Encoding UTF8
   Set-Content -LiteralPath (Join-Path $project "Packages/manifest.json") -Value "{}" -Encoding UTF8
   Set-Content -LiteralPath (Join-Path $project "Assets/Scripts/PlayerController.cs") -Value "public sealed class PlayerController { }" -Encoding UTF8
+  Set-Content -LiteralPath (Join-Path $project "Assets/Scripts/PlayerModel.cs") -Value "public sealed class PlayerModel { }" -Encoding UTF8
 
   $results += Invoke-Step "check-template-state" {
     $check = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/check-state.ps1") -Root $Root -RuntimeRoot $runtimeRoot | ConvertFrom-Json
@@ -195,14 +196,14 @@ try {
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/new-code-task.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -RequirementSources "design/concept-package.md" -TargetModuleId "game-foundation" | Out-Null
     $contextPath = Join-Path $project "production/context-packs/smoke-feature.json"
     $context = Get-Content -LiteralPath $contextPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $context.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs")
+    $context.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs", "Assets/Scripts/PlayerModel.cs")
     $context.architectVerdict = "pass"
     $context.status = "ready"
     $context.updated = (Get-Date).ToString("o")
     Write-MLGSJsonAtomic -Path $contextPath -Value $context
     $changePlanPath = Join-Path $project "production/change-plans/smoke-feature.json"
     $changePlan = Get-Content -LiteralPath $changePlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $changePlan.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs")
+    $changePlan.plannedFiles.modify = @("Assets/Scripts/PlayerController.cs", "Assets/Scripts/PlayerModel.cs")
     $changePlan.responsibilities[0].name = "PlayerController"
     $changePlan.responsibilities[0].path = "Assets/Scripts/PlayerController.cs"
     $changePlan.architectVerdict = "pass"
@@ -570,8 +571,13 @@ try {
     $changePlan.status = "implemented"
     $changePlan.updated = (Get-Date).ToString("o")
     Write-MLGSJsonAtomic -Path $changePlanPath -Value $changePlan
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/PlayerController.cs" | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Planned code change did not pass conformance." }
+    $plannedConformanceOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/PlayerController.cs","Assets/Scripts/PlayerModel.cs" 2>&1
+    $plannedConformanceExitCode = $LASTEXITCODE
+    if ($plannedConformanceExitCode -ne 0) { throw "Planned code change did not pass conformance: $($plannedConformanceOutput -join [Environment]::NewLine)" }
+    $taskAudit = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-production-code.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/PlayerController.cs","Assets/Scripts/PlayerModel.cs" -NoWrite | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0 -or [string]$taskAudit.conformanceVerdict -ne "pass") { throw "Nested task-scoped production audit did not pass conformance." }
+    $forwardedConformance = Get-Content -LiteralPath (Join-Path $project "production/quality/code-conformance-smoke-feature.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (@($forwardedConformance.changedPaths).Count -ne 2) { throw "Nested task-scoped production audit dropped changed paths across the PowerShell process boundary." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-conformance.ps1") -Root $Root -ProjectRoot $project -TaskId smoke-feature -ChangedPaths "Assets/Scripts/Unplanned.cs" 2>$null | Out-Null
     if ($LASTEXITCODE -ne 21) { throw "Unplanned code change passed conformance." }
 

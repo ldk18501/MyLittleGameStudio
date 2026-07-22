@@ -6,10 +6,22 @@ param(
   [string]$OutputPath = ""
 )
 
+$forwardedChangedPaths = @($args | ForEach-Object { [string]$_ })
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
 $ProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
+if ($forwardedChangedPaths.Count -gt 0) {
+  $ChangedPaths = @($ChangedPaths) + $forwardedChangedPaths
+}
+$ChangedPaths = @(@(
+  foreach ($value in @($ChangedPaths)) {
+    foreach ($part in ([string]$value -split ",")) {
+      if (-not [string]::IsNullOrWhiteSpace($part)) { $part.Trim() }
+    }
+  }
+) | Select-Object -Unique)
+if ($ChangedPaths.Count -eq 0) { throw "Code conformance requires at least one changed path." }
 if (-not $OutputPath) { $OutputPath = "production/quality/code-conformance-$TaskId.json" }
 $findings = @()
 $taskRaw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-code-task.ps1") -Root $Root -ProjectRoot $ProjectRoot -TaskId $TaskId -MinimumStatus implemented 2>$null

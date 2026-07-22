@@ -9,10 +9,34 @@ param(
   [switch]$NoWrite
 )
 
+$forwardedArrayValues = @($args | ForEach-Object { [string]$_ })
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
 $ProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
+if ($forwardedArrayValues.Count -gt 0) {
+  if ($TaskId -and @($ChangedPaths).Count -gt 0) {
+    $ChangedPaths = @($ChangedPaths) + $forwardedArrayValues
+  } elseif (@($SourcePaths).Count -gt 0) {
+    $SourcePaths = @($SourcePaths) + $forwardedArrayValues
+  } else {
+    throw "Production code audit received unexpected positional arguments: $($forwardedArrayValues -join ', ')"
+  }
+}
+$SourcePaths = @(@(
+  foreach ($value in @($SourcePaths)) {
+    foreach ($part in ([string]$value -split ",")) {
+      if (-not [string]::IsNullOrWhiteSpace($part)) { $part.Trim() }
+    }
+  }
+) | Select-Object -Unique)
+$ChangedPaths = @(@(
+  foreach ($value in @($ChangedPaths)) {
+    foreach ($part in ([string]$value -split ",")) {
+      if (-not [string]::IsNullOrWhiteSpace($part)) { $part.Trim() }
+    }
+  }
+) | Select-Object -Unique)
 
 $rules = @(
   [pscustomobject]@{ id = "not-implemented"; severity = "error"; pattern = "\bNotImplementedException\b"; message = "Release-scope code contains NotImplementedException." },
