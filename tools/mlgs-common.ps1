@@ -441,22 +441,25 @@ function Test-MLGSVisualTarget {
     if (-not [bool]$target.approved) { continue }
     $approvedIds += $id
     if (@($target.nonNegotiables).Count -eq 0) { $issues += "${id}: approved visual target needs nonNegotiables." }
-    $styleLock = $target.styleLock
+    $styleLock = $null
+    if ($names -contains "styleLock") { $styleLock = $target.styleLock }
     if ($null -eq $styleLock) {
       $issues += "${id}: approved visual target needs a structured styleLock."
     } else {
-      foreach ($name in @("renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid")) {
-        if ($styleLock.PSObject.Properties.Name -notcontains $name) { $issues += "${id}: styleLock is missing $name." }
-      }
-      foreach ($name in @("renderingMedium", "colorTemperature", "saturation", "contrast")) {
-        if ([string]::IsNullOrWhiteSpace([string]$styleLock.$name) -or [string]$styleLock.$name -match "MIGRATION REQUIRED|Replace with") { $issues += "${id}: styleLock.$name is not production-ready." }
-      }
-      if (@($styleLock.palette).Count -lt 3) { $issues += "${id}: styleLock.palette needs at least three role-based colors." }
-      foreach ($entry in @($styleLock.palette)) {
-        if ([string]$entry.hex -notmatch '^#[0-9A-Fa-f]{6}$' -or [string]::IsNullOrWhiteSpace([string]$entry.role)) { $issues += "${id}: styleLock.palette entries need #RRGGBB and a role." }
-      }
-      foreach ($name in @("lighting", "materials", "surfaceTexture", "shapeLanguage", "preserve", "avoid")) {
-        if (@($styleLock.$name).Count -eq 0 -or @($styleLock.$name | Where-Object { [string]$_ -match "MIGRATION REQUIRED|Replace with" }).Count -gt 0) { $issues += "${id}: styleLock.$name is incomplete." }
+      $requiredStyleLockProperties = @("renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid")
+      $missingStyleLockProperties = @($requiredStyleLockProperties | Where-Object { $styleLock.PSObject.Properties.Name -notcontains $_ })
+      foreach ($name in $missingStyleLockProperties) { $issues += "${id}: styleLock is missing $name." }
+      if ($missingStyleLockProperties.Count -eq 0) {
+        foreach ($name in @("renderingMedium", "colorTemperature", "saturation", "contrast")) {
+          if ([string]::IsNullOrWhiteSpace([string]$styleLock.$name) -or [string]$styleLock.$name -match "MIGRATION REQUIRED|Replace with") { $issues += "${id}: styleLock.$name is not production-ready." }
+        }
+        if (@($styleLock.palette).Count -lt 3) { $issues += "${id}: styleLock.palette needs at least three role-based colors." }
+        foreach ($entry in @($styleLock.palette)) {
+          if ([string]$entry.hex -notmatch '^#[0-9A-Fa-f]{6}$' -or [string]::IsNullOrWhiteSpace([string]$entry.role)) { $issues += "${id}: styleLock.palette entries need #RRGGBB and a role." }
+        }
+        foreach ($name in @("lighting", "materials", "surfaceTexture", "shapeLanguage", "preserve", "avoid")) {
+          if (@($styleLock.$name).Count -eq 0 -or @($styleLock.$name | Where-Object { [string]$_ -match "MIGRATION REQUIRED|Replace with" }).Count -gt 0) { $issues += "${id}: styleLock.$name is incomplete." }
+        }
       }
     }
     $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$target.imagePath) -Label "${id} imagePath"
@@ -560,25 +563,40 @@ function Test-MLGSArtPromptMetadata {
     } else {
       if (@($prompt.referenceImages) -notcontains [string]$target.imagePath) { $issues += "Art prompt must include the approved target image as an exact reference." }
       $styleFields = @("renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid")
-      $targetStyleObject = [ordered]@{}
-      $promptStyleObject = [ordered]@{}
-      foreach ($field in $styleFields) {
-        if ($field -eq "palette") {
-          $targetStyleObject[$field] = @($target.styleLock.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
-          $promptStyleObject[$field] = @($prompt.styleLockSnapshot.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
-        } else {
-          $targetStyleObject[$field] = $target.styleLock.$field
-          $promptStyleObject[$field] = $prompt.styleLockSnapshot.$field
+      $targetStyleLock = $null
+      if ($target.PSObject.Properties.Name -contains "styleLock") { $targetStyleLock = $target.styleLock }
+      $promptStyleLock = $prompt.styleLockSnapshot
+      if ($null -eq $targetStyleLock) {
+        $issues += "Art prompt visual target needs a structured styleLock before prompt validation."
+      } elseif ($null -eq $promptStyleLock) {
+        $issues += "Art prompt styleLockSnapshot cannot be null."
+      } else {
+        $missingTargetStyleFields = @($styleFields | Where-Object { $targetStyleLock.PSObject.Properties.Name -notcontains $_ })
+        $missingPromptStyleFields = @($styleFields | Where-Object { $promptStyleLock.PSObject.Properties.Name -notcontains $_ })
+        foreach ($field in $missingTargetStyleFields) { $issues += "Art prompt visual target styleLock is missing $field." }
+        foreach ($field in $missingPromptStyleFields) { $issues += "Art prompt styleLockSnapshot is missing $field." }
+        if ($missingTargetStyleFields.Count -eq 0 -and $missingPromptStyleFields.Count -eq 0) {
+          $targetStyleObject = [ordered]@{}
+          $promptStyleObject = [ordered]@{}
+          foreach ($field in $styleFields) {
+            if ($field -eq "palette") {
+              $targetStyleObject[$field] = @($targetStyleLock.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
+              $promptStyleObject[$field] = @($promptStyleLock.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
+            } else {
+              $targetStyleObject[$field] = $targetStyleLock.$field
+              $promptStyleObject[$field] = $promptStyleLock.$field
+            }
+          }
+          $targetStyle = $targetStyleObject | ConvertTo-Json -Compress -Depth 30
+          $promptStyle = $promptStyleObject | ConvertTo-Json -Compress -Depth 30
+          if ($targetStyle -ne $promptStyle) { $issues += "Art prompt styleLockSnapshot does not exactly match the approved visual target." }
+          foreach ($value in @($targetStyleLock.preserve)) {
+            if (@($prompt.promptSections.invariants) -notcontains [string]$value) { $issues += "Art prompt invariants omitted visual-target preserve rule: $value" }
+          }
+          foreach ($value in @($targetStyleLock.avoid)) {
+            if (@($prompt.promptSections.negativeConstraints) -notcontains [string]$value) { $issues += "Art prompt negative constraints omitted visual-target avoid rule: $value" }
+          }
         }
-      }
-      $targetStyle = $targetStyleObject | ConvertTo-Json -Compress -Depth 30
-      $promptStyle = $promptStyleObject | ConvertTo-Json -Compress -Depth 30
-      if ($targetStyle -ne $promptStyle) { $issues += "Art prompt styleLockSnapshot does not exactly match the approved visual target." }
-      foreach ($value in @($target.styleLock.preserve)) {
-        if (@($prompt.promptSections.invariants) -notcontains [string]$value) { $issues += "Art prompt invariants omitted visual-target preserve rule: $value" }
-      }
-      foreach ($value in @($target.styleLock.avoid)) {
-        if (@($prompt.promptSections.negativeConstraints) -notcontains [string]$value) { $issues += "Art prompt negative constraints omitted visual-target avoid rule: $value" }
       }
     }
   } catch {
@@ -1206,11 +1224,23 @@ function Test-MLGSArtManifest {
             continue
           }
           $screen = $uiScreenById[$screenId]
-          if ([string]$screen.componentAudit.status -ne "approved" -or [string]$screen.componentAudit.artDirectorVerdict -ne "pass") {
+          if (@($screen.artAssetIds) -notcontains $id) { $issues += "${id}: source UI screen $screenId does not list this asset in artAssetIds." }
+          $screenAudit = $null
+          if ($screen.PSObject.Properties.Name -contains "componentAudit") { $screenAudit = $screen.componentAudit }
+          if ($null -eq $screenAudit) {
+            $issues += "${id}: source UI screen $screenId needs a componentAudit before formal generation."
+            continue
+          }
+          $requiredScreenAuditProperties = @("status", "artDirectorVerdict", "components", "referenceResolution")
+          $missingScreenAuditProperties = @($requiredScreenAuditProperties | Where-Object { $screenAudit.PSObject.Properties.Name -notcontains $_ })
+          if ($missingScreenAuditProperties.Count -gt 0) {
+            $issues += "${id}: source UI screen $screenId componentAudit is missing properties: $($missingScreenAuditProperties -join ', ')"
+            continue
+          }
+          if ([string]$screenAudit.status -ne "approved" -or [string]$screenAudit.artDirectorVerdict -ne "pass") {
             $issues += "${id}: source UI screen $screenId needs an approved Art Director component audit before formal generation."
           }
-          if (@($screen.artAssetIds) -notcontains $id) { $issues += "${id}: source UI screen $screenId does not list this asset in artAssetIds." }
-          $screenComponent = @($screen.componentAudit.components | Where-Object { [string]$_.id -eq $componentId }) | Select-Object -First 1
+          $screenComponent = @($screenAudit.components | Where-Object { [string]$_.id -eq $componentId }) | Select-Object -First 1
           if (-not $screenComponent) {
             $issues += "${id}: component $componentId is missing from the $screenId component audit."
             continue
@@ -1218,7 +1248,7 @@ function Test-MLGSArtManifest {
           if ([string]$screenComponent.assetId -ne $id) { $issues += "${id}: $screenId/$componentId points to asset '$($screenComponent.assetId)'." }
           if ([string]$screenComponent.reuseKey -ne [string]$component.reuseKey) { $issues += "${id}: reuseKey does not match $screenId/$componentId." }
           if ((@($screenComponent.referenceRect) | ConvertTo-Json -Compress) -ne ($rect | ConvertTo-Json -Compress)) { $issues += "${id}: reference rect does not match $screenId/$componentId." }
-          if ((@($screen.componentAudit.referenceResolution) | ConvertTo-Json -Compress) -ne ($resolution | ConvertTo-Json -Compress)) { $issues += "${id}: reference resolution does not match $screenId component audit." }
+          if ((@($screenAudit.referenceResolution) | ConvertTo-Json -Compress) -ne ($resolution | ConvertTo-Json -Compress)) { $issues += "${id}: reference resolution does not match $screenId component audit." }
           foreach ($state in @($screenComponent.requiredStates)) {
             if (@($component.requiredStates) -notcontains [string]$state) { $issues += "${id}: manifest requiredStates omitted $screenId/$componentId state '$state'." }
           }
@@ -1422,14 +1452,20 @@ function Test-MLGSUIScreenContract {
       if (-not $assetById.ContainsKey([string]$assetId)) { $issues += "${id}: artAssetIds references a missing asset: $assetId" }
     }
     if ($screenRank -ge [array]::IndexOf($statusOrder, "specified")) {
-      $audit = $screen.componentAudit
+      $audit = $null
+      if ($screenNames -contains "componentAudit") { $audit = $screen.componentAudit }
       if ($null -eq $audit) {
         $issues += "${id}: specified production UI needs a component audit."
         continue
       }
       $auditNames = @($audit.PSObject.Properties.Name)
-      foreach ($name in @("status", "method", "referenceImage", "referenceResolution", "completenessNotes", "artDirectorVerdict", "components")) {
-        if ($auditNames -notcontains $name) { $issues += "${id}: componentAudit is missing $name." }
+      $requiredAuditProperties = @("status", "method", "referenceImage", "referenceResolution", "completenessNotes", "artDirectorVerdict", "components")
+      $missingAuditProperties = @($requiredAuditProperties | Where-Object { $auditNames -notcontains $_ })
+      foreach ($name in $missingAuditProperties) {
+        $issues += "${id}: componentAudit is missing $name."
+      }
+      if ($missingAuditProperties.Count -gt 0) {
+        continue
       }
       if ([string]$audit.status -ne "approved" -or [string]$audit.artDirectorVerdict -ne "pass") {
         $issues += "${id}: component audit must be approved by the Art Director before formal UI asset generation."

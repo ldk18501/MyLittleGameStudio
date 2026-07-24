@@ -615,6 +615,57 @@ try {
     Write-MLGSJsonAtomic -Path $scopePath -Value $scope
   }
 
+  $results += Invoke-Step "art-usage-missing-metadata-fails-closed" {
+    $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $savedUsageMetadata = [string]$manifest.assets[0].usageMetadata
+    try {
+      $manifest.assets[0].PSObject.Properties.Remove("usageMetadata")
+      Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+      $usageOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-art-usage.ps1") -Root $Root -ProjectRoot $project -AssetId "hero" 2>&1)
+      $usageExitCode = $LASTEXITCODE
+      $usageText = $usageOutput -join [Environment]::NewLine
+      if ($usageExitCode -ne 22) { throw "Missing usageMetadata returned exit code $usageExitCode instead of 22." }
+      if ($usageText -match "PropertyNotFoundStrict|VariableIsUndefined|PropertyNotFoundException") { throw "Missing usageMetadata leaked a StrictMode exception." }
+      $usageResult = $usageText | ConvertFrom-Json
+      if ([bool]$usageResult.passed -or @($usageResult.issues).Count -eq 0) { throw "Missing usageMetadata did not return a structured failure." }
+    } finally {
+      $manifest.assets[0] | Add-Member -MemberType NoteProperty -Name usageMetadata -Value $savedUsageMetadata -Force
+      Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+    }
+  }
+
+  $results += Invoke-Step "legacy-art-contract-status-is-clean" {
+    $visualTargetPath = Join-Path $project "design/art/visual-target.json"
+    $uiPath = Join-Path $project "design/ui/screen-inventory.json"
+    $visualTarget = Get-Content -LiteralPath $visualTargetPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $ui = Get-Content -LiteralPath $uiPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $savedStyleLocks = @($visualTarget.targets | ForEach-Object { $_.styleLock })
+    $savedAudits = @($ui.screens | ForEach-Object { $_.componentAudit })
+    try {
+      foreach ($target in @($visualTarget.targets)) { $target.PSObject.Properties.Remove("styleLock") }
+      foreach ($screen in @($ui.screens)) { $screen.PSObject.Properties.Remove("componentAudit") }
+      Write-MLGSJsonAtomic -Path $visualTargetPath -Value $visualTarget
+      Write-MLGSJsonAtomic -Path $uiPath -Value $ui
+      $statusOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/get-project-status.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot 2>&1)
+      $statusExitCode = $LASTEXITCODE
+      $statusText = $statusOutput -join [Environment]::NewLine
+      if ($statusExitCode -ne 0) { throw "Legacy art contract status returned exit code $statusExitCode." }
+      if ($statusText -match "PropertyNotFoundStrict|VariableIsUndefined|PropertyNotFoundException") { throw "Legacy art contract status leaked a StrictMode exception." }
+      $legacyStatus = $statusText | ConvertFrom-Json
+      if ($null -eq $legacyStatus.gates -or $null -eq $legacyStatus.gaps) { throw "Legacy art contract status did not return the normal structured status payload." }
+    } finally {
+      for ($index = 0; $index -lt @($visualTarget.targets).Count; $index++) {
+        $visualTarget.targets[$index] | Add-Member -MemberType NoteProperty -Name styleLock -Value $savedStyleLocks[$index] -Force
+      }
+      for ($index = 0; $index -lt @($ui.screens).Count; $index++) {
+        $ui.screens[$index] | Add-Member -MemberType NoteProperty -Name componentAudit -Value $savedAudits[$index] -Force
+      }
+      Write-MLGSJsonAtomic -Path $visualTargetPath -Value $visualTarget
+      Write-MLGSJsonAtomic -Path $uiPath -Value $ui
+    }
+  }
+
   $results += Invoke-Step "registered-art-sheet-splitting" {
     $sheetRelative = "Assets/Art/Source/smoke-sheet.png"
     Copy-Item -LiteralPath (Join-Path $project "Assets/Art/Source/hero.png") -Destination (Join-Path $project $sheetRelative) -Force
