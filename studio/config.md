@@ -50,6 +50,20 @@
 - Large framework projects require dependency-graph structural evidence through CodeGraph, Roslyn, or a documented manual review; no single provider is mandatory.
 - Existing code is evidence, not an absolute rule. `extend`, `adapt`, `replace`, `create-new-foundation`, and `isolated-new-module` are all valid when the selected intensity and approved change plan support them.
 
+## Art Generation Strategy
+
+- An approved visual target carries a structured `styleLock` for palette roles, temperature, saturation, contrast, lighting, materials, texture, shape language, UI treatment, invariants, and forbidden drift.
+- Production prompt metadata must include the approved target image as a real reference, copy the style lock exactly, and restate every preserve/avoid rule on each edit.
+- `gpt-image-2` canvases obey the current minimum/maximum pixel, 16-pixel edge multiple, edge length, aspect-ratio, and opaque-background constraints. Smaller requested game assets are local post-process sizes.
+- Batch only 2–9 low-detail icons, portraits, or thumbnails with the same target into a registered sheet. Split only explicit rectangles with local matte removal, margin/component validation, and per-item reports.
+- Every formal asset has a Unity usage JSON in addition to its import recipe, so tint, material, sizing, anchors, sorting, state sprites, and real target components are explicit.
+- Approved UI target screens are decomposed before asset generation. `design/ui/screen-inventory.json` records every visible component, its exact source rectangle, state set, reuse key, and generated/reused/procedural/typography decision. Generated components must have matching `screen-derived` manifest entries with component-specific style descriptions, prompt cores, preserve/avoid rules, and text policy.
+
+## Verification Cadence
+
+- New work packages default to task-boundary verification: aggregate small edits, run focused inner-loop checks only for acceptance-critical or risk-triggered changes, and run the routine compile/acceptance/integration suite once per attempt.
+- Reuse passing evidence until a relevant input changes. Shared contracts, scene/prefab wiring, persistence/configuration, a previous failure, build/phase gates, or an owner request trigger broader regression.
+
 ## Productization Strategy
 
 Product versions do not advance phases. `0.1.x` is a prototype/pre-release label. A game may be called `1.0.0` or later only after the Release gate passes against an explicit `production/scope/release-scope.json`; all required scope items must be verified, all formal art approved against the visual targets, and no release-scope placeholders may remain.

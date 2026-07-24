@@ -422,13 +422,13 @@ function Test-MLGSVisualTarget {
     if (@($document.PSObject.Properties.Name) -notcontains $name) { $issues += "Visual target property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $targetPath; approvedIds = @(); issues = @($issues) } }
-  if ([string]$document.schemaVersion -ne "1.0") { $issues += "Visual target schemaVersion must be 1.0." }
+  if ([string]$document.schemaVersion -ne "1.1") { $issues += "Visual target schemaVersion must be 1.1." }
   if ([string]::IsNullOrWhiteSpace([string]$document.updated)) { $issues += "Visual target updated timestamp is required." }
   $ids = @{}
   $approvedIds = @()
   foreach ($target in @($document.targets)) {
     $names = @($target.PSObject.Properties.Name)
-    foreach ($name in @("id", "usage", "imagePath", "source", "approved", "nonNegotiables", "forbidden", "targetResolution")) {
+    foreach ($name in @("id", "usage", "imagePath", "source", "approved", "nonNegotiables", "forbidden", "targetResolution", "styleLock")) {
       if ($names -notcontains $name) { $issues += "Visual target is missing property: $name" }
     }
     if ($names -notcontains "id") { continue }
@@ -441,11 +441,229 @@ function Test-MLGSVisualTarget {
     if (-not [bool]$target.approved) { continue }
     $approvedIds += $id
     if (@($target.nonNegotiables).Count -eq 0) { $issues += "${id}: approved visual target needs nonNegotiables." }
+    $styleLock = $target.styleLock
+    if ($null -eq $styleLock) {
+      $issues += "${id}: approved visual target needs a structured styleLock."
+    } else {
+      foreach ($name in @("renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid")) {
+        if ($styleLock.PSObject.Properties.Name -notcontains $name) { $issues += "${id}: styleLock is missing $name." }
+      }
+      foreach ($name in @("renderingMedium", "colorTemperature", "saturation", "contrast")) {
+        if ([string]::IsNullOrWhiteSpace([string]$styleLock.$name) -or [string]$styleLock.$name -match "MIGRATION REQUIRED|Replace with") { $issues += "${id}: styleLock.$name is not production-ready." }
+      }
+      if (@($styleLock.palette).Count -lt 3) { $issues += "${id}: styleLock.palette needs at least three role-based colors." }
+      foreach ($entry in @($styleLock.palette)) {
+        if ([string]$entry.hex -notmatch '^#[0-9A-Fa-f]{6}$' -or [string]::IsNullOrWhiteSpace([string]$entry.role)) { $issues += "${id}: styleLock.palette entries need #RRGGBB and a role." }
+      }
+      foreach ($name in @("lighting", "materials", "surfaceTexture", "shapeLanguage", "preserve", "avoid")) {
+        if (@($styleLock.$name).Count -eq 0 -or @($styleLock.$name | Where-Object { [string]$_ -match "MIGRATION REQUIRED|Replace with" }).Count -gt 0) { $issues += "${id}: styleLock.$name is incomplete." }
+      }
+    }
     $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$target.imagePath) -Label "${id} imagePath"
     if ($pathIssue) { $issues += $pathIssue }
   }
   if ($approvedIds.Count -eq 0) { $issues += "At least one visual target image must be approved." }
   return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $targetPath; approvedIds = @($approvedIds); issues = @($issues) }
+}
+
+function ConvertTo-MLGSVisualComponentCanonicalJson {
+  param([Parameter(Mandatory = $true)]$Component)
+
+  $normalized = [ordered]@{
+    mode = [string]$Component.mode
+    role = [string]$Component.role
+    reuseKey = [string]$Component.reuseKey
+    generationUnit = [string]$Component.generationUnit
+    styleDescription = [string]$Component.styleDescription
+    promptCore = [string]$Component.promptCore
+    textPolicy = [string]$Component.textPolicy
+    requiredStates = @($Component.requiredStates | ForEach-Object { [string]$_ })
+    sourceComponents = @($Component.sourceComponents | ForEach-Object {
+      [ordered]@{
+        screenId = [string]$_.screenId
+        componentId = [string]$_.componentId
+        visualTargetId = [string]$_.visualTargetId
+        referenceImage = [string]$_.referenceImage
+        referenceResolution = @($_.referenceResolution | ForEach-Object { [int]$_ })
+        rect = @($_.rect | ForEach-Object { [int]$_ })
+      }
+    })
+    preserve = @($Component.preserve | ForEach-Object { [string]$_ })
+    avoid = @($Component.avoid | ForEach-Object { [string]$_ })
+  }
+  return ($normalized | ConvertTo-Json -Compress -Depth 30)
+}
+
+function Test-MLGSArtPromptMetadata {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRoot,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)]$Asset,
+    [Parameter(Mandatory = $true)][string]$VisualTargetPath
+  )
+
+  $issues = @()
+  $assetId = [string]$Asset.id
+  try { $promptPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
+    return [pscustomobject]@{ passed = $false; path = $Path; assetId = $assetId; issues = @($_.Exception.Message) }
+  }
+  if (-not (Test-Path $promptPath)) { return [pscustomobject]@{ passed = $false; path = $promptPath; assetId = $assetId; issues = @("Missing art prompt metadata: $Path") } }
+  try { $prompt = Get-Content -LiteralPath $promptPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
+    return [pscustomobject]@{ passed = $false; path = $promptPath; assetId = $assetId; issues = @("Invalid art prompt metadata JSON: $($_.Exception.Message)") }
+  }
+  $required = @("schemaVersion", "assetId", "visualTargetId", "referenceImages", "model", "quality", "requestedFinalSize", "generationCanvasSize", "background", "generationStrategy", "batchPlan", "manifestComponentSnapshot", "styleLockSnapshot", "promptSections", "promptText", "postProcess", "validation", "updated")
+  foreach ($name in $required) {
+    if ($prompt.PSObject.Properties.Name -notcontains $name) { $issues += "Art prompt metadata property is missing: $name" }
+  }
+  if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $promptPath; assetId = $assetId; issues = @($issues) } }
+  if ([string]$prompt.schemaVersion -ne "1.1") { $issues += "Art prompt metadata schemaVersion must be 1.1." }
+  if ([string]$prompt.assetId -ne $assetId) { $issues += "Art prompt metadata assetId must be $assetId." }
+  if (@($Asset.visualTargets) -notcontains [string]$prompt.visualTargetId) { $issues += "Art prompt visualTargetId must be declared by the asset manifest." }
+  if ($Asset.PSObject.Properties.Name -notcontains "visualComponent" -or $null -eq $Asset.visualComponent) {
+    $issues += "Art asset needs a visualComponent contract before prompt validation."
+  } else {
+    $assetComponentJson = ConvertTo-MLGSVisualComponentCanonicalJson -Component $Asset.visualComponent
+    $promptComponentJson = ConvertTo-MLGSVisualComponentCanonicalJson -Component $prompt.manifestComponentSnapshot
+    if ($assetComponentJson -ne $promptComponentJson) { $issues += "Art prompt manifestComponentSnapshot does not exactly match the asset manifest." }
+    if ([string]$Asset.visualComponent.mode -eq "screen-derived") {
+      foreach ($sourceComponent in @($Asset.visualComponent.sourceComponents)) {
+        if (@($prompt.referenceImages) -notcontains [string]$sourceComponent.referenceImage) {
+          $issues += "Screen-derived prompt must include its component reference image: $($sourceComponent.referenceImage)"
+        }
+      }
+      foreach ($value in @($Asset.visualComponent.preserve)) {
+        if (@($prompt.promptSections.invariants) -notcontains [string]$value) { $issues += "Art prompt invariants omitted component preserve rule: $value" }
+      }
+      foreach ($value in @($Asset.visualComponent.avoid)) {
+        if (@($prompt.promptSections.negativeConstraints) -notcontains [string]$value) { $issues += "Art prompt negative constraints omitted component avoid rule: $value" }
+      }
+      if (-not ([string]$prompt.promptSections.subject).Contains([string]$Asset.visualComponent.promptCore)) {
+        $issues += "Screen-derived prompt subject must contain the manifest visualComponent.promptCore verbatim."
+      }
+    }
+  }
+  if (@("low", "medium", "high", "auto") -notcontains [string]$prompt.quality) { $issues += "Art prompt quality is invalid." }
+  if (@("opaque", "transparent", "auto") -notcontains [string]$prompt.background) { $issues += "Art prompt background is invalid." }
+  if (@("reference-edit", "reference-guided", "registered-sheet-edit") -notcontains [string]$prompt.generationStrategy) { $issues += "Art prompt generationStrategy is invalid." }
+  if ([string]::IsNullOrWhiteSpace([string]$prompt.updated)) { $issues += "Art prompt metadata updated timestamp is required." }
+  foreach ($flag in @("requireTargetImageAsReference", "requirePaletteComparison", "requireVisualComparison", "requireUnityUsageMetadata")) {
+    if ($prompt.validation.PSObject.Properties.Name -notcontains $flag -or -not [bool]$prompt.validation.$flag) { $issues += "Art prompt validation must enable $flag." }
+  }
+  try {
+    $targetFull = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $VisualTargetPath
+    $targetDocument = Get-Content -LiteralPath $targetFull -Raw -Encoding UTF8 | ConvertFrom-Json
+    $target = @($targetDocument.targets | Where-Object { [string]$_.id -eq [string]$prompt.visualTargetId }) | Select-Object -First 1
+    if (-not $target) {
+      $issues += "Art prompt visual target was not found: $($prompt.visualTargetId)"
+    } elseif (-not [bool]$target.approved) {
+      $issues += "Art prompt visual target is not approved: $($prompt.visualTargetId)"
+    } else {
+      if (@($prompt.referenceImages) -notcontains [string]$target.imagePath) { $issues += "Art prompt must include the approved target image as an exact reference." }
+      $styleFields = @("renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid")
+      $targetStyleObject = [ordered]@{}
+      $promptStyleObject = [ordered]@{}
+      foreach ($field in $styleFields) {
+        if ($field -eq "palette") {
+          $targetStyleObject[$field] = @($target.styleLock.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
+          $promptStyleObject[$field] = @($prompt.styleLockSnapshot.palette | ForEach-Object { [ordered]@{ hex = [string]$_.hex; role = [string]$_.role } })
+        } else {
+          $targetStyleObject[$field] = $target.styleLock.$field
+          $promptStyleObject[$field] = $prompt.styleLockSnapshot.$field
+        }
+      }
+      $targetStyle = $targetStyleObject | ConvertTo-Json -Compress -Depth 30
+      $promptStyle = $promptStyleObject | ConvertTo-Json -Compress -Depth 30
+      if ($targetStyle -ne $promptStyle) { $issues += "Art prompt styleLockSnapshot does not exactly match the approved visual target." }
+      foreach ($value in @($target.styleLock.preserve)) {
+        if (@($prompt.promptSections.invariants) -notcontains [string]$value) { $issues += "Art prompt invariants omitted visual-target preserve rule: $value" }
+      }
+      foreach ($value in @($target.styleLock.avoid)) {
+        if (@($prompt.promptSections.negativeConstraints) -notcontains [string]$value) { $issues += "Art prompt negative constraints omitted visual-target avoid rule: $value" }
+      }
+    }
+  } catch {
+    $issues += "Art prompt could not load its visual target: $($_.Exception.Message)"
+  }
+  foreach ($relative in @($prompt.referenceImages)) {
+    $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "$assetId prompt reference"
+    if ($pathIssue) { $issues += $pathIssue }
+  }
+  $canvas = @($prompt.generationCanvasSize)
+  $final = @($prompt.requestedFinalSize)
+  $postSize = @($prompt.postProcess.outputSize)
+  if ($canvas.Count -ne 2 -or @($canvas | Where-Object { [int]$_ -le 0 }).Count -gt 0) { $issues += "Art prompt generationCanvasSize must contain two positive dimensions." }
+  if ($final.Count -ne 2 -or @($final | Where-Object { [int]$_ -le 0 }).Count -gt 0) { $issues += "Art prompt requestedFinalSize must contain two positive dimensions." }
+  if ($postSize.Count -ne 2 -or $final.Count -ne 2 -or [int]$postSize[0] -ne [int]$final[0] -or [int]$postSize[1] -ne [int]$final[1]) { $issues += "Art prompt postProcess.outputSize must equal requestedFinalSize." }
+  if ([string]$prompt.model -eq "gpt-image-2" -and $canvas.Count -eq 2) {
+    $width = [int]$canvas[0]
+    $height = [int]$canvas[1]
+    $pixels = $width * $height
+    if ($width % 16 -ne 0 -or $height % 16 -ne 0) { $issues += "gpt-image-2 generation dimensions must both be multiples of 16." }
+    if ($width -gt 3840 -or $height -gt 3840) { $issues += "gpt-image-2 generation dimensions cannot exceed 3840px per edge." }
+    if ($pixels -lt 655360 -or $pixels -gt 8294400) { $issues += "gpt-image-2 generation canvas must contain 655,360 to 8,294,400 pixels." }
+    if ([Math]::Max($width, $height) / [Math]::Min($width, $height) -gt 3.0) { $issues += "gpt-image-2 generation canvas aspect ratio cannot exceed 3:1." }
+    if ([string]$prompt.background -eq "transparent") { $issues += "gpt-image-2 does not support transparent output; use an opaque matte and local background removal." }
+  }
+  if ([string]$prompt.generationStrategy -eq "registered-sheet-edit") {
+    if ([string]::IsNullOrWhiteSpace([string]$prompt.batchPlan)) { $issues += "registered-sheet-edit requires batchPlan." }
+    else {
+      $batchIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$prompt.batchPlan) -Label "$assetId batch plan"
+      if ($batchIssue) { $issues += $batchIssue }
+    }
+  } elseif (-not [string]::IsNullOrWhiteSpace([string]$prompt.batchPlan)) {
+    $issues += "batchPlan is only valid for registered-sheet-edit."
+  }
+  return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $promptPath; assetId = $assetId; issues = @($issues) }
+}
+
+function Test-MLGSArtUsageMetadata {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRoot,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)]$Asset
+  )
+
+  $issues = @()
+  $assetId = [string]$Asset.id
+  try { $usagePath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
+    return [pscustomobject]@{ passed = $false; path = $Path; assetId = $assetId; issues = @($_.Exception.Message) }
+  }
+  if (-not (Test-Path $usagePath)) { return [pscustomobject]@{ passed = $false; path = $usagePath; assetId = $assetId; issues = @("Missing art usage metadata: $Path") } }
+  try { $usage = Get-Content -LiteralPath $usagePath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
+    return [pscustomobject]@{ passed = $false; path = $usagePath; assetId = $assetId; issues = @("Invalid art usage metadata JSON: $($_.Exception.Message)") }
+  }
+  $required = @("schemaVersion", "assetId", "sourceTexture", "renderer", "unityTargets", "layout", "sprite", "color", "material", "sorting", "states", "implementationNotes", "verification", "updated")
+  foreach ($name in $required) {
+    if ($usage.PSObject.Properties.Name -notcontains $name) { $issues += "Art usage metadata property is missing: $name" }
+  }
+  if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $usagePath; assetId = $assetId; issues = @($issues) } }
+  if ([string]$usage.schemaVersion -ne "1.0") { $issues += "Art usage metadata schemaVersion must be 1.0." }
+  if ([string]$usage.assetId -ne $assetId) { $issues += "Art usage metadata assetId must be $assetId." }
+  if ([string]$usage.sourceTexture -ne [string]$Asset.outputPath) { $issues += "Art usage sourceTexture must match the asset outputPath." }
+  if (@("SpriteRenderer", "UGUI.Image", "UGUI.RawImage", "UIToolkit.Background", "TilemapRenderer", "MaterialTexture", "Other") -notcontains [string]$usage.renderer) { $issues += "Art usage renderer is invalid." }
+  if (@($usage.unityTargets).Count -eq 0) { $issues += "Art usage metadata needs at least one Unity target." }
+  foreach ($target in @($usage.unityTargets)) {
+    foreach ($name in @("assetPath", "objectPath", "component", "property")) {
+      if ($target.PSObject.Properties.Name -notcontains $name) { $issues += "Art usage Unity target is missing $name." }
+    }
+    $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$target.assetPath) -Label "$assetId usage target"
+    if ($pathIssue) { $issues += $pathIssue }
+  }
+  if (@($usage.layout.expectedPixelSize).Count -ne 2 -or @($usage.layout.expectedPixelSize | Where-Object { [int]$_ -le 0 }).Count -gt 0) { $issues += "Art usage expectedPixelSize must contain two positive dimensions." }
+  if (@($usage.layout.pivot).Count -ne 2 -or @($usage.layout.pivot | Where-Object { [double]$_ -lt 0 -or [double]$_ -gt 1 }).Count -gt 0) { $issues += "Art usage pivot must contain two normalized values." }
+  if (-not [bool]$usage.color.preserveSourceColors) { $issues += "Formal art usage must preserve source colors; state tinting must be separately declared and reviewed." }
+  if (@($usage.implementationNotes).Count -eq 0) { $issues += "Art usage metadata needs implementationNotes." }
+  if ([string]::IsNullOrWhiteSpace([string]$usage.updated)) { $issues += "Art usage metadata updated timestamp is required." }
+  $statusOrder = @("planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved")
+  $statusRank = [array]::IndexOf($statusOrder, [string]$Asset.status)
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "approved")) {
+    if (@($usage.verification.evidence).Count -eq 0) { $issues += "Approved art usage needs Unity Game View evidence." }
+    foreach ($relative in @($usage.verification.evidence)) {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$relative) -Label "$assetId usage evidence"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+  }
+  return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $usagePath; assetId = $assetId; issues = @($issues) }
 }
 
 function Test-MLGSProductionCapabilities {
@@ -631,14 +849,15 @@ function Test-MLGSArtImportRecipe {
   try { $recipe = Get-Content -LiteralPath $recipePath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
     return [pscustomobject]@{ passed = $false; path = $recipePath; assetId = $assetId; issues = @("Invalid art import recipe JSON: $($_.Exception.Message)") }
   }
-  $required = @("schemaVersion", "assetId", "texturePath", "textureType", "spriteMode", "pixelsPerUnit", "pivot", "border", "meshType", "alphaIsTransparency", "mipmaps", "filterMode", "wrapMode", "maxSize", "compression", "sourceLayout", "extractionMode", "integrityGate", "slicing", "atlas", "addressable", "platformOverrides", "unityImporterEvidence", "nineSliceEvidence")
+  $required = @("schemaVersion", "assetId", "texturePath", "usageMetadata", "textureType", "spriteMode", "pixelsPerUnit", "pivot", "border", "meshType", "alphaIsTransparency", "mipmaps", "filterMode", "wrapMode", "maxSize", "compression", "sourceLayout", "extractionMode", "integrityGate", "slicing", "atlas", "addressable", "platformOverrides", "unityImporterEvidence", "nineSliceEvidence")
   foreach ($name in $required) {
     if (@($recipe.PSObject.Properties.Name) -notcontains $name) { $issues += "Art import recipe property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $recipePath; assetId = $assetId; issues = @($issues) } }
-  if ([string]$recipe.schemaVersion -ne "1.0") { $issues += "Art import recipe schemaVersion must be 1.0." }
+  if ([string]$recipe.schemaVersion -ne "1.1") { $issues += "Art import recipe schemaVersion must be 1.1." }
   if ([string]$recipe.assetId -ne $assetId) { $issues += "Art import recipe assetId must be $assetId." }
   if ([string]$recipe.texturePath -ne [string]$Asset.outputPath) { $issues += "Art import recipe texturePath must match the asset outputPath." }
+  if ([string]$recipe.usageMetadata -ne [string]$Asset.usageMetadata) { $issues += "Art import recipe usageMetadata must match the asset usageMetadata." }
   $enumChecks = @{
     textureType = @("Sprite", "Default", "NormalMap", "GUI")
     spriteMode = @("Single", "Multiple", "Polygon")
@@ -872,22 +1091,41 @@ function Test-MLGSArtManifest {
     if ($manifestNames -notcontains $name) { $issues += "Art manifest property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $manifestPath; requiredFor = $RequiredFor; checkedAssets = 0; issues = @($issues) } }
-  if ([string]$manifest.schemaVersion -ne "1.4") { $issues += "Art manifest schemaVersion must be 1.4." }
+  if ([string]$manifest.schemaVersion -ne "1.6") { $issues += "Art manifest schemaVersion must be 1.6." }
   $visualTargetResult = Test-MLGSVisualTarget -ProjectRoot $ProjectRoot -Path ([string]$manifest.visualTargetPath)
   if (-not $visualTargetResult.passed) { $issues += @($visualTargetResult.issues) }
   $approvedVisualTargets = @{}
   foreach ($visualTargetId in @($visualTargetResult.approvedIds)) { $approvedVisualTargets[[string]$visualTargetId] = $true }
+  $visualTargetById = @{}
+  try {
+    $visualTargetFull = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$manifest.visualTargetPath)
+    $visualTargetDocument = Get-Content -LiteralPath $visualTargetFull -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach ($target in @($visualTargetDocument.targets)) { $visualTargetById[[string]$target.id] = $target }
+  } catch {
+    $issues += "Art manifest could not load visual target details: $($_.Exception.Message)"
+  }
+  $uiScreenById = @{}
+  $uiContractPath = Join-Path $ProjectRoot "design/ui/screen-inventory.json"
+  if (Test-Path $uiContractPath) {
+    try {
+      $uiContract = Get-Content -LiteralPath $uiContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+      foreach ($screen in @($uiContract.screens)) { $uiScreenById[[string]$screen.id] = $screen }
+    } catch {
+      $issues += "Art manifest could not load UI screen component audit: $($_.Exception.Message)"
+    }
+  }
 
   $ids = @{}
+  $assetById = @{}
   $requiredAssets = @()
   foreach ($asset in @($manifest.assets)) {
     $assetNames = @($asset.PSObject.Properties.Name)
-    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "statusHistory", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath")
+    $requiredAssetProperties = @("id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "visualComponent", "sourceFile", "outputPath", "status", "statusHistory", "placeholder", "importRecipe", "usageMetadata", "integrity", "references", "evidence", "reviewPath")
     $missingAssetProperties = @($requiredAssetProperties | Where-Object { $assetNames -notcontains $_ })
     if ($missingAssetProperties.Count -gt 0) { $issues += "Art asset is missing properties: $($missingAssetProperties -join ', ')"; continue }
     $id = [string]$asset.id
     if ([string]::IsNullOrWhiteSpace($id)) { $issues += "Art asset is missing id."; continue }
-    if ($ids.ContainsKey($id)) { $issues += "Duplicate art asset id: $id" } else { $ids[$id] = $true }
+    if ($ids.ContainsKey($id)) { $issues += "Duplicate art asset id: $id" } else { $ids[$id] = $true; $assetById[$id] = $asset }
     try { $assetStageRank = Get-MLGSStageRank -Stage ([string]$asset.requiredFor) } catch { $issues += "${id}: $($_.Exception.Message)"; continue }
     if ($assetStageRank -le $requiredStageRank) { $requiredAssets += $asset }
   }
@@ -899,7 +1137,7 @@ function Test-MLGSArtManifest {
 
   foreach ($asset in $requiredAssets) {
     $id = [string]$asset.id
-    foreach ($name in @("kind", "usage", "sourceType", "source", "license", "sourceFile", "outputPath", "status", "importRecipe")) {
+    foreach ($name in @("kind", "usage", "sourceType", "source", "license", "sourceFile", "outputPath", "status", "importRecipe", "usageMetadata")) {
       if (-not ($asset.PSObject.Properties.Name -contains $name) -or [string]::IsNullOrWhiteSpace([string]$asset.$name)) { $issues += "${id}: missing $name" }
     }
     $statusRank = [array]::IndexOf($statusOrder, [string]$asset.status)
@@ -923,6 +1161,72 @@ function Test-MLGSArtManifest {
     foreach ($visualTargetId in @($asset.visualTargets)) {
       if (-not $approvedVisualTargets.ContainsKey([string]$visualTargetId)) { $issues += "${id}: visual target is missing or not approved: $visualTargetId" }
     }
+    $component = $asset.visualComponent
+    $componentNames = if ($component) { @($component.PSObject.Properties.Name) } else { @() }
+    $requiredComponentProperties = @("mode", "role", "reuseKey", "generationUnit", "styleDescription", "promptCore", "textPolicy", "requiredStates", "sourceComponents", "preserve", "avoid")
+    $missingComponentProperties = @($requiredComponentProperties | Where-Object { $componentNames -notcontains $_ })
+    if ($missingComponentProperties.Count -gt 0) {
+      $issues += "${id}: visualComponent is missing properties: $($missingComponentProperties -join ', ')"
+    } else {
+      foreach ($name in @("role", "reuseKey", "styleDescription", "promptCore")) {
+        if ([string]::IsNullOrWhiteSpace([string]$component.$name) -or [string]$component.$name -match "MIGRATION REQUIRED|Replace with|replace-with") {
+          $issues += "${id}: visualComponent.$name is not production-ready."
+        }
+      }
+      foreach ($name in @("requiredStates", "preserve", "avoid")) {
+        if (@($component.$name).Count -eq 0 -or @($component.$name | Where-Object { [string]$_ -match "MIGRATION REQUIRED|Replace with" }).Count -gt 0) {
+          $issues += "${id}: visualComponent.$name is incomplete."
+        }
+      }
+      if ([string]$component.mode -eq "screen-derived") {
+        if (@($component.sourceComponents).Count -eq 0) { $issues += "${id}: screen-derived visualComponent needs at least one source component." }
+        foreach ($sourceComponent in @($component.sourceComponents)) {
+          $screenId = [string]$sourceComponent.screenId
+          $componentId = [string]$sourceComponent.componentId
+          $targetId = [string]$sourceComponent.visualTargetId
+          $resolution = @($sourceComponent.referenceResolution)
+          $rect = @($sourceComponent.rect)
+          if (@($asset.visualTargets) -notcontains $targetId) { $issues += "${id}: source component target is not declared by the asset: $targetId" }
+          if (-not $approvedVisualTargets.ContainsKey($targetId)) { $issues += "${id}: source component target is not approved: $targetId" }
+          if ($visualTargetById.ContainsKey($targetId) -and [string]$visualTargetById[$targetId].imagePath -ne [string]$sourceComponent.referenceImage) {
+            $issues += "${id}: source component referenceImage must exactly match visual target $targetId."
+          }
+          if ($resolution.Count -ne 2 -or [int]$resolution[0] -le 0 -or [int]$resolution[1] -le 0) {
+            $issues += "${id}: source component $screenId/$componentId has an invalid referenceResolution."
+          }
+          if ($rect.Count -ne 4 -or [int]$rect[0] -lt 0 -or [int]$rect[1] -lt 0 -or [int]$rect[2] -le 0 -or [int]$rect[3] -le 0) {
+            $issues += "${id}: source component $screenId/$componentId has an invalid rect."
+          } elseif ($resolution.Count -eq 2 -and ([int]$rect[0] + [int]$rect[2] -gt [int]$resolution[0] -or [int]$rect[1] + [int]$rect[3] -gt [int]$resolution[1])) {
+            $issues += "${id}: source component $screenId/$componentId rect exceeds the reference image."
+          }
+          $referenceIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$sourceComponent.referenceImage) -Label "${id} component reference image"
+          if ($referenceIssue) { $issues += $referenceIssue }
+          if (-not $uiScreenById.ContainsKey($screenId)) {
+            $issues += "${id}: source UI screen is missing from design/ui/screen-inventory.json: $screenId"
+            continue
+          }
+          $screen = $uiScreenById[$screenId]
+          if ([string]$screen.componentAudit.status -ne "approved" -or [string]$screen.componentAudit.artDirectorVerdict -ne "pass") {
+            $issues += "${id}: source UI screen $screenId needs an approved Art Director component audit before formal generation."
+          }
+          if (@($screen.artAssetIds) -notcontains $id) { $issues += "${id}: source UI screen $screenId does not list this asset in artAssetIds." }
+          $screenComponent = @($screen.componentAudit.components | Where-Object { [string]$_.id -eq $componentId }) | Select-Object -First 1
+          if (-not $screenComponent) {
+            $issues += "${id}: component $componentId is missing from the $screenId component audit."
+            continue
+          }
+          if ([string]$screenComponent.assetId -ne $id) { $issues += "${id}: $screenId/$componentId points to asset '$($screenComponent.assetId)'." }
+          if ([string]$screenComponent.reuseKey -ne [string]$component.reuseKey) { $issues += "${id}: reuseKey does not match $screenId/$componentId." }
+          if ((@($screenComponent.referenceRect) | ConvertTo-Json -Compress) -ne ($rect | ConvertTo-Json -Compress)) { $issues += "${id}: reference rect does not match $screenId/$componentId." }
+          if ((@($screen.componentAudit.referenceResolution) | ConvertTo-Json -Compress) -ne ($resolution | ConvertTo-Json -Compress)) { $issues += "${id}: reference resolution does not match $screenId component audit." }
+          foreach ($state in @($screenComponent.requiredStates)) {
+            if (@($component.requiredStates) -notcontains [string]$state) { $issues += "${id}: manifest requiredStates omitted $screenId/$componentId state '$state'." }
+          }
+        }
+      } elseif (@($component.sourceComponents).Count -gt 0) {
+        $issues += "${id}: standalone visualComponent must not declare screen source components."
+      }
+    }
 
     $pathRequirements = @{
       sourceFile = [array]::IndexOf($statusOrder, "generated")
@@ -938,8 +1242,10 @@ function Test-MLGSArtManifest {
     if ([string]$asset.sourceType -eq "generated" -and $statusRank -ge 1) {
       if ([string]::IsNullOrWhiteSpace([string]$asset.promptMetadata)) { $issues += "${id}: generated asset needs promptMetadata." }
       else {
-        try { $promptPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$asset.promptMetadata) } catch { $issues += "${id}: $($_.Exception.Message)"; $promptPath = "" }
-        if ($promptPath -and -not (Test-Path $promptPath)) { $issues += "${id}: missing prompt metadata: $($asset.promptMetadata)" }
+        $promptResult = Test-MLGSArtPromptMetadata -ProjectRoot $ProjectRoot -Path ([string]$asset.promptMetadata) -Asset $asset -VisualTargetPath ([string]$manifest.visualTargetPath)
+        if (-not $promptResult.passed) {
+          foreach ($promptIssue in @($promptResult.issues)) { $issues += "${id}: $promptIssue" }
+        }
       }
     }
     $integrityNames = if ($asset.integrity) { @($asset.integrity.PSObject.Properties.Name) } else { @() }
@@ -961,6 +1267,12 @@ function Test-MLGSArtManifest {
       }
     }
     if ($statusRank -ge [array]::IndexOf($statusOrder, "referenced") -and @($asset.references).Count -eq 0) { $issues += "${id}: referenced/approved asset needs Unity references." }
+    if ($statusRank -ge [array]::IndexOf($statusOrder, "referenced")) {
+      $usageResult = Test-MLGSArtUsageMetadata -ProjectRoot $ProjectRoot -Path ([string]$asset.usageMetadata) -Asset $asset
+      if (-not $usageResult.passed) {
+        foreach ($usageIssue in @($usageResult.issues)) { $issues += "${id}: $usageIssue" }
+      }
+    }
     if ($statusRank -ge [array]::IndexOf($statusOrder, "imported") -and -not [string]::IsNullOrWhiteSpace([string]$asset.importRecipe)) {
       $recipeResult = Test-MLGSArtImportRecipe -ProjectRoot $ProjectRoot -Path ([string]$asset.importRecipe) -Asset $asset
       if (-not $recipeResult.passed) {
@@ -1059,7 +1371,7 @@ function Test-MLGSUIScreenContract {
     if (@($contract.PSObject.Properties.Name) -notcontains $name) { $issues += "UI screen contract property is missing: $name" }
   }
   if ($issues.Count -gt 0) { return [pscustomobject]@{ passed = $false; path = $contractPath; issues = @($issues) } }
-  if ([string]$contract.schemaVersion -ne "1.0") { $issues += "UI screen contract schemaVersion must be 1.0." }
+  if ([string]$contract.schemaVersion -ne "1.1") { $issues += "UI screen contract schemaVersion must be 1.1." }
 
   $profilePath = Join-Path $ProjectRoot "design/game-profile.json"
   $scopePath = Join-Path $ProjectRoot "production/scope/release-scope.json"
@@ -1071,15 +1383,116 @@ function Test-MLGSUIScreenContract {
   $visual = Test-MLGSVisualTarget -ProjectRoot $ProjectRoot -Path "design/art/visual-target.json"
   foreach ($targetId in @($visual.approvedIds)) { $approvedTargets[[string]$targetId] = $true }
   if (-not $visual.passed) { $issues += @($visual.issues) }
+  $visualTargetById = @{}
+  try {
+    $visualDocument = Get-Content -LiteralPath (Join-Path $ProjectRoot "design/art/visual-target.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach ($target in @($visualDocument.targets)) { $visualTargetById[[string]$target.id] = $target }
+  } catch {
+    $issues += "UI component audit could not load visual target details."
+  }
+  $assetById = @{}
+  $manifestPath = Join-Path $ProjectRoot "production/assets/asset-manifest.json"
+  if (-not (Test-Path $manifestPath)) {
+    $issues += "Missing art asset manifest for UI component coverage."
+  } else {
+    try {
+      $artManifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+      foreach ($asset in @($artManifest.assets)) { $assetById[[string]$asset.id] = $asset }
+    } catch {
+      $issues += "Invalid art asset manifest for UI component coverage."
+    }
+  }
 
   $screenById = @{}
   foreach ($screen in @($contract.screens)) {
+    $screenNames = @($screen.PSObject.Properties.Name)
+    foreach ($name in @("id", "scopeId", "purpose", "visualTargetIds", "prefabOrDocument", "states", "controls", "componentAudit", "artAssetIds", "audioIds", "status", "evidence")) {
+      if ($screenNames -notcontains $name) { $issues += "UI screen is missing property: $name" }
+    }
     $id = [string]$screen.id
     if ([string]::IsNullOrWhiteSpace($id)) { $issues += "UI screen id is empty."; continue }
     if ($screenById.ContainsKey($id)) { $issues += "Duplicate UI screen id: $id" } else { $screenById[$id] = $screen }
+    $screenRank = [array]::IndexOf($statusOrder, [string]$screen.status)
+    if ($screenRank -lt 0) { $issues += "${id}: invalid UI screen status '$($screen.status)'." }
     if (@($screen.visualTargetIds).Count -eq 0) { $issues += "$($id): visualTargetIds are required." }
     foreach ($targetId in @($screen.visualTargetIds)) {
       if (-not $approvedTargets.ContainsKey([string]$targetId)) { $issues += "$($id): visual target is missing or not approved: $targetId" }
+    }
+    foreach ($assetId in @($screen.artAssetIds)) {
+      if (-not $assetById.ContainsKey([string]$assetId)) { $issues += "${id}: artAssetIds references a missing asset: $assetId" }
+    }
+    if ($screenRank -ge [array]::IndexOf($statusOrder, "specified")) {
+      $audit = $screen.componentAudit
+      if ($null -eq $audit) {
+        $issues += "${id}: specified production UI needs a component audit."
+        continue
+      }
+      $auditNames = @($audit.PSObject.Properties.Name)
+      foreach ($name in @("status", "method", "referenceImage", "referenceResolution", "completenessNotes", "artDirectorVerdict", "components")) {
+        if ($auditNames -notcontains $name) { $issues += "${id}: componentAudit is missing $name." }
+      }
+      if ([string]$audit.status -ne "approved" -or [string]$audit.artDirectorVerdict -ne "pass") {
+        $issues += "${id}: component audit must be approved by the Art Director before formal UI asset generation."
+      }
+      if ([string]::IsNullOrWhiteSpace([string]$audit.completenessNotes)) { $issues += "${id}: component audit needs completenessNotes explaining visual coverage." }
+      $referenceResolution = @($audit.referenceResolution)
+      if ($referenceResolution.Count -ne 2 -or [int]$referenceResolution[0] -le 0 -or [int]$referenceResolution[1] -le 0) {
+        $issues += "${id}: component audit referenceResolution is invalid."
+      }
+      $targetImageMatches = @($screen.visualTargetIds | Where-Object {
+        $visualTargetById.ContainsKey([string]$_) -and [string]$visualTargetById[[string]$_].imagePath -eq [string]$audit.referenceImage
+      })
+      if ($targetImageMatches.Count -eq 0) { $issues += "${id}: component audit referenceImage must exactly match one of the screen visual targets." }
+      $referenceIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$audit.referenceImage) -Label "${id} component audit reference image"
+      if ($referenceIssue) { $issues += $referenceIssue }
+      if (@($audit.components).Count -eq 0) { $issues += "${id}: approved component audit must enumerate every visible UI component, including procedural and typography-only decisions." }
+      $componentIds = @{}
+      $coveredControls = @{}
+      $mappedScreenDerivedAssets = @{}
+      foreach ($component in @($audit.components)) {
+        $componentId = [string]$component.id
+        if ([string]::IsNullOrWhiteSpace($componentId)) { $issues += "${id}: component id is empty."; continue }
+        if ($componentIds.ContainsKey($componentId)) { $issues += "${id}: duplicate component id: $componentId" } else { $componentIds[$componentId] = $true }
+        foreach ($controlId in @($component.controlIds)) { $coveredControls[[string]$controlId] = $true }
+        if (@($component.requiredStates).Count -eq 0) { $issues += "${id}/${componentId}: requiredStates cannot be empty." }
+        $rect = @($component.referenceRect)
+        if ($rect.Count -ne 4 -or [int]$rect[0] -lt 0 -or [int]$rect[1] -lt 0 -or [int]$rect[2] -le 0 -or [int]$rect[3] -le 0) {
+          $issues += "${id}/${componentId}: referenceRect is invalid."
+        } elseif ($referenceResolution.Count -eq 2 -and ([int]$rect[0] + [int]$rect[2] -gt [int]$referenceResolution[0] -or [int]$rect[1] + [int]$rect[3] -gt [int]$referenceResolution[1])) {
+          $issues += "${id}/${componentId}: referenceRect exceeds the reference image."
+        }
+        $decision = [string]$component.productionDecision
+        if (@("generated-asset", "reuse-existing") -contains $decision) {
+          $componentAssetId = [string]$component.assetId
+          if ([string]::IsNullOrWhiteSpace($componentAssetId)) {
+            $issues += "${id}/${componentId}: $decision requires assetId."
+            continue
+          }
+          if (@($screen.artAssetIds) -notcontains $componentAssetId) { $issues += "${id}/${componentId}: assetId is not listed by the screen artAssetIds." }
+          if (-not $assetById.ContainsKey($componentAssetId)) {
+            $issues += "${id}/${componentId}: component asset is missing from the art manifest: $componentAssetId"
+            continue
+          }
+          $componentAsset = $assetById[$componentAssetId]
+          if ([string]$componentAsset.visualComponent.mode -ne "screen-derived") { $issues += "${id}/${componentId}: UI component asset must use visualComponent.mode screen-derived." }
+          if ([string]$componentAsset.visualComponent.reuseKey -ne [string]$component.reuseKey) { $issues += "${id}/${componentId}: reuseKey does not match its art manifest asset." }
+          $sourceMatch = @($componentAsset.visualComponent.sourceComponents | Where-Object {
+            [string]$_.screenId -eq $id -and [string]$_.componentId -eq $componentId
+          })
+          if ($sourceMatch.Count -eq 0) { $issues += "${id}/${componentId}: art manifest asset does not link back to this audited component." }
+          $mappedScreenDerivedAssets[$componentAssetId] = $true
+        } elseif (-not [string]::IsNullOrWhiteSpace([string]$component.assetId)) {
+          $issues += "${id}/${componentId}: procedural or typography-only decisions must not claim an art asset."
+        }
+      }
+      foreach ($controlId in @($screen.controls)) {
+        if (-not $coveredControls.ContainsKey([string]$controlId)) { $issues += "${id}: control has no audited visual component mapping: $controlId" }
+      }
+      foreach ($assetId in @($screen.artAssetIds)) {
+        if ($assetById.ContainsKey([string]$assetId) -and [string]$assetById[[string]$assetId].visualComponent.mode -eq "screen-derived" -and -not $mappedScreenDerivedAssets.ContainsKey([string]$assetId)) {
+          $issues += "${id}: screen-derived art asset is not represented in componentAudit.components: $assetId"
+        }
+      }
     }
   }
 

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/art-batch.schema.json",
+  "title": "MLGS registered art sheet split plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "visualTargetId", "sourceImage", "sourceLayout", "canvasSize", "matteColor", "matteTolerance", "minimumCellMargin", "items", "reportPath", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "visualTargetId": { "type": "string", "minLength": 1 },
+    "sourceImage": { "type": "string", "minLength": 1 },
+    "sourceLayout": { "const": "registered-sheet" },
+    "canvasSize": { "$ref": "#/$defs/size" },
+    "matteColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "matteTolerance": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "minimumCellMargin": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId", "rect", "outputPath", "finalSize", "safePadding", "removeMatte", "maxSignificantComponents"],
+        "properties": {
+          "assetId": { "type": "string", "minLength": 1 },
+          "rect": {
+            "type": "array",
+            "prefixItems": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "integer", "minimum": 0 },
+              { "type": "integer", "minimum": 1 },
+              { "type": "integer", "minimum": 1 }
+            ],
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "outputPath": { "type": "string", "minLength": 1 },
+          "finalSize": { "$ref": "#/$defs/size" },
+          "safePadding": { "type": "integer", "minimum": 0 },
+          "removeMatte": { "type": "boolean" },
+          "maxSignificantComponents": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "reportPath": { "type": "string", "minLength": 1 },
+    "updated": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

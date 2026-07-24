@@ -1,6 +1,6 @@
 {
   "$schema": "../../.mlgs/visual-target.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "updated": "",
   "targets": [
     {
@@ -11,7 +11,25 @@
       "approved": false,
       "nonNegotiables": ["Replace with concrete composition, palette, material, UI, and detail rules"],
       "forbidden": ["Prototype HTML styling", "generic solid-color placeholder panels"],
-      "targetResolution": "target device resolution"
+      "targetResolution": "target device resolution",
+      "styleLock": {
+        "renderingMedium": "Replace with the approved medium and rendering language.",
+        "palette": [
+          { "hex": "#1B2014", "role": "shadow and background" },
+          { "hex": "#6F7545", "role": "muted olive midtone" },
+          { "hex": "#D2CD83", "role": "sickly yellow-green highlight" }
+        ],
+        "colorTemperature": "Replace with approved temperature.",
+        "saturation": "Replace with approved saturation.",
+        "contrast": "Replace with approved value and contrast structure.",
+        "lighting": ["Replace with approved lighting direction and source."],
+        "materials": ["Replace with approved material language."],
+        "surfaceTexture": ["Replace with approved texture and wear language."],
+        "shapeLanguage": ["Replace with approved silhouette and proportion language."],
+        "uiTreatment": [],
+        "preserve": ["Replace with invariants that must be repeated on every generation or edit."],
+        "avoid": ["Replace with forbidden visual drift, including unwanted hue or style shifts."]
+      }
     }
   ]
 }

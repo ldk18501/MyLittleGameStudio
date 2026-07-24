@@ -1,6 +1,6 @@
 {
   "$schema": "../../.mlgs/art-asset-manifest.schema.json",
-  "schemaVersion": "1.4",
+  "schemaVersion": "1.6",
   "updated": "",
   "visualTargetPath": "design/art/visual-target.json",
   "assets": [
@@ -14,6 +14,19 @@
       "source": "provider/model or source file",
       "license": "project-owned/generated",
       "promptMetadata": "production/assets/prompts/example-player-idle.json",
+      "visualComponent": {
+        "mode": "standalone",
+        "role": "character-sprite",
+        "reuseKey": "player-idle",
+        "generationUnit": "single-sprite",
+        "styleDescription": "Describe the component-specific silhouette, bevel, border, fill, material, wear, and color roles visible in the approved target.",
+        "promptCore": "Generate only this component while preserving the linked visual target and style lock.",
+        "textPolicy": "no-text",
+        "requiredStates": ["default"],
+        "sourceComponents": [],
+        "preserve": ["Preserve the approved component proportions and palette roles."],
+        "avoid": ["Do not reinterpret the component as a different visual style or material."]
+      },
       "sourceFile": "Assets/Game/Art/Source/example-player-idle.png",
       "outputPath": "Assets/Game/Art/Sprites/example-player-idle.png",
       "status": "planned",
@@ -22,6 +35,7 @@
       ],
       "placeholder": false,
       "importRecipe": "production/assets/import-recipes/example-player-idle.json",
+      "usageMetadata": "production/assets/usage/example-player-idle.json",
       "integrity": {
         "sourceLayout": "individual",
         "extractionMode": "single-object",

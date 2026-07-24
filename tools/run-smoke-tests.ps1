@@ -178,6 +178,22 @@ try {
     $visualTarget.updated = (Get-Date).ToString("o")
     $visualTarget.targets[0].approved = $true
     $visualTarget.targets[0].imagePath = "design/art/targets/final-gameplay-target.png"
+    $visualTarget.targets[0].styleLock.renderingMedium = "Painted low-resolution game art with controlled CRT-era texture"
+    $visualTarget.targets[0].styleLock.palette = @(
+      [pscustomobject]@{ hex = "#1B2014"; role = "shadow and background" },
+      [pscustomobject]@{ hex = "#6F7545"; role = "muted olive midtone" },
+      [pscustomobject]@{ hex = "#D2CD83"; role = "yellow-green highlight" }
+    )
+    $visualTarget.targets[0].styleLock.colorTemperature = "cool olive shadows with restrained yellow-green highlights"
+    $visualTarget.targets[0].styleLock.saturation = "muted"
+    $visualTarget.targets[0].styleLock.contrast = "low-key scene with readable focal contrast"
+    $visualTarget.targets[0].styleLock.lighting = @("single directional practical light")
+    $visualTarget.targets[0].styleLock.materials = @("aged painted metal", "dirty glass")
+    $visualTarget.targets[0].styleLock.surfaceTexture = @("controlled grime and edge wear")
+    $visualTarget.targets[0].styleLock.shapeLanguage = @("chunky late-1990s industrial silhouettes")
+    $visualTarget.targets[0].styleLock.uiTreatment = @("cool neutral gray Win98 panels with navy title bars")
+    $visualTarget.targets[0].styleLock.preserve = @("preserve olive palette roles", "preserve chunky industrial proportions")
+    $visualTarget.targets[0].styleLock.avoid = @("avoid warm amber recoloring", "avoid modern flat UI")
     Write-MLGSJsonAtomic -Path $visualTargetPath -Value $visualTarget
 
     $frameworkPath = Join-Path $project "design/framework-adoption.json"
@@ -265,8 +281,45 @@ try {
     $recipe = Get-Content -LiteralPath (Join-Path $Root "templates/art-import-recipe.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     $recipe.assetId = "hero"
     $recipe.texturePath = "Assets/Art/Sprites/hero.png"
+    $recipe.usageMetadata = "production/assets/usage/hero.json"
     $recipe.unityImporterEvidence = @("production/assets/reviews/hero-game-view.png")
     Write-MLGSJsonAtomic -Path $recipePath -Value $recipe
+    $heroVisualComponent = [pscustomobject][ordered]@{
+      mode = "standalone"
+      role = "character-sprite"
+      reuseKey = "hero"
+      generationUnit = "single-sprite"
+      styleDescription = "Chunky late-1990s industrial hero sprite using the approved olive palette."
+      promptCore = "Generate the isolated hero sprite with the approved chunky industrial silhouette."
+      textPolicy = "no-text"
+      requiredStates = @("default")
+      sourceComponents = @()
+      preserve = @("Preserve the hero silhouette and approved palette roles.")
+      avoid = @("Avoid modern flat styling or warm amber recoloring.")
+    }
+    $prompt = Get-Content -LiteralPath (Join-Path $Root "templates/art-prompt-metadata.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $prompt.assetId = "hero"
+    $prompt.visualTargetId = "VT-001"
+    $prompt.referenceImages = @("design/art/targets/final-gameplay-target.png")
+    $prompt.requestedFinalSize = @(32, 32)
+    $prompt.generationCanvasSize = @(1024, 1024)
+    $prompt.manifestComponentSnapshot = $heroVisualComponent
+    $prompt.styleLockSnapshot = $visualTarget.targets[0].styleLock
+    $prompt.promptSections.invariants = @($visualTarget.targets[0].styleLock.preserve)
+    $prompt.promptSections.negativeConstraints = @($visualTarget.targets[0].styleLock.avoid)
+    $prompt.postProcess.outputSize = @(32, 32)
+    $prompt.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path (Join-Path $project "production/assets/prompts/hero.json") -Value $prompt
+    $usage = Get-Content -LiteralPath (Join-Path $Root "templates/art-usage.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $usage.assetId = "hero"
+    $usage.sourceTexture = "Assets/Art/Sprites/hero.png"
+    $usage.unityTargets[0].assetPath = "Assets/Prefabs/Hero.prefab"
+    $usage.unityTargets[0].objectPath = "Hero/Visual"
+    $usage.layout.expectedPixelSize = @(32, 32)
+    $usage.verification.gameViewPreset = "1080x1920"
+    $usage.verification.evidence = @("production/assets/reviews/hero-game-view.png")
+    $usage.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path (Join-Path $project "production/assets/usage/hero.json") -Value $usage
     $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $manifest.assets = @([pscustomobject]@{
@@ -279,6 +332,7 @@ try {
       source = "smoke/provider"
       license = "project-owned/generated"
       promptMetadata = "production/assets/prompts/hero.json"
+      visualComponent = $heroVisualComponent
       sourceFile = "Assets/Art/Source/hero.png"
       outputPath = "Assets/Art/Sprites/hero.png"
       status = "approved"
@@ -294,6 +348,7 @@ try {
       )
       placeholder = $false
       importRecipe = "production/assets/import-recipes/hero.json"
+      usageMetadata = "production/assets/usage/hero.json"
       integrity = [pscustomobject]@{
         sourceLayout = "individual"
         extractionMode = "single-object"
@@ -478,14 +533,77 @@ try {
         prefabOrDocument = $prefabRelative
         states = @("default", "loading", "error")
         controls = @("primary-action")
+        componentAudit = [pscustomobject][ordered]@{
+          status = "approved"
+          method = "manual-visual-audit"
+          referenceImage = "design/art/targets/final-gameplay-target.png"
+          referenceResolution = @(32, 32)
+          completenessNotes = "Smoke audit covers the only visible interactive component."
+          artDirectorVerdict = "pass"
+          components = @([pscustomobject][ordered]@{
+            id = "primary-action-visual"
+            role = "primary-action-button"
+            controlIds = @("primary-action")
+            productionDecision = "procedural-unity"
+            assetId = ""
+            referenceRect = @(0, 0, 32, 32)
+            requiredStates = @("default")
+            reuseKey = "primary-action"
+            notes = "Initial smoke contract uses a procedural decision."
+          })
+        }
         artAssetIds = @("hero")
         audioIds = @()
         status = "integrated"
         evidence = @()
       }
     }
+    $heroVisualComponent.mode = "screen-derived"
+    $heroVisualComponent.role = "primary-action-button"
+    $heroVisualComponent.reuseKey = "ui-primary-action"
+    $heroVisualComponent.generationUnit = "state-set"
+    $heroVisualComponent.styleDescription = "Cool neutral gray Win98 button frame with navy hierarchy and restrained green active fill."
+    $heroVisualComponent.promptCore = "Generate only the audited primary action button frame, without baked text, matching the source rectangle."
+    $heroVisualComponent.textPolicy = "separate-runtime-text"
+    $heroVisualComponent.requiredStates = @("default", "hover", "pressed", "disabled")
+    $heroVisualComponent.preserve = @("Preserve the cool gray bevel, square corners, thin dark outline, and restrained green active fill.")
+    $heroVisualComponent.avoid = @("Avoid warm beige metal, rounded modern controls, gradients, or baked labels.")
+    $heroVisualComponent.sourceComponents = @()
+    foreach ($screen in @($ui.screens)) {
+      $screen.componentAudit.components[0].productionDecision = "generated-asset"
+      $screen.componentAudit.components[0].assetId = "hero"
+      $screen.componentAudit.components[0].reuseKey = "ui-primary-action"
+      $screen.componentAudit.components[0].requiredStates = @("default", "hover", "pressed", "disabled")
+      $screen.artAssetIds = @("hero")
+      $heroVisualComponent.sourceComponents += [pscustomobject][ordered]@{
+        screenId = [string]$screen.id
+        componentId = "primary-action-visual"
+        visualTargetId = "VT-001"
+        referenceImage = "design/art/targets/final-gameplay-target.png"
+        referenceResolution = @(32, 32)
+        rect = @(0, 0, 32, 32)
+      }
+    }
+    $manifest.assets[0].visualComponent = $heroVisualComponent
+    $prompt.manifestComponentSnapshot = $heroVisualComponent
+    $prompt.promptSections.subject = "$($heroVisualComponent.promptCore) Include the required default, hover, pressed, and disabled states."
+    $prompt.promptSections.invariants = @($visualTarget.targets[0].styleLock.preserve) + @($heroVisualComponent.preserve)
+    $prompt.promptSections.negativeConstraints = @($visualTarget.targets[0].styleLock.avoid) + @($heroVisualComponent.avoid)
+    Write-MLGSJsonAtomic -Path (Join-Path $project "production/assets/prompts/hero.json") -Value $prompt
+    Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
     Write-MLGSJsonAtomic -Path $uiPath -Value $ui
     Write-MLGSJsonAtomic -Path $scopePath -Value $scope
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-ui-screen-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus integrated | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved UI component decomposition did not pass." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Screen-derived manifest component did not pass." }
+    $savedComponents = @($ui.screens[0].componentAudit.components)
+    $ui.screens[0].componentAudit.components = @()
+    Write-MLGSJsonAtomic -Path $uiPath -Value $ui
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-ui-screen-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus integrated 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 13) { throw "Incomplete UI component decomposition passed." }
+    $ui.screens[0].componentAudit.components = $savedComponents
+    Write-MLGSJsonAtomic -Path $uiPath -Value $ui
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-release-scope.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus integrated -DisallowPlaceholders | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Integrated release scope did not pass." }
     $testScopeItem = @($scope.items | Where-Object { [string]$_.requiredFor -eq "vertical-slice" }) | Select-Object -First 1
@@ -495,6 +613,31 @@ try {
     if ($LASTEXITCODE -ne 7) { throw "Incomplete release-scope counts passed." }
     $testScopeItem.implementedCount = [int]$testScopeItem.plannedCount
     Write-MLGSJsonAtomic -Path $scopePath -Value $scope
+  }
+
+  $results += Invoke-Step "registered-art-sheet-splitting" {
+    $sheetRelative = "Assets/Art/Source/smoke-sheet.png"
+    Copy-Item -LiteralPath (Join-Path $project "Assets/Art/Source/hero.png") -Destination (Join-Path $project $sheetRelative) -Force
+    $plan = Get-Content -LiteralPath (Join-Path $Root "templates/art-batch.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $plan.id = "smoke-sheet"
+    $plan.sourceImage = $sheetRelative
+    $plan.canvasSize = @(32, 32)
+    $plan.minimumCellMargin = 0
+    $plan.items = @(
+      [pscustomobject]@{ assetId = "smoke-left"; rect = @(0, 0, 16, 32); outputPath = "Assets/Art/Sprites/smoke-left.png"; finalSize = @(16, 16); safePadding = 0; removeMatte = $false; maxSignificantComponents = 1 },
+      [pscustomobject]@{ assetId = "smoke-right"; rect = @(16, 0, 16, 32); outputPath = "Assets/Art/Sprites/smoke-right.png"; finalSize = @(16, 16); safePadding = 0; removeMatte = $false; maxSignificantComponents = 1 }
+    )
+    $plan.reportPath = "production/qa/evidence/art-batches/smoke-sheet.json"
+    $plan.updated = (Get-Date).ToString("o")
+    $planPath = Join-Path $project "production/assets/batches/smoke-sheet.json"
+    Write-MLGSJsonAtomic -Path $planPath -Value $plan
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/split-art-sheet.ps1") -Root $Root -ProjectRoot $project -PlanPath "production/assets/batches/smoke-sheet.json" | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $project "Assets/Art/Sprites/smoke-left.png")) -or -not (Test-Path (Join-Path $project "Assets/Art/Sprites/smoke-right.png"))) { throw "Registered art sheet split failed." }
+    $plan.items[1].rect = @(8, 0, 16, 32)
+    $plan.reportPath = "production/qa/evidence/art-batches/smoke-sheet-overlap.json"
+    Write-MLGSJsonAtomic -Path $planPath -Value $plan
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/split-art-sheet.ps1") -Root $Root -ProjectRoot $project -PlanPath "production/assets/batches/smoke-sheet.json" 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 23) { throw "Overlapping registered art cells passed." }
   }
 
   $results += Invoke-Step "profile-baseline-ui-contracts" {
@@ -794,7 +937,7 @@ staff:
 
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/test-art-usage.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

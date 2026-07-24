@@ -1,0 +1,51 @@
+{
+  "$schema": "../../../.mlgs/art-usage.schema.json",
+  "schemaVersion": "1.0",
+  "assetId": "replace-me",
+  "sourceTexture": "Assets/Game/Art/Sprites/replace-me.png",
+  "renderer": "SpriteRenderer",
+  "unityTargets": [
+    {
+      "assetPath": "Assets/Game/Prefabs/ReplaceMe.prefab",
+      "objectPath": "Root/Visual",
+      "component": "SpriteRenderer",
+      "property": "sprite"
+    }
+  ],
+  "layout": {
+    "expectedPixelSize": [512, 512],
+    "preserveAspect": true,
+    "nativeScale": 1.0,
+    "anchor": "center",
+    "pivot": [0.5, 0.5]
+  },
+  "sprite": {
+    "mode": "Single",
+    "pixelsPerUnit": 100,
+    "border": [0, 0, 0, 0],
+    "packingTag": ""
+  },
+  "color": {
+    "colorSpace": "sRGB",
+    "tint": "#FFFFFFFF",
+    "preserveSourceColors": true,
+    "allowRuntimeTint": false
+  },
+  "material": {
+    "shader": "Sprites/Default",
+    "materialPath": ""
+  },
+  "sorting": {
+    "layer": "Default",
+    "order": 0
+  },
+  "states": [],
+  "implementationNotes": [
+    "Describe scale, crop, tiling, slicing, layering, and state-specific usage that Unity must reproduce."
+  ],
+  "verification": {
+    "gameViewPreset": "",
+    "evidence": []
+  },
+  "updated": ""
+}

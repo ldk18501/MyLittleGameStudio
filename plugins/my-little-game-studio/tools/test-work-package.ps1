@@ -15,12 +15,22 @@ if ($issues.Count -eq 0) {
   try { $package = Get-Content -LiteralPath $packagePath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { $issues += "Invalid work package JSON: $($_.Exception.Message)" }
 }
 if ($issues.Count -eq 0) {
-  foreach ($name in @("schemaVersion", "id", "objective", "strategy", "executionPlanPath", "status", "successCriteria", "budget", "attempts", "declaredVerdict", "objectiveVerdict", "gaps", "blockers", "updated")) {
+  foreach ($name in @("schemaVersion", "id", "objective", "strategy", "executionPlanPath", "verificationPolicy", "status", "successCriteria", "budget", "attempts", "declaredVerdict", "objectiveVerdict", "gaps", "blockers", "updated")) {
     if (@($package.PSObject.Properties.Name) -notcontains $name) { $issues += "Missing work package property: $name" }
   }
 }
 if ($issues.Count -eq 0) {
-  if ([string]$package.schemaVersion -ne "1.0") { $issues += "Work package schemaVersion must be 1.0." }
+  if ([string]$package.schemaVersion -ne "1.1") { $issues += "Work package schemaVersion must be 1.1." }
+  if ($package.verificationPolicy) {
+    $verification = $package.verificationPolicy
+    foreach ($name in @("cadence", "aggregateSmallChanges", "focusedChecks", "routineFullSuiteMaxRunsPerAttempt", "rerunPassingChecks", "fullRegressionTriggers")) {
+      if ($verification.PSObject.Properties.Name -notcontains $name) { $issues += "Verification policy is missing $name." }
+    }
+    if (@("task-boundary", "risk-triggered", "continuous") -notcontains [string]$verification.cadence) { $issues += "Verification policy cadence is invalid." }
+    if (@("acceptance-only", "risk-triggered", "every-subchange") -notcontains [string]$verification.focusedChecks) { $issues += "Verification policy focusedChecks is invalid." }
+    if ([int]$verification.routineFullSuiteMaxRunsPerAttempt -lt 1 -or [int]$verification.routineFullSuiteMaxRunsPerAttempt -gt 3) { $issues += "Verification policy routineFullSuiteMaxRunsPerAttempt must be between 1 and 3." }
+    if (@("on-relevant-input-change", "always", "never") -notcontains [string]$verification.rerunPassingChecks) { $issues += "Verification policy rerunPassingChecks is invalid." }
+  }
   if (($package.PSObject.Properties.Name -contains "workKind") -and [string]$package.workKind -eq "code") {
     foreach ($name in @("contextPackPath", "changePlanPath", "conformanceReportPath")) {
       if ($package.PSObject.Properties.Name -notcontains $name -or [string]::IsNullOrWhiteSpace([string]$package.$name)) { $issues += "Code work package requires $name." }

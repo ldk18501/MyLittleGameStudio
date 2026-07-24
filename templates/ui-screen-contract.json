@@ -1,6 +1,6 @@
 {
   "$schema": "../../.mlgs/ui-screen-contract.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "profileId": "",
   "updated": "",
   "screens": []

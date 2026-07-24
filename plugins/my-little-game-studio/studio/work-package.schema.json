@@ -4,10 +4,10 @@
   "title": "MLGS bounded work package",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "title", "objective", "scopeIds", "nonGoals", "owner", "support", "dependencies", "strategy", "executionPlanPath", "status", "successCriteria", "budget", "attempts", "declaredVerdict", "objectiveVerdict", "gaps", "blockers", "updated"],
+  "required": ["schemaVersion", "id", "title", "objective", "scopeIds", "nonGoals", "owner", "support", "dependencies", "strategy", "executionPlanPath", "verificationPolicy", "status", "successCriteria", "budget", "attempts", "declaredVerdict", "objectiveVerdict", "gaps", "blockers", "updated"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
     "workKind": { "enum": ["general", "code", "art", "design", "qa", "content", "release"] },
     "contextPackPath": { "type": "string" },
@@ -22,6 +22,32 @@
     "dependencies": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "strategy": { "enum": ["direct", "pipeline", "fan-out-and-synthesize", "adversarial-review", "loop-until-done"] },
     "executionPlanPath": { "type": "string" },
+    "verificationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cadence", "aggregateSmallChanges", "focusedChecks", "routineFullSuiteMaxRunsPerAttempt", "rerunPassingChecks", "fullRegressionTriggers"],
+      "properties": {
+        "cadence": { "enum": ["task-boundary", "risk-triggered", "continuous"] },
+        "aggregateSmallChanges": { "type": "boolean" },
+        "focusedChecks": { "enum": ["acceptance-only", "risk-triggered", "every-subchange"] },
+        "routineFullSuiteMaxRunsPerAttempt": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "rerunPassingChecks": { "enum": ["on-relevant-input-change", "always", "never"] },
+        "fullRegressionTriggers": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "shared-contract-change",
+              "scene-or-prefab-wiring",
+              "persistence-or-config-change",
+              "previous-check-failure",
+              "build-or-phase-gate",
+              "owner-request"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
     "status": { "enum": ["ready", "in-progress", "review", "done", "blocked", "failed"] },
     "successCriteria": {
       "type": "array",

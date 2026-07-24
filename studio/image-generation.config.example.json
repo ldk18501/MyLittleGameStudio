@@ -4,8 +4,28 @@
   "model": "gpt-image-2",
   "size": "1024x1024",
   "quality": "medium",
+  "background": "opaque",
   "outputFormat": "png",
   "responseFormat": "b64_json",
-  "defaultUnityOutputDir": "Assets/MyLittleGameStudio/Art/Generated"
+  "defaultUnityOutputDir": "Assets/MyLittleGameStudio/Art/Generated",
+  "gptImage2Constraints": {
+    "minimumPixels": 655360,
+    "maximumPixels": 8294400,
+    "maximumEdge": 3840,
+    "edgeMultiple": 16,
+    "maximumAspectRatio": 3,
+    "transparentBackgroundSupported": false
+  },
+  "smallAssetBatchPolicy": {
+    "enabled": true,
+    "eligibleKinds": ["icon", "portrait", "item-thumbnail"],
+    "minimumItems": 2,
+    "maximumItems": 9,
+    "requiredLayout": "registered-sheet",
+    "requireApprovedVisualTargetReference": true,
+    "requireOpaqueMatte": true,
+    "splitTool": "tools/split-art-sheet.ps1",
+    "finalDownsampleFilter": "lanczos"
+  }
 }
 

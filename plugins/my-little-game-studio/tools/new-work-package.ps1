@@ -26,7 +26,7 @@ if ((Test-Path $path) -and -not $Force) { throw "Work package already exists: $p
 
 $package = [ordered]@{
   '$schema' = "../../.mlgs/work-package.schema.json"
-  schemaVersion = "1.0"
+  schemaVersion = "1.1"
   id = $Id
   workKind = $WorkKind
   contextPackPath = ""
@@ -41,6 +41,20 @@ $package = [ordered]@{
   dependencies = @()
   strategy = $Strategy
   executionPlanPath = ""
+  verificationPolicy = [ordered]@{
+    cadence = "task-boundary"
+    aggregateSmallChanges = $true
+    focusedChecks = "risk-triggered"
+    routineFullSuiteMaxRunsPerAttempt = 1
+    rerunPassingChecks = "on-relevant-input-change"
+    fullRegressionTriggers = @(
+      "shared-contract-change",
+      "scene-or-prefab-wiring",
+      "persistence-or-config-change",
+      "previous-check-failure",
+      "build-or-phase-gate"
+    )
+  }
   status = "ready"
   successCriteria = @([ordered]@{
     id = "criterion-1"

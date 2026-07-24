@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "updated", "visualTargetPath", "assets"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.4" },
+    "schemaVersion": { "const": "1.6" },
     "updated": { "type": "string" },
     "visualTargetPath": { "type": "string", "minLength": 1 },
     "assets": {
@@ -15,7 +15,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "sourceFile", "outputPath", "status", "statusHistory", "placeholder", "importRecipe", "integrity", "references", "evidence", "reviewPath"],
+        "required": ["id", "kind", "usage", "requiredFor", "visualTargets", "sourceType", "source", "license", "promptMetadata", "visualComponent", "sourceFile", "outputPath", "status", "statusHistory", "placeholder", "importRecipe", "usageMetadata", "integrity", "references", "evidence", "reviewPath"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "kind": { "type": "string", "minLength": 1 },
@@ -26,6 +26,45 @@
           "source": { "type": "string", "minLength": 1 },
           "license": { "type": "string", "minLength": 1 },
           "promptMetadata": { "type": "string" },
+          "visualComponent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mode", "role", "reuseKey", "generationUnit", "styleDescription", "promptCore", "textPolicy", "requiredStates", "sourceComponents", "preserve", "avoid"],
+            "properties": {
+              "mode": { "enum": ["standalone", "screen-derived"] },
+              "role": { "type": "string", "minLength": 1 },
+              "reuseKey": { "type": "string", "minLength": 1 },
+              "generationUnit": { "enum": ["single-sprite", "nine-slice", "icon", "state-set", "procedural-unity"] },
+              "styleDescription": { "type": "string", "minLength": 1 },
+              "promptCore": { "type": "string", "minLength": 1 },
+              "textPolicy": { "enum": ["no-text", "separate-runtime-text", "baked-approved-text"] },
+              "requiredStates": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+              "sourceComponents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["screenId", "componentId", "visualTargetId", "referenceImage", "referenceResolution", "rect"],
+                  "properties": {
+                    "screenId": { "type": "string", "minLength": 1 },
+                    "componentId": { "type": "string", "minLength": 1 },
+                    "visualTargetId": { "type": "string", "minLength": 1 },
+                    "referenceImage": { "type": "string", "minLength": 1 },
+                    "referenceResolution": { "$ref": "#/$defs/size" },
+                    "rect": { "$ref": "#/$defs/rect" }
+                  }
+                }
+              },
+              "preserve": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+              "avoid": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "mode": { "const": "screen-derived" } }, "required": ["mode"] },
+                "then": { "properties": { "sourceComponents": { "minItems": 1 } } }
+              }
+            ]
+          },
           "sourceFile": { "type": "string", "minLength": 1 },
           "outputPath": { "type": "string", "minLength": 1 },
           "status": { "enum": ["planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved"] },
@@ -46,6 +85,7 @@
           },
           "placeholder": { "type": "boolean" },
           "importRecipe": { "type": "string", "minLength": 1 },
+          "usageMetadata": { "type": "string", "minLength": 1 },
           "integrity": {
             "type": "object",
             "additionalProperties": false,
@@ -68,6 +108,28 @@
           "reviewPath": { "type": "string" }
         }
       }
+    }
+  },
+  "$defs": {
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "rect": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "minItems": 4,
+      "maxItems": 4
     }
   }
 }

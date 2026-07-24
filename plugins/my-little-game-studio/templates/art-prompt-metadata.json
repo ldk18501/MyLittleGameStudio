@@ -1,0 +1,72 @@
+{
+  "$schema": "../../../.mlgs/art-prompt-metadata.schema.json",
+  "schemaVersion": "1.1",
+  "assetId": "replace-me",
+  "visualTargetId": "VT-001",
+  "referenceImages": [
+    "design/art/targets/final-gameplay-target.png"
+  ],
+  "model": "gpt-image-2",
+  "quality": "medium",
+  "requestedFinalSize": [512, 512],
+  "generationCanvasSize": [1024, 1024],
+  "background": "opaque",
+  "generationStrategy": "reference-edit",
+  "batchPlan": "",
+  "manifestComponentSnapshot": {
+    "mode": "standalone",
+    "role": "replace-with-manifest-role",
+    "reuseKey": "replace-with-manifest-reuse-key",
+    "generationUnit": "single-sprite",
+    "styleDescription": "Copy the component-specific style description from asset-manifest.json.",
+    "promptCore": "Copy the component-specific prompt core from asset-manifest.json.",
+    "textPolicy": "no-text",
+    "requiredStates": ["default"],
+    "sourceComponents": [],
+    "preserve": ["Copy every component-specific preserve rule from asset-manifest.json."],
+    "avoid": ["Copy every component-specific avoid rule from asset-manifest.json."]
+  },
+  "styleLockSnapshot": {
+    "renderingMedium": "Replace with the approved medium and rendering language.",
+    "palette": [
+      { "hex": "#1B2014", "role": "shadow and background" },
+      { "hex": "#6F7545", "role": "muted olive midtone" },
+      { "hex": "#D2CD83", "role": "sickly yellow-green highlight" }
+    ],
+    "colorTemperature": "Replace with approved temperature.",
+    "saturation": "Replace with approved saturation.",
+    "contrast": "Replace with approved value and contrast structure.",
+    "lighting": ["Replace with approved lighting direction and source."],
+    "materials": ["Replace with approved material language."],
+    "surfaceTexture": ["Replace with approved texture and wear language."],
+    "shapeLanguage": ["Replace with approved silhouette and proportion language."],
+    "uiTreatment": [],
+    "preserve": ["Replace with invariants copied from the visual target."],
+    "avoid": ["Replace with forbidden visual drift copied from the visual target."]
+  },
+  "promptSections": {
+    "goal": "Create one production game asset for the declared Unity usage.",
+    "subject": "Describe the exact object, pose, state, silhouette, and readable details.",
+    "composition": "Describe framing, viewpoint, scale, safe margins, and object placement.",
+    "paletteLighting": "Copy the approved palette roles, value range, temperature, and lighting.",
+    "materialsTexture": "Copy the approved materials, surface wear, and rendering medium.",
+    "invariants": ["Replace with every styleLockSnapshot.preserve entry."],
+    "negativeConstraints": ["Replace with every styleLockSnapshot.avoid entry."],
+    "outputContract": "Opaque matte background, no text, no watermark, no extra objects; preserve the registered cell boundaries when a batch plan is used."
+  },
+  "promptText": "Assemble the labeled prompt sections in background/scene -> subject -> key details -> constraints order. For edits, explicitly say change only the subject and keep every invariant unchanged.",
+  "postProcess": {
+    "removeBackground": true,
+    "matteColor": "#F5F5F5",
+    "downsampleFilter": "lanczos",
+    "outputSize": [512, 512],
+    "sharpenAfterDownsample": true
+  },
+  "validation": {
+    "requireTargetImageAsReference": true,
+    "requirePaletteComparison": true,
+    "requireVisualComparison": true,
+    "requireUnityUsageMetadata": true
+  },
+  "updated": ""
+}

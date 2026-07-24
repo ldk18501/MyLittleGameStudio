@@ -55,7 +55,7 @@ Gameplay Developer
 8. For DOD/instancing/bullets/mass objects, read `dod-performance.md` and record the chosen L1-L5 tier.
 9. Under high participation, present a concise implementation plan before meaningful edits.
 10. Under low/medium participation, implement directly unless the edit is high-risk.
-11. Run compile, focused tests, integration smoke, and the task acceptance checks. A feature is not done if only an isolated component works but its actual scene/UI/data flow is unwired.
+11. Follow the work package `verificationPolicy`. Default to `task-boundary`: aggregate the small edits inside the approved task, use an inner-loop check only when a change is risky or directly exercises an acceptance criterion, then run compile, task acceptance, and one integration smoke pass at the work-package boundary. Do not rerun a passing suite after every helper, field, or UI callback unless a relevant input changed, a prior check failed, or a declared full-regression trigger applies. A feature is not done if only an isolated component works but its actual scene/UI/data flow is unwired.
 14. After edits, mark the task context/plan implemented, record the actual changed paths, run post-impact analysis when required, then run `tools/test-code-conformance.ps1` and `tools/test-production-code.ps1 -TaskId <id> -ChangedPaths <paths>`.
 13. Run `tools/validate-changes.ps1 -ContextPath <context-path>` while the same lease is active; reject edits outside its claimed paths, project planning paths, or approved Unity write paths.
 14. Record:

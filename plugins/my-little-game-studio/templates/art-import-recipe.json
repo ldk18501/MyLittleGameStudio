@@ -1,8 +1,9 @@
 {
   "$schema": "../../../.mlgs/art-import-recipe.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "assetId": "",
   "texturePath": "Assets/",
+  "usageMetadata": "production/assets/usage/replace-me.json",
   "textureType": "Sprite",
   "spriteMode": "Single",
   "pixelsPerUnit": 100,

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/art-usage.schema.json",
+  "title": "MLGS Unity art usage metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "assetId", "sourceTexture", "renderer", "unityTargets", "layout", "sprite", "color", "material", "sorting", "states", "implementationNotes", "verification", "updated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "assetId": { "type": "string", "minLength": 1 },
+    "sourceTexture": { "type": "string", "minLength": 1 },
+    "renderer": { "enum": ["SpriteRenderer", "UGUI.Image", "UGUI.RawImage", "UIToolkit.Background", "TilemapRenderer", "MaterialTexture", "Other"] },
+    "unityTargets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetPath", "objectPath", "component", "property"],
+        "properties": {
+          "assetPath": { "type": "string", "minLength": 1 },
+          "objectPath": { "type": "string" },
+          "component": { "type": "string", "minLength": 1 },
+          "property": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expectedPixelSize", "preserveAspect", "nativeScale", "anchor", "pivot"],
+      "properties": {
+        "expectedPixelSize": { "$ref": "#/$defs/size" },
+        "preserveAspect": { "type": "boolean" },
+        "nativeScale": { "type": "number", "exclusiveMinimum": 0 },
+        "anchor": { "type": "string", "minLength": 1 },
+        "pivot": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": 0, "maximum": 1 },
+            { "type": "number", "minimum": 0, "maximum": 1 }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "sprite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "pixelsPerUnit", "border", "packingTag"],
+      "properties": {
+        "mode": { "enum": ["Single", "Multiple", "Sliced", "Tiled"] },
+        "pixelsPerUnit": { "type": "number", "exclusiveMinimum": 0 },
+        "border": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": 0 },
+            { "type": "number", "minimum": 0 },
+            { "type": "number", "minimum": 0 },
+            { "type": "number", "minimum": 0 }
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "packingTag": { "type": "string" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["colorSpace", "tint", "preserveSourceColors", "allowRuntimeTint"],
+      "properties": {
+        "colorSpace": { "enum": ["sRGB", "Linear"] },
+        "tint": { "$ref": "#/$defs/hexColor" },
+        "preserveSourceColors": { "type": "boolean" },
+        "allowRuntimeTint": { "type": "boolean" }
+      }
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shader", "materialPath"],
+      "properties": {
+        "shader": { "type": "string", "minLength": 1 },
+        "materialPath": { "type": "string" }
+      }
+    },
+    "sorting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "order"],
+      "properties": {
+        "layer": { "type": "string", "minLength": 1 },
+        "order": { "type": "integer" }
+      }
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "spriteName", "tint"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "spriteName": { "type": "string" },
+          "tint": { "$ref": "#/$defs/hexColor" }
+        }
+      }
+    },
+    "implementationNotes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gameViewPreset", "evidence"],
+      "properties": {
+        "gameViewPreset": { "type": "string" },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "updated": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{8}$"
+    }
+  }
+}

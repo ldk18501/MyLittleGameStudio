@@ -67,7 +67,27 @@ $scopePath = Join-Path $ProjectRoot "production/scope/release-scope.json"
 $uiPath = Join-Path $ProjectRoot "design/ui/screen-inventory.json"
 if (Test-Path $uiPath) {
   $ui = Get-Content -LiteralPath $uiPath -Raw -Encoding UTF8 | ConvertFrom-Json
-  if ([string]::IsNullOrWhiteSpace([string]$ui.updated)) { $ui.updated = (Get-Date).ToString("o"); Write-MLGSJsonAtomic -Path $uiPath -Value $ui }
+  $uiChanged = $false
+  if ([string]$ui.schemaVersion -eq "1.0") { $ui.schemaVersion = "1.1"; $uiChanged = $true }
+  foreach ($screen in @($ui.screens)) {
+    if ($screen.PSObject.Properties.Name -notcontains "componentAudit") {
+      $screen | Add-Member -MemberType NoteProperty -Name componentAudit -Value ([pscustomobject][ordered]@{
+        status = "pending"
+        method = "manual-visual-audit"
+        referenceImage = ""
+        referenceResolution = @(1, 1)
+        completenessNotes = "MIGRATION REQUIRED: enumerate every visible UI component and record generated, reused, procedural, or typography-only production decisions."
+        artDirectorVerdict = "pending"
+        components = @()
+      })
+      $uiChanged = $true
+    }
+  }
+  if ([string]::IsNullOrWhiteSpace([string]$ui.updated)) { $uiChanged = $true }
+  if ($uiChanged) {
+    $ui.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $uiPath -Value $ui
+  }
 }
 
 $capabilityPath = Join-Path $ProjectRoot "production/capabilities/capability-manifest.json"

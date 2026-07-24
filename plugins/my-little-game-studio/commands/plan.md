@@ -103,7 +103,7 @@ Every production task is also a machine-readable work package. Use one verifiabl
 
 1. Select the closest Unity profile with `tools/select-game-profile.ps1`; any deviation is an explicit `projectOverrides` entry, not silent omission.
 2. Expand every `releaseScopeRequirement` into release-scope items with matching `profileRequirementIds` and sufficient `plannedCount`.
-3. Enumerate every profile-required UI screen in `design/ui/screen-inventory.json`, including states, controls, visual targets, implementation path, formal asset IDs, audio IDs, and evidence.
+3. Enumerate every profile-required UI screen in `design/ui/screen-inventory.json`, including states, controls, visual targets, implementation path, formal asset IDs, audio IDs, and evidence. For each approved effect image, complete `componentAudit`: mark every visible button, frame, close control, dropdown, checkbox, progress segment, icon, separator, and typography region as generated, reused, procedural, or typography-only; record its exact pixel rectangle, states, reuse key, and asset mapping.
 4. Run `tools/validate-game-profile-coverage.ps1`.
 5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`, including the codebase profile/module map, visual scene, framework-adoption, and presentation-architecture contracts. Production cannot start from a draft or stale baseline.
 ## Capability and orchestration plan

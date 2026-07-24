@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/art-prompt-metadata.schema.json",
+  "title": "MLGS production art prompt metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "assetId",
+    "visualTargetId",
+    "referenceImages",
+    "model",
+    "quality",
+    "requestedFinalSize",
+    "generationCanvasSize",
+    "background",
+    "generationStrategy",
+    "batchPlan",
+    "manifestComponentSnapshot",
+    "styleLockSnapshot",
+    "promptSections",
+    "promptText",
+    "postProcess",
+    "validation",
+    "updated"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.1" },
+    "assetId": { "type": "string", "minLength": 1 },
+    "visualTargetId": { "type": "string", "minLength": 1 },
+    "referenceImages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "model": { "type": "string", "minLength": 1 },
+    "quality": { "enum": ["low", "medium", "high", "auto"] },
+    "requestedFinalSize": { "$ref": "#/$defs/size" },
+    "generationCanvasSize": { "$ref": "#/$defs/size" },
+    "background": { "enum": ["opaque", "transparent", "auto"] },
+    "generationStrategy": { "enum": ["reference-edit", "reference-guided", "registered-sheet-edit"] },
+    "batchPlan": { "type": "string" },
+    "manifestComponentSnapshot": { "$ref": "#/$defs/visualComponent" },
+    "styleLockSnapshot": { "$ref": "#/$defs/styleLock" },
+    "promptSections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goal", "subject", "composition", "paletteLighting", "materialsTexture", "invariants", "negativeConstraints", "outputContract"],
+      "properties": {
+        "goal": { "type": "string", "minLength": 1 },
+        "subject": { "type": "string", "minLength": 1 },
+        "composition": { "type": "string", "minLength": 1 },
+        "paletteLighting": { "type": "string", "minLength": 1 },
+        "materialsTexture": { "type": "string", "minLength": 1 },
+        "invariants": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "negativeConstraints": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "outputContract": { "type": "string", "minLength": 1 }
+      }
+    },
+    "promptText": { "type": "string", "minLength": 1 },
+    "postProcess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["removeBackground", "matteColor", "downsampleFilter", "outputSize", "sharpenAfterDownsample"],
+      "properties": {
+        "removeBackground": { "type": "boolean" },
+        "matteColor": { "$ref": "#/$defs/hexColor" },
+        "downsampleFilter": { "enum": ["lanczos", "bicubic", "nearest"] },
+        "outputSize": { "$ref": "#/$defs/size" },
+        "sharpenAfterDownsample": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requireTargetImageAsReference", "requirePaletteComparison", "requireVisualComparison", "requireUnityUsageMetadata"],
+      "properties": {
+        "requireTargetImageAsReference": { "const": true },
+        "requirePaletteComparison": { "const": true },
+        "requireVisualComparison": { "const": true },
+        "requireUnityUsageMetadata": { "const": true }
+      }
+    },
+    "updated": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "generationStrategy": { "const": "registered-sheet-edit" } }, "required": ["generationStrategy"] },
+      "then": { "properties": { "batchPlan": { "minLength": 1 } } }
+    }
+  ],
+  "$defs": {
+    "size": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+    },
+    "styleLock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["renderingMedium", "palette", "colorTemperature", "saturation", "contrast", "lighting", "materials", "surfaceTexture", "shapeLanguage", "uiTreatment", "preserve", "avoid"],
+      "properties": {
+        "renderingMedium": { "type": "string", "minLength": 1 },
+        "palette": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["hex", "role"],
+            "properties": {
+              "hex": { "$ref": "#/$defs/hexColor" },
+              "role": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "colorTemperature": { "type": "string", "minLength": 1 },
+        "saturation": { "type": "string", "minLength": 1 },
+        "contrast": { "type": "string", "minLength": 1 },
+        "lighting": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "materials": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "surfaceTexture": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "shapeLanguage": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "uiTreatment": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "preserve": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "avoid": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "visualComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "role", "reuseKey", "generationUnit", "styleDescription", "promptCore", "textPolicy", "requiredStates", "sourceComponents", "preserve", "avoid"],
+      "properties": {
+        "mode": { "enum": ["standalone", "screen-derived"] },
+        "role": { "type": "string", "minLength": 1 },
+        "reuseKey": { "type": "string", "minLength": 1 },
+        "generationUnit": { "enum": ["single-sprite", "nine-slice", "icon", "state-set", "procedural-unity"] },
+        "styleDescription": { "type": "string", "minLength": 1 },
+        "promptCore": { "type": "string", "minLength": 1 },
+        "textPolicy": { "enum": ["no-text", "separate-runtime-text", "baked-approved-text"] },
+        "requiredStates": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "sourceComponents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["screenId", "componentId", "visualTargetId", "referenceImage", "referenceResolution", "rect"],
+            "properties": {
+              "screenId": { "type": "string", "minLength": 1 },
+              "componentId": { "type": "string", "minLength": 1 },
+              "visualTargetId": { "type": "string", "minLength": 1 },
+              "referenceImage": { "type": "string", "minLength": 1 },
+              "referenceResolution": { "$ref": "#/$defs/size" },
+              "rect": {
+                "type": "array",
+                "prefixItems": [
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "integer", "minimum": 1 },
+                  { "type": "integer", "minimum": 1 }
+                ],
+                "minItems": 4,
+                "maxItems": 4
+              }
+            }
+          }
+        },
+        "preserve": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "avoid": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    }
+  }
+}
