@@ -28,6 +28,7 @@ QA Lead
 ## Flow
 
 1. Verify the project is at Beta or later through the unified gate evaluator. Read `targetVersion` from the release-scope manifest; `0.x` remains prototype/pre-release and `1.0.0+` cannot be claimed until the final Release gate passes.
+2. Before producing the first locked Release Candidate package, run `tools/preflight-task.ps1 -Command build -BuildReason release-candidate`. Before a later final release rebuild, use `-BuildReason release`. Record each attempt with `tools/record-build-event.ps1`.
 2. Icon:
    - track the icon in `asset-manifest.json` as `kind: app-icon` and `requiredFor: release-candidate`;
    - preserve a master source and generate platform sizes without stretching;

@@ -46,6 +46,10 @@ If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1
 - Vertical Slice and later gates require a structured `production/quality/<stage>.json` report with `verdict: pass`, owner approval, no blockers, passing required checks, and evidence for every check.
 - Art-related gates also validate `production/assets/asset-manifest.json`; required assets must reach the configured lifecycle status, exist on disk, have import recipes and Unity references, and have in-game evidence.
 - Plan and productization gates validate `production/scope/release-scope.json`. It is the explicit completeness set for features, content quantities, tutorials, UI screens, configuration, audio, art, localization, operations readiness, and builds.
+- The plan gate also validates `design/content-architecture.json`. Standard/deep projects require researched references, four loop horizons, interacting systems, content families, progression arcs, variation/repetition controls, scope mappings, and a content-hour estimate that supports the promised minimum playtime.
+- Owner participation is never a scope field. A low-participation project cannot pass with a smaller design merely because the owner supplied fewer details.
+- `.mlgs/build-policy.json` is the project-local source of truth for package-build cadence. Initial platform validation may run once during new-project start; after it passes, ordinary development cannot package automatically.
+- A current explicit owner request or the Release Candidate/Release flow is required for later package builds. Full regression and phase gates do not grant that authority.
 - Formal art entries must link to approved IDs in `design/art/visual-target.json`; Unity references and in-game evidence must be existing project-relative files.
 - Quality-check evidence must be existing project-relative files. Labels such as `manual:passed` or unresolvable prose are not gate evidence.
 - Version strings never advance state. `0.x` is prototype/pre-release; `1.0.0+` requires the final Release gate and a fully verified release scope.

@@ -14,7 +14,7 @@ Review code, design, task readiness, phase readiness, build readiness, or studio
 ## Modes
 
 - `code`: bugs, Unity best practices, architecture, tests
-- `design`: pillars, player experience, rules, scope
+- `design`: pillars, player experience, rules, scope, reference synthesis, loop horizons, system synergy, content variety, progression, and playtime support
 - `task`: readiness, acceptance criteria, dependencies
 - `phase`: missing artifacts, approvals, risks
 - `build`: platform settings, package/build blockers
@@ -45,4 +45,4 @@ Findings are clear, prioritized, and actionable.
 Task and phase reviews report two signals separately: the implementer/model declaration and objective evidence. Run work-package or quality-report objective checks before issuing findings. Any disagreement, skipped command check, missing evidence, parser error, or exhausted attempt budget is blocking. Art reviews are led by the Art Director and validated fail-closed.
 ## Contract review
 
-Design and product reviews include three machine checks: `validate-game-profile-coverage.ps1`, `test-design-baseline.ps1`, and `validate-ui-screen-contract.ps1`. Report the exact profile minimum, changed design source, affected scope/work, or missing UI state rather than a general completeness opinion.
+Design and product reviews include four machine checks: `test-content-architecture.ps1`, `validate-game-profile-coverage.ps1`, `test-design-baseline.ps1`, and `validate-ui-screen-contract.ps1`. Report the exact missing research role, loop horizon, system/content count, progression coverage, playtime gap, profile minimum, changed design source, affected scope/work, or missing UI state rather than a general completeness opinion.

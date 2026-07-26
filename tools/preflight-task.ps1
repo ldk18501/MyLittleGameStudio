@@ -7,6 +7,9 @@ param(
   [string]$RuntimeRoot = "",
   [ValidatePattern('^$|^[A-Za-z0-9][A-Za-z0-9._-]*$')][string]$InvocationId = "",
   [ValidatePattern("^$|^[a-z0-9][a-z0-9-]*$")][string]$TaskId = "",
+  [ValidateSet("initial-platform-validation", "owner-request", "release-candidate", "release", "routine-development")][string]$BuildReason = "routine-development",
+  [switch]$OwnerRequestedBuild,
+  [switch]$StartFlowBuild,
   [switch]$AcceptRisk
 )
 
@@ -46,6 +49,14 @@ if (-not $resolved.exists -or $resolved.mode -eq "template") {
   $validation = Test-MLGSState -State $state
   if (-not $validation.valid) { $blockers += $validation.errors }
 
+  if ($Command -eq "build") {
+    $authorizationArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/test-build-authorization.ps1"), "-Root", $Root, "-ProjectRoot", $resolved.project_root, "-Reason", $BuildReason)
+    if ($OwnerRequestedBuild) { $authorizationArgs += "-OwnerRequested" }
+    if ($StartFlowBuild) { $authorizationArgs += "-StartFlow" }
+    & powershell @authorizationArgs 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) { $blockers += "Package build is not authorized by .mlgs/build-policy.json for reason '$BuildReason'." }
+  }
+
   if (@("implement", "fix", "generate-art", "productize") -contains $Command) {
     if (-not [bool]$state.approvals.productionUnblocked -and -not $AcceptRisk) {
       $blockers += "Production is not unblocked. Use -AcceptRisk only after explicit owner acceptance."
@@ -82,6 +93,7 @@ $result = [pscustomobject]@{
   project_runtime_root = $resolved.project_runtime_root
   lease_path = $leasePath
   accepted_risk = [bool]$AcceptRisk
+  build_reason = $(if ($Command -eq "build") { $BuildReason } else { "" })
   blockers = @($blockers)
 }
 $result | ConvertTo-Json -Depth 8

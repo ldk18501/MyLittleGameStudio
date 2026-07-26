@@ -64,6 +64,29 @@ try {
     if (-not (Test-Path (Join-Path $runtimeRoot "current-project.json"))) { throw "Isolated pointer was not written." }
   }
 
+  $results += Invoke-Step "build-cadence-authorization" {
+    $buildPolicyPath = Join-Path $project ".mlgs/build-policy.json"
+    if (-not (Test-Path $buildPolicyPath)) { throw "Project initialization did not create build policy." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason routine-development 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 18) { throw "Routine development was allowed to produce a package build." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -ProjectRoot $project -Command build 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 2) { throw "Build preflight did not block an unclassified routine package build." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason initial-platform-validation 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 18) { throw "Initial platform build was allowed outside the start flow." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason initial-platform-validation -StartFlow | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "One-time start-flow platform validation was blocked." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/record-build-event.ps1") -Root $Root -ProjectRoot $project -Kind initial-platform-validation -RequestedBy start-flow -TargetPlatform "Android" -Result passed -Evidence "production/qa/evidence/initial-build.txt" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Initial platform validation result was not recorded." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason initial-platform-validation -StartFlow 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 18) { throw "A passed initial platform validation was allowed to repeat automatically." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason owner-request 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 18) { throw "Development build was allowed without a current explicit owner request." }
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-build-authorization.ps1") -Root $Root -ProjectRoot $project -Reason owner-request -OwnerRequested | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Current explicit owner build request was blocked." }
+    $buildPolicy = Get-Content -LiteralPath $buildPolicyPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$buildPolicy.initialValidation.status -ne "passed" -or [int]$buildPolicy.initialValidation.attempts -ne 1) { throw "Build policy did not preserve the one-time validation state." }
+  }
+
   $results += Invoke-Step "status-uses-unified-gates" {
     $status = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/get-project-status.ps1") -Root $Root -ProjectRoot $project -RuntimeRoot $runtimeRoot | ConvertFrom-Json
     if ($status.active_project.owner_participation -ne "high") { throw "Participation was not preserved." }
@@ -135,6 +158,67 @@ try {
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/init-production-pipeline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/select-game-profile.ps1") -Root $Root -ProjectRoot $project -ProfileId puzzle | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Game profile selection failed." }
+    $contentArchitecturePath = Join-Path $project "design/content-architecture.json"
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-content-architecture.ps1") -Root $Root -ProjectRoot $project 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 15) { throw "Blank content architecture did not fail closed." }
+    $contentArchitecture = Get-Content -LiteralPath $contentArchitecturePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $contentArchitecture.status = "approved"
+    $contentArchitecture.experienceTarget.ownerParticipation = "high"
+    $contentArchitecture.experienceTarget.targetPlaytimeHours.minimum = 10
+    $contentArchitecture.experienceTarget.targetPlaytimeHours.target = 12
+    $contentArchitecture.experienceTarget.referenceDriven = $true
+    $contentArchitecture.experienceTarget.complexityRationale = "Smoke standard-depth puzzle validates multi-horizon progression rather than a polished single-board prototype."
+    $contentArchitecture.experienceTarget.antiScope = @("No copied level layouts")
+    $contentArchitecture.research.performedAt = (Get-Date).ToString("o")
+    $contentArchitecture.research.references = @(
+      [pscustomobject]@{ id = "direct-puzzle"; title = "Direct puzzle reference"; url = "https://example.com/direct-puzzle"; role = "direct"; observedPatterns = @("Curated objective progression"); adapt = @("Readable objective escalation"); reject = @("Copied layouts") },
+      [pscustomobject]@{ id = "adjacent-strategy"; title = "Adjacent strategy reference"; url = "https://example.com/adjacent-strategy"; role = "adjacent"; observedPatterns = @("Long-term mastery goals"); adapt = @("Optional mastery layer"); reject = @("Unbounded complexity") },
+      [pscustomobject]@{ id = "contrast-puzzle"; title = "Contrast puzzle reference"; url = "https://example.com/contrast-puzzle"; role = "contrast"; observedPatterns = @("Repetitive board variants"); adapt = @("Fast retry"); reject = @("Cosmetic-only variation") }
+    )
+    $contentArchitecture.loopArchitecture = @(
+      [pscustomobject]@{ horizon = "moment"; name = "Read and move"; cadence = "seconds"; playerDecisions = @("Choose the move with the best constraint tradeoff"); systemIds = @("rules", "feedback"); progressionOutput = "Board state knowledge" },
+      [pscustomobject]@{ horizon = "session"; name = "Solve a set"; cadence = "10-20 minutes"; playerDecisions = @("Choose level and optional objective"); systemIds = @("levels", "hints"); progressionOutput = "Stars and route access" },
+      [pscustomobject]@{ horizon = "medium"; name = "Master a mechanic family"; cadence = "1-3 hours"; playerDecisions = @("Prioritize mastery rewards or route unlocks"); systemIds = @("progression", "levels"); progressionOutput = "New mechanics and modifiers" },
+      [pscustomobject]@{ horizon = "long"; name = "Complete mastery routes"; cadence = "10+ hours"; playerDecisions = @("Select advanced challenge branches"); systemIds = @("progression", "hints"); progressionOutput = "Terminal mastery completion" }
+    )
+    $contentArchitecture.systemPortfolio = @(
+      [pscustomobject]@{ id = "rules"; name = "Puzzle rules"; role = "core"; description = "Board rules and resolution"; unlockCondition = "start"; playerDecisions = @("Select legal move"); synergySystemIds = @("feedback", "levels"); referenceIds = @("direct-puzzle"); scopeIds = @("scope-puzzle-rules") },
+      [pscustomobject]@{ id = "feedback"; name = "Feedback"; role = "quality-of-life"; description = "Readable consequence feedback"; unlockCondition = "start"; playerDecisions = @("Use feedback to revise plan"); synergySystemIds = @("rules"); referenceIds = @("contrast-puzzle"); scopeIds = @("scope-puzzle-rules") },
+      [pscustomobject]@{ id = "levels"; name = "Level library"; role = "content"; description = "Curated and parameterized levels"; unlockCondition = "tutorial complete"; playerDecisions = @("Choose route and objective"); synergySystemIds = @("rules", "progression"); referenceIds = @("direct-puzzle"); scopeIds = @("scope-level-library") },
+      [pscustomobject]@{ id = "progression"; name = "Mastery progression"; role = "progression"; description = "Unlock routes and mastery goals"; unlockCondition = "first set complete"; playerDecisions = @("Choose unlock branch"); synergySystemIds = @("levels", "hints"); referenceIds = @("adjacent-strategy"); scopeIds = @("scope-puzzle-rules") },
+      [pscustomobject]@{ id = "hints"; name = "Hint economy"; role = "economy"; description = "Recoverable hint resource"; unlockCondition = "first failed level"; playerDecisions = @("Spend hint or preserve it"); synergySystemIds = @("rules", "progression"); referenceIds = @("direct-puzzle"); scopeIds = @("scope-puzzle-rules") }
+    )
+    $contentArchitecture.contentPlan = @(
+      [pscustomobject]@{ id = "tutorial-levels"; category = "Tutorial levels"; productionMode = "authored"; plannedCount = 8; unitPlaytimeMinutes = 5; replayMultiplier = 1; unlockArc = "onboarding"; variationAxes = @("mechanic"); systemIds = @("rules", "feedback"); scopeIds = @("scope-vertical-content") },
+      [pscustomobject]@{ id = "core-levels"; category = "Core levels"; productionMode = "hybrid"; plannedCount = 40; unitPlaytimeMinutes = 8; replayMultiplier = 1.3; unlockArc = "core mastery"; variationAxes = @("objective", "layout", "constraint"); systemIds = @("levels", "rules"); scopeIds = @("scope-level-library") },
+      [pscustomobject]@{ id = "challenge-levels"; category = "Challenge levels"; productionMode = "authored"; plannedCount = 20; unitPlaytimeMinutes = 12; replayMultiplier = 1.5; unlockArc = "advanced"; variationAxes = @("modifier", "move budget"); systemIds = @("levels", "progression"); scopeIds = @("scope-level-library") },
+      [pscustomobject]@{ id = "mastery-goals"; category = "Mastery goals"; productionMode = "emergent"; plannedCount = 30; unitPlaytimeMinutes = 10; replayMultiplier = 1.4; unlockArc = "endgame"; variationAxes = @("route", "score", "restriction"); systemIds = @("progression", "hints"); scopeIds = @("scope-level-library") }
+    )
+    $contentArchitecture.progressionArcs = @(
+      [pscustomobject]@{ id = "learn"; name = "Learn"; startHour = 0; endHour = 2; goals = @("Learn core rules"); unlocks = @("Core route"); novelty = @("New mechanics"); masteryTests = @("Solve without hints") },
+      [pscustomobject]@{ id = "combine"; name = "Combine"; startHour = 2; endHour = 7; goals = @("Combine mechanics"); unlocks = @("Challenge route"); novelty = @("Constraint combinations"); masteryTests = @("Meet move budgets") },
+      [pscustomobject]@{ id = "master"; name = "Master"; startHour = 7; endHour = 12; goals = @("Complete mastery routes"); unlocks = @("Terminal badges"); novelty = @("Advanced modifiers"); masteryTests = @("Optional perfect clears") }
+    )
+    $contentArchitecture.varietyModel.meaningfulDecisionFamilies = @("move selection", "route selection", "hint economy")
+    $contentArchitecture.varietyModel.combinatorialSources = @("objectives x constraints x mechanics")
+    $contentArchitecture.varietyModel.repetitionControls = @("novel mechanic cadence", "optional challenge branches")
+    $contentArchitecture.varietyModel.failureRecovery = "Fast retry, readable failure, and bounded hints."
+    $contentArchitecture.varietyModel.endgame = "Mastery routes and optional perfect clears."
+    $contentArchitecture.differentiation.borrowedPatterns = @("Readable objective escalation", "Optional mastery goals")
+    $contentArchitecture.differentiation.uniqueCombination = "Curated puzzle routes with a recoverable hint economy and branching mastery."
+    $contentArchitecture.differentiation.avoidCloneRules = @("No copied level layouts", "No copied names or visual expression")
+    $contentArchitecture.contentBudget.estimatedAuthoredHours = 8
+    $contentArchitecture.contentBudget.estimatedReplayHours = 4
+    $contentArchitecture.contentBudget.estimatedTotalHours = 12
+    $contentArchitecture.contentBudget.calculation = "68 authored levels plus 30 mastery goals, weighted by unit duration and conservative replay multipliers."
+    $contentArchitecture.contentBudget.confidence = "medium"
+    $contentArchitecture.validation.referenceSynthesisComplete = $true
+    $contentArchitecture.validation.loopCoverageComplete = $true
+    $contentArchitecture.validation.scopeMappingComplete = $true
+    $contentArchitecture.validation.prototypeOnlyRiskRejected = $true
+    $contentArchitecture.validation.designerVerdict = "pass"
+    $contentArchitecture.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $contentArchitecturePath -Value $contentArchitecture
     foreach ($relative in @(
       "design/concept-package.md",
       "design/art/targets/final-gameplay-target.png",
@@ -515,6 +599,9 @@ try {
       if ([string]$requirement.type -eq "art") { $item.artAssetIds = @("hero") }
       $scope.items += [pscustomobject]$item
     }
+    Write-MLGSJsonAtomic -Path $scopePath -Value $scope
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-content-architecture.ps1") -Root $Root -ProjectRoot $project | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Approved standard-depth content architecture did not pass." }
     $uiPath = Join-Path $project "design/ui/screen-inventory.json"
     $ui = Get-Content -LiteralPath $uiPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $ui.profileId = [string]$profile.id
@@ -696,7 +783,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Game profile coverage did not pass." }
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-ui-screen-contract.ps1") -Root $Root -ProjectRoot $project -RequiredFor content-complete -MinimumStatus integrated | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "UI screen contract did not pass." }
-    $baselineSources = @("design/concept-package.md", "design/game-profile.json", "design/ui/screen-inventory.json", "design/art/visual-scene-contract.json", "design/framework-adoption.json", "design/presentation-architecture.json", "design/code/codebase-profile.json", "design/code/module-map.json", "production/scope/release-scope.json")
+    $baselineSources = @("design/concept-package.md", "design/content-architecture.json", "design/game-profile.json", "design/ui/screen-inventory.json", "design/art/visual-scene-contract.json", "design/framework-adoption.json", "design/presentation-architecture.json", "design/code/codebase-profile.json", "design/code/module-map.json", "production/scope/release-scope.json")
     & (Join-Path $Root "tools/freeze-design-baseline.ps1") -Root $Root -ProjectRoot $project -Version 1 -SourcePaths $baselineSources | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-design-baseline.ps1") -Root $Root -ProjectRoot $project | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Fresh design baseline did not pass." }
@@ -988,7 +1075,7 @@ staff:
 
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/test-art-usage.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/init-build-policy.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-content-architecture.ps1", "tools/test-build-authorization.ps1", "tools/record-build-event.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/test-art-usage.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/content-architecture.schema.json", "studio/build-policy.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

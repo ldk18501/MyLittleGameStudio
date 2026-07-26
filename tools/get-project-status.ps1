@@ -84,6 +84,29 @@ $productization = [ordered]@{
   scope_count_gap = 0
   visual_targets_total = 0
   visual_targets_approved = 0
+  content_architecture = [pscustomobject]@{
+    status = "missing"
+    experience_class = ""
+    minimum_playtime_hours = 0
+    target_playtime_hours = 0
+    estimated_playtime_hours = 0
+    references = 0
+    loops = 0
+    systems = 0
+    content_families = 0
+    progression_arcs = 0
+    validation_passed = $false
+    issues = @()
+  }
+  build_policy = [pscustomobject]@{
+    status = "missing"
+    automatic_development_builds = $false
+    initial_validation_status = ""
+    initial_target_platform = ""
+    initial_attempts = 0
+    build_history_count = 0
+    next_automatic_build_stage = "release-candidate"
+  }
 }
 $scopePath = Join-Path $resolved.project_root "production/scope/release-scope.json"
 if (Test-Path $scopePath) {
@@ -111,6 +134,48 @@ if (Test-Path $visualTargetPath) {
     $productization.visual_targets_total = @($visualTarget.targets).Count
     $productization.visual_targets_approved = @($visualTarget.targets | Where-Object { [bool]$_.approved }).Count
   } catch { }
+}
+$contentArchitecturePath = Join-Path $resolved.project_root "design/content-architecture.json"
+if (Test-Path $contentArchitecturePath) {
+  try {
+    $contentArchitecture = Get-Content -LiteralPath $contentArchitecturePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $contentValidationRaw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-content-architecture.ps1") -Root $Root -ProjectRoot $resolved.project_root 2>$null
+    $contentValidation = $contentValidationRaw | ConvertFrom-Json
+    $productization.content_architecture = [pscustomobject]@{
+      status = [string]$contentArchitecture.status
+      experience_class = [string]$contentArchitecture.experienceTarget.experienceClass
+      minimum_playtime_hours = [double]$contentArchitecture.experienceTarget.targetPlaytimeHours.minimum
+      target_playtime_hours = [double]$contentArchitecture.experienceTarget.targetPlaytimeHours.target
+      estimated_playtime_hours = [double]$contentArchitecture.contentBudget.estimatedTotalHours
+      references = @($contentArchitecture.research.references).Count
+      loops = @($contentArchitecture.loopArchitecture).Count
+      systems = @($contentArchitecture.systemPortfolio).Count
+      content_families = @($contentArchitecture.contentPlan).Count
+      progression_arcs = @($contentArchitecture.progressionArcs).Count
+      validation_passed = [bool]$contentValidation.passed
+      issues = @($contentValidation.issues)
+    }
+  } catch {
+    $productization.content_architecture.status = "invalid"
+    $productization.content_architecture.issues = @($_.Exception.Message)
+  }
+}
+$buildPolicyPath = Join-Path $resolved.project_root ".mlgs/build-policy.json"
+if (Test-Path $buildPolicyPath) {
+  try {
+    $buildPolicy = Get-Content -LiteralPath $buildPolicyPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $productization.build_policy = [pscustomobject]@{
+      status = "active"
+      automatic_development_builds = [bool]$buildPolicy.automaticDevelopmentBuilds
+      initial_validation_status = [string]$buildPolicy.initialValidation.status
+      initial_target_platform = [string]$buildPolicy.initialValidation.targetPlatform
+      initial_attempts = [int]$buildPolicy.initialValidation.attempts
+      build_history_count = @($buildPolicy.history).Count
+      next_automatic_build_stage = "release-candidate"
+    }
+  } catch {
+    $productization.build_policy.status = "invalid"
+  }
 }
 $keys = @("A", "B", "C", "D")
 $nextOptions = @()

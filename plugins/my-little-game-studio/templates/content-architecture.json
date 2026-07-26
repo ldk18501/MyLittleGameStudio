@@ -1,0 +1,56 @@
+{
+  "$schema": "../.mlgs/content-architecture.schema.json",
+  "schemaVersion": "1.0",
+  "status": "draft",
+  "experienceTarget": {
+    "experienceClass": "standard",
+    "ownerParticipation": "medium",
+    "targetPlaytimeHours": {
+      "minimum": 10,
+      "target": 20
+    },
+    "targetSessionMinutes": {
+      "minimum": 10,
+      "maximum": 30
+    },
+    "referenceDriven": false,
+    "complexityRationale": "待根据玩家承诺、参考作品和目标时长完成。",
+    "antiScope": []
+  },
+  "research": {
+    "webResearchRequired": true,
+    "performedAt": "",
+    "references": []
+  },
+  "loopArchitecture": [],
+  "systemPortfolio": [],
+  "contentPlan": [],
+  "progressionArcs": [],
+  "varietyModel": {
+    "meaningfulDecisionFamilies": [],
+    "combinatorialSources": [],
+    "repetitionControls": [],
+    "failureRecovery": "",
+    "endgame": ""
+  },
+  "differentiation": {
+    "borrowedPatterns": [],
+    "uniqueCombination": "",
+    "avoidCloneRules": []
+  },
+  "contentBudget": {
+    "estimatedAuthoredHours": 0,
+    "estimatedReplayHours": 0,
+    "estimatedTotalHours": 0.1,
+    "calculation": "待根据内容族、单位时长、重玩倍率和系统组合估算。",
+    "confidence": "low"
+  },
+  "validation": {
+    "referenceSynthesisComplete": false,
+    "loopCoverageComplete": false,
+    "scopeMappingComplete": false,
+    "prototypeOnlyRiskRejected": false,
+    "designerVerdict": "pending"
+  },
+  "updated": ""
+}

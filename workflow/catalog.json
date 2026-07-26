@@ -312,7 +312,6 @@
                                         "fix",
                                         "review",
                                         "test",
-                                        "build",
                                         "status"
                                     ],
                        "gate":  "vertical-slice-approved"
@@ -327,7 +326,6 @@
                                         "fix",
                                         "review",
                                         "test",
-                                        "build",
                                         "status"
                                     ],
                        "gate":  "content-complete-approved"
@@ -342,7 +340,6 @@
                                         "fix",
                                         "review",
                                         "test",
-                                        "build",
                                         "status"
                                     ],
                        "gate":  "alpha-approved"
@@ -356,7 +353,6 @@
                                         "fix",
                                         "review",
                                         "test",
-                                        "build",
                                         "status"
                                     ],
                        "gate":  "beta-approved"
@@ -407,6 +403,7 @@
                                         "approval":  "designTechPlan",
                                         "all":  [
                                                     "design/systems/*.md",
+                                                    "design/content-architecture.json",
                                                     "design/player-journey.md",
                                                     "design/onboarding.md",
                                                     "docs/tech-plan.md",
@@ -472,7 +469,10 @@
                                         "presentationArchitecture":  {
                                                                            "path":  "design/presentation-architecture.json",
                                                                            "contractOnly":  true
-                                                                       }
+                                                                }
+                                       ,"contentArchitecture":  {
+                                                                          "path":  "design/content-architecture.json"
+                                                                      }
                                        ,"codebaseUnderstanding":  {
                                                                          "profilePath":  "design/code/codebase-profile.json",
                                                                          "moduleMapPath":  "design/code/module-map.json"
@@ -742,7 +742,7 @@
                                                               "path":  "production/quality/beta.json",
                                                               "stage":  "beta",
                                                               "requiredChecks":  [
-                                                                                     "target-device-smoke",
+                                                                                     "target-platform-preflight",
                                                                                      "release-scope-regression",
                                                                                      "operations-readiness",
                                                                                      "icon",
@@ -772,8 +772,7 @@
                                                                                     "audio",
                                                                                     "art",
                                                                                     "localization",
-                                                                                    "operations",
-                                                                                    "build"
+                                                                                    "operations"
                                                                                 ]
                                                           },
                                         "gameProfileCoverage":  {

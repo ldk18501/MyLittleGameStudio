@@ -11,7 +11,7 @@ $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
 $ProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
 if ($SourcePaths.Count -eq 0) {
-  $SourcePaths = @("design/concept-package.md", "design/reference-analysis.md", "design/game-profile.json", "design/player-journey.md", "design/onboarding.md", "design/art/visual-target.json", "design/art/style-bible.md", "design/ui/screen-inventory.json", "docs/tech-plan.md", "production/scope/release-scope.json")
+  $SourcePaths = @("design/concept-package.md", "design/reference-analysis.md", "design/content-architecture.json", "design/game-profile.json", "design/player-journey.md", "design/onboarding.md", "design/art/visual-target.json", "design/art/style-bible.md", "design/ui/screen-inventory.json", "docs/tech-plan.md", "production/scope/release-scope.json")
 }
 $target = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath "design/baseline.json"
 if ((Test-Path $target) -and -not $Force) {

@@ -29,6 +29,7 @@ $mlgsDir = Join-Path $resolvedProjectRoot ".mlgs"
 $statePath = Join-Path $mlgsDir "state.json"
 $legacyStatePath = Join-Path $mlgsDir "state.yaml"
 $projectPath = Join-Path $mlgsDir "project.md"
+$buildPolicyPath = Join-Path $mlgsDir "build-policy.json"
 $runtimeWasExplicit = -not [string]::IsNullOrWhiteSpace($RuntimeRoot)
 $globalRuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
 $projectRuntimeRoot = Get-MLGSProjectRuntimeRoot -GlobalRuntimeRoot $globalRuntimeRoot -ProjectRoot $resolvedProjectRoot
@@ -83,6 +84,11 @@ $validation = Test-MLGSState -State $normalizedState
 if (-not $validation.valid) { throw ("Generated state is invalid: " + ($validation.errors -join "; ")) }
 Write-MLGSJsonAtomic -Path $statePath -Value $state
 
+Copy-Item -LiteralPath (Join-Path $Root "studio/build-policy.schema.json") -Destination (Join-Path $mlgsDir "build-policy.schema.json") -Force
+$buildPolicy = Get-Content -LiteralPath (Join-Path $Root "templates/build-policy.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+$buildPolicy.updated = $now
+Write-MLGSJsonAtomic -Path $buildPolicyPath -Value $buildPolicy
+
 $project = @"
 # Project Brief
 
@@ -124,6 +130,7 @@ if ($SetCurrent -and -not $SkipPointer) {
 [pscustomobject]@{
   state_path = $statePath
   project_path = $projectPath
+  build_policy_path = $buildPolicyPath
   project_id = $projectId
   pointer_path = $(if ($SetCurrent -and -not $SkipPointer) { $pointerPath } else { "" })
   global_runtime_root = $globalRuntimeRoot

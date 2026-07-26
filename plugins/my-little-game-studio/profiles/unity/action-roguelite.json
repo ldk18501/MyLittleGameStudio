@@ -142,7 +142,7 @@
                         "Unity compile passes",
                         "Combat readability review passes",
                         "No missing references",
-                        "Target-device performance smoke passes"
+                        "Target-platform performance package smoke passes at Release Candidate or on explicit owner request"
                     ],
     "presentationDefaults":  {
                                       "dimension":  "2d",

@@ -1850,6 +1850,14 @@ function Get-MLGSGateEvaluation {
       $profileIssues = @($profileResult.issues)
     }
 
+    $contentArchitecturePass = $true
+    $contentArchitectureIssues = @()
+    if ($gate.PSObject.Properties.Name -contains "contentArchitecture") {
+      $definition = $gate.contentArchitecture
+      $raw = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Split-Path -Parent $PSScriptRoot) "tools/test-content-architecture.ps1") -Root (Split-Path -Parent $PSScriptRoot) -ProjectRoot $ProjectRoot -Path ([string]$definition.path) 2>$null
+      try { $contentArchitectureResult = $raw | ConvertFrom-Json; $contentArchitecturePass = [bool]$contentArchitectureResult.passed; $contentArchitectureIssues = @($contentArchitectureResult.issues) } catch { $contentArchitecturePass = $false; $contentArchitectureIssues = @("Content architecture validator did not return parseable output.") }
+    }
+
     $uiPass = $true
     $uiIssues = @()
     if ($gate.PSObject.Properties.Name -contains "uiScreenContract") {
@@ -1912,13 +1920,14 @@ function Get-MLGSGateEvaluation {
     }
 
     $gateResults[$gateProperty.Name] = [pscustomobject]@{
-      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass))
+      passed = (($artifactPass -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $contentArchitecturePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass) -or ($skipped -and $approvalPass -and $qualityPass -and $artPass -and $scopePass -and $capabilityPass -and $profilePass -and $contentArchitecturePass -and $uiPass -and $baselinePass -and $codeAuditPass -and $visualScenePass -and $frameworkPass -and $presentationPass -and $codebasePass))
       artifactsPassed = $artifactPass
       approvalPassed = $approvalPass
       qualityPassed = $qualityPass
       artPassed = $artPass
       scopePassed = $scopePass
       profileCoveragePassed = $profilePass
+      contentArchitecturePassed = $contentArchitecturePass
       capabilityManifestPassed = $capabilityPass
       uiScreenContractPassed = $uiPass
       designBaselinePassed = $baselinePass
@@ -1933,6 +1942,7 @@ function Get-MLGSGateEvaluation {
       artIssues = @($artIssues)
       scopeIssues = @($scopeIssues)
       profileCoverageIssues = @($profileIssues)
+      contentArchitectureIssues = @($contentArchitectureIssues)
       capabilityManifestIssues = @($capabilityIssues)
       uiScreenContractIssues = @($uiIssues)
       designBaselineIssues = @($baselineIssues)
@@ -1972,7 +1982,7 @@ function Get-MLGSGateEvaluation {
     $phase = "prototype"; $command = "/mlgs review and unblock production"; $reason = "Prototype evidence exists, but production is not unblocked."; $options = @($command, "/mlgs review current risks")
   }
   if ($productionReady) {
-    $phase = "vertical-slice"; $command = "/mlgs build the final-quality vertical slice"; $reason = "Production is unblocked; prove the final-quality pipeline before content scale-up."; $options = @($command, "/mlgs generate and integrate required art", "/mlgs review the vertical slice gate")
+    $phase = "vertical-slice"; $command = "/mlgs implement the final-quality vertical slice"; $reason = "Production is unblocked; prove the final-quality pipeline before content scale-up without producing a platform package."; $options = @($command, "/mlgs generate and integrate required art", "/mlgs review the vertical slice gate")
   }
   if ($verticalSliceReady) {
     $phase = "production"; $command = "/mlgs continue production toward content complete"; $reason = "The Vertical Slice is approved; complete all release-scope features and content."; $options = @($command, "/mlgs process the next art assets", "/mlgs review content completeness")
@@ -1981,7 +1991,7 @@ function Get-MLGSGateEvaluation {
     $phase = "alpha"; $command = "/mlgs stabilize the full game for Alpha"; $reason = "Content Complete passed; focus on blockers, full flows, references, performance, and crash-free smoke."; $options = @($command, "/mlgs run the Alpha quality gate", "/mlgs review production code")
   }
   if ($alphaReady) {
-    $phase = "beta"; $command = "/mlgs prepare Beta icon localization and crash checks"; $reason = "Alpha passed; validate target-device regression and game-facing release content."; $options = @($command, "/mlgs run localization checks", "/mlgs run crash and error smoke")
+    $phase = "beta"; $command = "/mlgs prepare Beta icon localization and crash checks"; $reason = "Alpha passed; validate target-platform preflight and game-facing release content without producing a fresh package."; $options = @($command, "/mlgs run localization checks", "/mlgs run crash and error smoke")
   }
   if ($betaReady) {
     $phase = "release-candidate"; $command = "/mlgs prepare and validate the release candidate"; $reason = "Beta passed; lock the candidate after final icon, localization, crash/error, build, and known-issue evidence."; $options = @($command, "/mlgs build the release candidate", "/mlgs review release readiness")

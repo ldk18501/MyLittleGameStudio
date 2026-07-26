@@ -41,6 +41,16 @@
 - Use lightweight HTML prototypes for uncertain loops when Unity-specific behavior is not the risk.
 - Use Unity greybox prototypes when risk comes from physics, input, camera, UI, rendering, or engine integration.
 - If the owner wants to skip, record `prototype.policy: skipped-with-risk` and the reason.
+- A prototype is a deliberately small risk test. Passing it never redefines the release product as the prototype plus polish.
+
+## Content Design Strategy
+
+- Owner participation controls how often MLGS asks, not how small the game is. Sparse input under `low` participation grants MLGS authority to research, diverge, synthesize, quantify, and draft a fuller product.
+- Classify intended depth as `hyper-casual`, `light`, `standard`, or `deep`. Reference-led, explicitly non-light, and 10+ hour promises default to at least `standard`; 30+ hour promises default to `deep` unless the owner narrows them.
+- For `standard`/`deep`, reference-led, or sparse low-participation concepts, perform current web research across direct, adjacent, and contrast references. Record source URLs, observations, inferences, adaptations, and rejected patterns. Never fabricate research or copy protected expression.
+- Before planning, compare at least three structurally different product shapes. Select a coherent combination of loop horizons, interacting systems, content families, progression arcs, variation/repetition controls, and endgame.
+- `design/content-architecture.json` is the machine-audited product-depth contract. Its content budget must support the promised minimum playtime, and its systems/content families must map to release scope.
+- Production is blocked when the formal result is only a visually improved prototype, when content is repeated without meaningful variation, or when system count exists without interaction.
 
 ## Adaptive Code Strategy
 
@@ -63,6 +73,15 @@
 
 - New work packages default to task-boundary verification: aggregate small edits, run focused inner-loop checks only for acceptance-critical or risk-triggered changes, and run the routine compile/acceptance/integration suite once per attempt.
 - Reuse passing evidence until a relevant input changes. Shared contracts, scene/prefab wiring, persistence/configuration, a previous failure, build/phase gates, or an owner request trigger broader regression.
+- Broader regression changes test breadth, not packaging authority. Compile, editor tests, PlayMode, data checks, and platform preflight remain the default.
+
+## Package Build Cadence
+
+- A new project may perform one initial target-platform package build after platform confirmation to prove the toolchain. Record it in `.mlgs/build-policy.json`.
+- After initial validation passes, routine code/content/UI/art/configuration changes, fixes, regressions, and Vertical Slice through Beta gates never trigger an automatic package build.
+- Development package builds require an explicit request in the owner's current message, normally for device-specific testing. Historical preferences and participation level are insufficient.
+- Automatic package builds resume only in formal Release Candidate and Release flows. Build preflight is always non-packaging.
+- Never treat `build-or-phase-gate`, scene/prefab wiring, a full regression, or an available build environment as package-build authorization.
 
 ## Productization Strategy
 
@@ -78,7 +97,7 @@ After production unlock, projects progress through enforced milestones:
 1. Vertical Slice proves a representative final-quality journey, production code structure, art pipeline, and performance target.
 2. Content Complete removes placeholders and finishes all release-scope features, content, references, and error paths.
 3. Alpha proves full-flow stability, missing-reference cleanup, performance, localization integrity, and crash-free smoke.
-4. Beta proves target-device regression plus application icon, localization, and crash/error checks.
+4. Beta proves target-platform preflight plus application icon, localization, crash/error, and non-packaging regression checks; a fresh package is deferred to Release Candidate unless the owner explicitly requests one.
 5. Release Candidate locks the final game-content evidence and known issues.
 
 Quality gates parse structured JSON evidence and, when applicable, the art asset manifest. File presence alone never passes these milestones.

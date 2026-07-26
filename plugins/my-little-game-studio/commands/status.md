@@ -44,6 +44,8 @@ Producer
    - observed productization stage and the earliest incomplete quality gate
    - art manifest totals, placeholders, and assets below the required lifecycle status when available
    - target product version and release-scope totals by type/status, including planned-vs-implemented-vs-verified count gaps
+   - content-architecture experience class, promised/estimated playtime, researched reference count, loop/system/content/progression counts, and exact depth-validation gaps
+   - build-policy initial validation status, target platform, history count, automatic-development-build flag, and next allowed automatic build stage
    - visual-target approval/linkage gaps, onboarding gaps, and configuration/data-source gaps
    - quality report blockers and evidence gaps
    - latest staff activity

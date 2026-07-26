@@ -139,7 +139,7 @@
                         "Unity compile passes",
                         "Offline progress is deterministic",
                         "Save migration passes",
-                        "Target-device smoke passes"
+                        "Target-platform package smoke passes at Release Candidate or on explicit owner request"
                     ],
     "presentationDefaults":  {
                                       "dimension":  "2d",

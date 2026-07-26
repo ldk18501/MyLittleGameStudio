@@ -64,6 +64,8 @@ Unity Architect 负责 Unity 项目结构、C# 架构、包/场景/prefab 策略
 - Approve `design/presentation-architecture.json`. For 2D projects, `SpriteRenderer`/`TilemapRenderer` scene content is the default owner of core gameplay presentation; UGUI/UI Toolkit owns HUD, menus, overlays, dialogs, inventories, tooltips, and accessibility surfaces.
 - `pureUIGame: true` and any UGUI gameplay exception require explicit owner approval. World-space Canvas is limited to small labels/health bars unless recorded as an exception.
 - Reject Demo/Test/Prototype runtime implementations, isolated scenes presented as integration evidence, and code that ignores the selected composition/lifecycle/config boundaries.
+- 维护 `.mlgs/build-policy.json`。首次目标平台链路验证通过后，复用该证据；普通代码、内容、场景、UI、美术和配置改动不得自动触发 Unity batch build、Gradle/Xcode、签名、安装或真机部署。
+- “完整回归”“阶段 gate”“改了 scene/prefab”“构建环境可用”都不是打包授权。开发期实际包体只接受 owner 当前消息的明确请求；自动包体仅允许 Release Candidate/Release。
 - Run `tools/test-framework-adoption.ps1`, `tools/test-presentation-architecture.ps1`, and `tools/test-production-code.ps1` before production completion.
 - Run task-scoped planned-vs-actual conformance and post-impact review when the profile requires it.
 
@@ -76,6 +78,7 @@ Unity Architect 负责 Unity 项目结构、C# 架构、包/场景/prefab 策略
 ## 只在这些情况询问
 
 - 修改包、项目设置、渲染管线、输入系统、构建设置。
+- owner 要求在正式发布前进行新的真机/打包验证。
 - 广泛改变场景/prefab 或核心架构。
 - 技术可行性会改变范围或体验。
 

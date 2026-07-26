@@ -1,6 +1,6 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio 单入口智能路由。用于 /mlgs 后以自然语言执行 Unity/C# 游戏工作室流程，包括新项目、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建、状态和 dashboard。"
+description: "MyLittleGameStudio 单入口智能路由。用于 /mlgs 后以自然语言执行 Unity/C# 游戏工作室流程，包括稀疏点子的自主发散、网页游戏参考调研、长线内容架构、新项目、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建、状态和 dashboard。"
 ---
 
 # MLGS
@@ -48,6 +48,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 
 生产未解锁时停止；只有 owner 明确接受风险后才传 `-AcceptRisk`。完成写入后、释放 lease 前，使用同一个 `-ContextPath` 运行 `tools/validate-changes.ps1`，拒绝 lease 声明路径或 approved write paths 之外的 Unity 改动。
 
+## 打包节奏
+
+- 新项目确认发布平台后可以执行一次初始包体链路验证，并把结果写入 `.mlgs/build-policy.json`。
+- 初始验证通过后，普通代码、内容、UI、美术、配置、修复、回归以及 Vertical Slice 到 Beta gate 都只运行编译、编辑器/PlayMode、数据和非打包平台预检。
+- 完整回归、阶段 gate、scene/prefab 改动或构建环境可用都不授权实际打包。
+- 开发期再次生成、签名、安装或部署包体，必须来自 owner 当前消息的明确真机/打包要求；自动打包只在 Release Candidate/Release 流程恢复。
+- 任何实际包体构建前运行 `tools/preflight-task.ps1 -Command build` 并提供合法 `BuildReason`；结束后用 `tools/record-build-event.ps1` 记录。
+
 ## Unity 机制资料
 
 玩法手感、调参、对象池、DOD、instancing、弹幕、大量对象、输入反馈或性能预算任务，读取：
@@ -61,6 +69,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/prefligh
 ## 成品化门禁
 
 - Prototype 之后的生产代码必须读取 `rules/production-code.md`。
+- 低参与度只减少 owner 日常决策，不缩小游戏范围。用户只给一句点子时，MLGS 要主动研究、发散、综合和量化；不得把未描述的正式内容默认为不存在。
+- 参考驱动、明确非轻度、10 小时以上或 `standard`/`deep` 项目，规划前必须查找当前网页游戏参考，并在 `design/reference-analysis.md` 与 `design/content-architecture.json` 记录来源、观察、推断、借鉴和拒绝。无法联网时显式阻塞，不伪造研究。
+- 生产前 `tools/test-content-architecture.ps1` 必须通过。契约必须覆盖即时/单次/中期/长期循环、相互作用系统、内容族、成长阶段、变化与重复控制、差异化、后期玩法、release-scope 映射和足以支撑承诺时长的内容预算。
+- Prototype 只是风险验证子集。把 Prototype 换成正式美术、增加同质内容或堆叠数值不构成成品化。
 - HTML 原型只验证交互，不是视觉实现参考。正式美术必须链接 `design/art/visual-target.json` 中已批准的效果图 ID，并在处理、Unity 导入、真实引用、目标图对比和游戏内证据齐全后才能标记 `approved`。
 - 生产前必须建立 `production/scope/release-scope.json`，逐项覆盖功能、内容数量、教学、UI、配置表、音频、美术、本地化、operations readiness 和构建；未列入或未验证的项目不能被“全部完成”吞掉。
 - Vertical Slice、Content Complete、Alpha、Beta、Release Candidate 和 Release 使用 `tools/test-quality-gate.ps1`；它联合验证质量报告、美术、release scope 和代码审计，证据必须是存在的项目内文件。

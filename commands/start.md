@@ -29,6 +29,7 @@ Producer
 - project `.mlgs/state.json` only after the owner chooses or confirms a project
 - user runtime `current-project.json` only when the owner explicitly chooses to set the navigation default
 - project `.mlgs/project.md`
+- project `.mlgs/build-policy.json`
 
 ## Flow
 
@@ -50,7 +51,9 @@ Producer
    - Continue current -> run `tools/get-project-status.ps1 -AllowTemplate`, then internal `status`
    - Repair/switch -> `tools/repair-pointer.ps1` or clear pointer
 7. When initializing state, prefer `tools/init-project-state.ps1`. It does not change the navigation pointer unless `-SetCurrent` is explicit.
-8. Record trace.
+8. After the owner confirms the target platform, one initial package-build validation may run to prove the toolchain. Authorize it only through `tools/preflight-task.ps1 -Command build -BuildReason initial-platform-validation -StartFlowBuild`, then record the result with `tools/record-build-event.ps1`.
+9. If initial validation already passed, reuse its evidence. Never rerun it merely because content, code, scenes, UI, art, or configuration changed.
+10. Record trace.
 
 ## Defaults
 

@@ -1,7 +1,7 @@
 interface:
   display_name: "/mlgs"
-  short_description: "MyLittleGameStudio 单入口智能路由"
-  default_prompt: "使用 $mlgs 用自然语言描述 Unity 游戏开发需求，让工作室自动判断下一步。"
+  short_description: "MyLittleGameStudio 单入口路由与深度策划"
+  default_prompt: "使用 $mlgs 描述一个 Unity 游戏点子或开发需求，让工作室自主调研、扩展内容并推进下一步。"
 
 policy:
   allow_implicit_invocation: true

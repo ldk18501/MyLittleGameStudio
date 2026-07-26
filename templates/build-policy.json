@@ -1,0 +1,19 @@
+{
+  "$schema": "build-policy.schema.json",
+  "schemaVersion": "1.0",
+  "mode": "initial-validation-then-explicit-or-release",
+  "automaticDevelopmentBuilds": false,
+  "initialValidation": {
+    "status": "pending",
+    "targetPlatform": "",
+    "attempts": 0,
+    "completedAt": "",
+    "evidence": []
+  },
+  "allowedAutomaticStages": [
+    "release-candidate",
+    "release"
+  ],
+  "history": [],
+  "updated": ""
+}

@@ -30,6 +30,7 @@ Game Designer
 ## Write
 
 - project `design/systems/[system].md`
+- project `design/content-architecture.json`
 - project `docs/tech-plan.md`
 - project `production/task-plan.md`
 - project `design/player-journey.md`
@@ -53,7 +54,15 @@ Game Designer
 1. Resolve active project. If no concept exists, draft minimal assumptions from the request or route to internal `brainstorm`.
 2. Use `mlgs-unity-mechanics` for gameplay systems, input feel, tuning, feedback, or performance-sensitive runtime behavior.
 3. Run `tools/init-production-pipeline.ps1`. Identify the explicit `1.0.0` release scope before identifying the smaller prototype/Vertical Slice subset. Do not silently turn unimplemented release content into backlog.
-4. For each MVP system, write:
+4. Finalize `design/content-architecture.json` before task planning:
+   - keep low participation independent from product scope
+   - enforce current web research for `standard`/`deep`, reference-led, 10+ hour, or otherwise content-rich products
+   - map moment/session/medium/long loops and their meaningful decisions
+   - define interacting systems, not a flat feature pile
+   - enumerate content families, quantities, variation axes, unlock arcs, progression phases, repetition controls, and endgame/terminal mastery
+   - estimate authored, replay, and total hours; the estimate must support the promised minimum playtime
+   - state what is borrowed, what is uniquely recombined, and what must not be cloned
+5. For each full-product system, write:
    - purpose
    - player experience
    - rules
@@ -79,22 +88,22 @@ Game Designer
    - composition root, lifecycle/cancellation, error handling, save boundaries, and localization boundaries
 7. Unity Architect and Technical Artist approve `design/presentation-architecture.json`. A 2D project is scene-rendered with SpriteRenderer/TilemapRenderer by default; UGUI is for HUD/menus/overlays. `pureUIGame` and narrow UGUI gameplay exceptions require owner approval.
 8. Art Director and Technical Artist turn each approved target screen into `design/art/visual-scene-contract.json`: fixed resolution/camera, normalized composition anchors, required background/midground/foreground/world/diegetic/UI/VFX layers, renderer ownership, Unity paths, and comparison thresholds.
-9. Game Designer and Producer enumerate `production/scope/release-scope.json`: every release feature, content group with planned quantity, tutorial beat, UI screen, configuration/data source, audio set, art set, localization target, operations-readiness decision, and build. Every item links to a source design file and a target milestone.
+9. Game Designer and Producer enumerate `production/scope/release-scope.json`: every release feature, content group with planned quantity, tutorial beat, UI screen, configuration/data source, audio set, art set, localization target, operations-readiness decision, and build. Every item links to a source design file and a target milestone. Every production-depth system and content family in `design/content-architecture.json` maps to one or more scope IDs.
 7. UI/UX Developer writes the end-to-end player journey and onboarding/tutorial flow. The Vertical Slice must include a real first-session path; Content Complete must include all teach/practice/verify/recovery beats.
 8. Unity Architect writes `production/data/configuration-plan.md` for tuning, progression, economy, rewards, spawn/content tables, validation, runtime consumers, and failure behavior. Prototype constants receive migration tasks.
 9. Producer and Unity Architect write `production/release/operations-readiness.md`: product model, game-side monetization/analytics/consent/remote-config or LiveOps requirements, service failure behavior, and named external owners for store/legal/deployment handoffs. “Not applicable” must be an explicit verified decision.
 10. Technical Artist derives the style bible and every art manifest entry from approved visual-target IDs. The manifest must cover every art scope item, not only assets already generated.
 11. Producer writes `production/task-plan.md` with bounded tasks and explicit Vertical Slice, Content Complete, Alpha, Beta, and Release Candidate milestones. Every release-scope item has task coverage; production tasks must not be described as prototype shortcuts.
-12. QA Lead checks that acceptance criteria cover normal, edge, failure, feedback, performance, integration, content quantity, first-session comprehension, configuration validation, operations readiness, and visual-target comparison.
+12. QA Lead checks that acceptance criteria cover normal, edge, failure, feedback, performance, integration, content quantity, first-session comprehension, configuration validation, operations readiness, visual-target comparison, loop-horizon coverage, progression novelty, system synergies, repetition control, and promised playtime.
 13. Decide prototype policy.
 14. Under low participation, write the plan and ask only for phase approval.
 15. Under medium/high participation, show concise options when architecture or scope choices matter.
 16. Update state and next action.
-21. Run the codebase-understanding, framework, presentation, and visual contract validators in planning mode, then record trace.
+21. Run `tools/test-content-architecture.ps1` together with the codebase-understanding, framework, presentation, and visual contract validators in planning mode, then record trace.
 
 ## Completion
 
-Systems, production architecture, milestone task plan, art pipeline, and prototype policy exist or blockers are explicit.
+The approved content architecture supports the promised playtime, and systems, production architecture, milestone task plan, art pipeline, and prototype policy exist or blockers are explicit.
 
 ## Executable planning contract
 
@@ -106,6 +115,7 @@ Every production task is also a machine-readable work package. Use one verifiabl
 3. Enumerate every profile-required UI screen in `design/ui/screen-inventory.json`, including states, controls, visual targets, implementation path, formal asset IDs, audio IDs, and evidence. For each approved effect image, complete `componentAudit`: mark every visible button, frame, close control, dropdown, checkbox, progress segment, icon, separator, and typography region as generated, reused, procedural, or typography-only; record its exact pixel rectangle, states, reuse key, and asset mapping.
 4. Run `tools/validate-game-profile-coverage.ps1`.
 5. Freeze the approved plan with `tools/freeze-design-baseline.ps1`, including the codebase profile/module map, visual scene, framework-adoption, and presentation-architecture contracts. Production cannot start from a draft or stale baseline.
+6. `tools/test-content-architecture.ps1` must pass. `standard` and `deep` projects fail closed when research, loop horizons, interacting systems, content families, progression arcs, scope mappings, or content-hour support are too thin.
 ## Capability and orchestration plan
 
 Refresh `production/capabilities/capability-manifest.json` while planning the asset list. Missing image, Sprite, mesh, animation, audio, video, Unity import/validation, or visual-comparison providers become explicit dependencies and budget risks. For non-direct tasks, create `production/execution/<work-package-id>.json` with `tools/new-execution-strategy.ps1`; cap parallel logical groups and synthesis rounds.

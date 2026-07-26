@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/content-architecture.schema.json",
+  "title": "MLGS content architecture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "experienceTarget",
+    "research",
+    "loopArchitecture",
+    "systemPortfolio",
+    "contentPlan",
+    "progressionArcs",
+    "varietyModel",
+    "differentiation",
+    "contentBudget",
+    "validation",
+    "updated"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "status": { "enum": ["draft", "approved", "revise"] },
+    "experienceTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experienceClass", "ownerParticipation", "targetPlaytimeHours", "targetSessionMinutes", "referenceDriven", "complexityRationale", "antiScope"],
+      "properties": {
+        "experienceClass": { "enum": ["hyper-casual", "light", "standard", "deep"] },
+        "ownerParticipation": { "enum": ["low", "medium", "high"] },
+        "targetPlaytimeHours": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "target"],
+          "properties": {
+            "minimum": { "type": "number", "exclusiveMinimum": 0 },
+            "target": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "targetSessionMinutes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": { "type": "number", "exclusiveMinimum": 0 },
+            "maximum": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "referenceDriven": { "type": "boolean" },
+        "complexityRationale": { "type": "string", "minLength": 1 },
+        "antiScope": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["webResearchRequired", "performedAt", "references"],
+      "properties": {
+        "webResearchRequired": { "type": "boolean" },
+        "performedAt": { "type": "string" },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "url", "role", "observedPatterns", "adapt", "reject"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+              "title": { "type": "string", "minLength": 1 },
+              "url": { "type": "string", "pattern": "^https?://" },
+              "role": { "enum": ["direct", "adjacent", "contrast"] },
+              "observedPatterns": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              "adapt": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              "reject": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+            }
+          }
+        }
+      }
+    },
+    "loopArchitecture": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["horizon", "name", "cadence", "playerDecisions", "systemIds", "progressionOutput"],
+        "properties": {
+          "horizon": { "enum": ["moment", "session", "medium", "long"] },
+          "name": { "type": "string", "minLength": 1 },
+          "cadence": { "type": "string", "minLength": 1 },
+          "playerDecisions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "systemIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "progressionOutput": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "systemPortfolio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "role", "description", "unlockCondition", "playerDecisions", "synergySystemIds", "referenceIds", "scopeIds"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "name": { "type": "string", "minLength": 1 },
+          "role": { "enum": ["core", "progression", "economy", "content", "social", "liveops", "quality-of-life"] },
+          "description": { "type": "string", "minLength": 1 },
+          "unlockCondition": { "type": "string", "minLength": 1 },
+          "playerDecisions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "synergySystemIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "referenceIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "scopeIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    },
+    "contentPlan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "category", "productionMode", "plannedCount", "unitPlaytimeMinutes", "replayMultiplier", "unlockArc", "variationAxes", "systemIds", "scopeIds"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "category": { "type": "string", "minLength": 1 },
+          "productionMode": { "enum": ["authored", "parametric", "emergent", "hybrid"] },
+          "plannedCount": { "type": "integer", "minimum": 1 },
+          "unitPlaytimeMinutes": { "type": "number", "minimum": 0 },
+          "replayMultiplier": { "type": "number", "minimum": 1 },
+          "unlockArc": { "type": "string", "minLength": 1 },
+          "variationAxes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "systemIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "scopeIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    },
+    "progressionArcs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "startHour", "endHour", "goals", "unlocks", "novelty", "masteryTests"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "name": { "type": "string", "minLength": 1 },
+          "startHour": { "type": "number", "minimum": 0 },
+          "endHour": { "type": "number", "exclusiveMinimum": 0 },
+          "goals": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "unlocks": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "novelty": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "masteryTests": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "varietyModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["meaningfulDecisionFamilies", "combinatorialSources", "repetitionControls", "failureRecovery", "endgame"],
+      "properties": {
+        "meaningfulDecisionFamilies": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "combinatorialSources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "repetitionControls": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "failureRecovery": { "type": "string", "minLength": 1 },
+        "endgame": { "type": "string", "minLength": 1 }
+      }
+    },
+    "differentiation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["borrowedPatterns", "uniqueCombination", "avoidCloneRules"],
+      "properties": {
+        "borrowedPatterns": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "uniqueCombination": { "type": "string", "minLength": 1 },
+        "avoidCloneRules": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "contentBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["estimatedAuthoredHours", "estimatedReplayHours", "estimatedTotalHours", "calculation", "confidence"],
+      "properties": {
+        "estimatedAuthoredHours": { "type": "number", "minimum": 0 },
+        "estimatedReplayHours": { "type": "number", "minimum": 0 },
+        "estimatedTotalHours": { "type": "number", "exclusiveMinimum": 0 },
+        "calculation": { "type": "string", "minLength": 1 },
+        "confidence": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["referenceSynthesisComplete", "loopCoverageComplete", "scopeMappingComplete", "prototypeOnlyRiskRejected", "designerVerdict"],
+      "properties": {
+        "referenceSynthesisComplete": { "type": "boolean" },
+        "loopCoverageComplete": { "type": "boolean" },
+        "scopeMappingComplete": { "type": "boolean" },
+        "prototypeOnlyRiskRejected": { "type": "boolean" },
+        "designerVerdict": { "enum": ["pending", "pass", "revise"] }
+      }
+    },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

@@ -27,6 +27,8 @@ function Copy-IfNeeded {
 Copy-IfNeeded "studio/release-scope.schema.json" ".mlgs/release-scope.schema.json"
 Copy-IfNeeded "studio/work-package.schema.json" ".mlgs/work-package.schema.json"
 Copy-IfNeeded "studio/game-profile.schema.json" ".mlgs/game-profile.schema.json"
+Copy-IfNeeded "studio/content-architecture.schema.json" ".mlgs/content-architecture.schema.json"
+Copy-IfNeeded "studio/build-policy.schema.json" ".mlgs/build-policy.schema.json"
 Copy-IfNeeded "studio/ui-screen-contract.schema.json" ".mlgs/ui-screen-contract.schema.json"
 Copy-IfNeeded "studio/design-baseline.schema.json" ".mlgs/design-baseline.schema.json"
 Copy-IfNeeded "studio/change-impact.schema.json" ".mlgs/change-impact.schema.json"
@@ -44,6 +46,7 @@ Copy-IfNeeded "templates/presentation-architecture.json" "design/presentation-ar
 Copy-IfNeeded "templates/codebase-profile.json" "design/code/codebase-profile.json"
 Copy-IfNeeded "templates/module-map.json" "design/code/module-map.json"
 Copy-IfNeeded "templates/ui-screen-contract.json" "design/ui/screen-inventory.json"
+Copy-IfNeeded "templates/content-architecture.json" "design/content-architecture.json"
 Copy-IfNeeded "templates/design-baseline.json" "design/baseline.json"
 Copy-IfNeeded "templates/capability-manifest.json" "production/capabilities/capability-manifest.json"
 Copy-IfNeeded "templates/release-scope.json" "production/scope/release-scope.json"
@@ -94,6 +97,18 @@ $capabilityPath = Join-Path $ProjectRoot "production/capabilities/capability-man
 if (Test-Path $capabilityPath) {
   $capability = Get-Content -LiteralPath $capabilityPath -Raw -Encoding UTF8 | ConvertFrom-Json
   if ([string]::IsNullOrWhiteSpace([string]$capability.updated)) { $capability.updated = (Get-Date).ToString("o"); Write-MLGSJsonAtomic -Path $capabilityPath -Value $capability }
+}
+
+$buildPolicyPath = Join-Path $ProjectRoot ".mlgs/build-policy.json"
+if (-not (Test-Path $buildPolicyPath)) {
+  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/init-build-policy.ps1") -Root $Root -ProjectRoot $ProjectRoot -InitialStatus unknown | Out-Null
+}
+if (Test-Path $buildPolicyPath) {
+  $buildPolicy = Get-Content -LiteralPath $buildPolicyPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ([string]::IsNullOrWhiteSpace([string]$buildPolicy.updated)) {
+    $buildPolicy.updated = (Get-Date).ToString("o")
+    Write-MLGSJsonAtomic -Path $buildPolicyPath -Value $buildPolicy
+  }
 }
 
 if (Test-Path $scopePath) {

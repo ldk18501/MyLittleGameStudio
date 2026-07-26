@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/build-policy.schema.json",
+  "title": "MLGS package build cadence policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "mode",
+    "automaticDevelopmentBuilds",
+    "initialValidation",
+    "allowedAutomaticStages",
+    "history",
+    "updated"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "mode": { "const": "initial-validation-then-explicit-or-release" },
+    "automaticDevelopmentBuilds": { "const": false },
+    "initialValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "targetPlatform", "attempts", "completedAt", "evidence"],
+      "properties": {
+        "status": { "enum": ["pending", "passed", "failed", "skipped", "unknown"] },
+        "targetPlatform": { "type": "string" },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "completedAt": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "allowedAutomaticStages": {
+      "type": "array",
+      "const": ["release-candidate", "release"]
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "requestedBy", "targetPlatform", "result", "at", "evidence"],
+        "properties": {
+          "kind": { "enum": ["initial-platform-validation", "owner-request", "release-candidate", "release"] },
+          "requestedBy": { "enum": ["start-flow", "owner", "release-flow"] },
+          "targetPlatform": { "type": "string", "minLength": 1 },
+          "result": { "enum": ["passed", "failed", "blocked"] },
+          "at": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "updated": { "type": "string", "minLength": 1 }
+  }
+}

@@ -41,12 +41,12 @@ Gameplay Developer
    - `prototype.verdict: skipped`
    - skip reason
    - production risk
-4. If building, define the smallest playable scope that can answer the risk.
+4. If building, define the smallest playable scope that can answer the risk. Explicitly link the prototype subset back to `design/content-architecture.json`; omitted long-term systems and content remain planned production work, not rejected scope.
 5. Use `mlgs-unity-mechanics` only for the mechanism patterns needed.
 6. Choose HTML when engine behavior is not the risk; choose Unity greybox for physics, input, camera, UI, rendering, Addressables, or performance risk.
 7. Build or specify the prototype based on feasibility.
 8. Run it locally when possible and create `playtest-report.md`.
-9. Set verdict: pass, revise, return-to-plan, or skipped.
+9. Set verdict: pass, revise, return-to-plan, or skipped. A pass validates the tested hypothesis only; it must not be interpreted as proof that the prototype contains enough systems, content, progression, or playtime for release.
 10. If pass or skipped-with-risk and plan is approved, set `approvals.productionUnblocked` and ensure the unified gate evaluator passes.
 11. Record trace.
 

@@ -140,7 +140,7 @@
                         "Unity compile passes",
                         "Representative run is playable",
                         "No missing references",
-                        "Target-device smoke passes"
+                        "Target-platform package smoke passes at Release Candidate or on explicit owner request"
                     ],
     "presentationDefaults":  {
                                       "dimension":  "2d",

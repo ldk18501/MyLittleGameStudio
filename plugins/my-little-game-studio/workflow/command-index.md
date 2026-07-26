@@ -31,9 +31,9 @@ MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.
 | concept | creative-director | concept-approved | brainstorm, generate-art, review, status |
 | plan | game-designer | plan-approved | plan, generate-art, review, test, status |
 | prototype | gameplay-developer | prototype-passed-or-skipped | prototype, test, review, status |
-| vertical-slice | producer | vertical-slice-approved | productize, implement, generate-art, fix, review, test, build, status |
-| production | unity-architect | content-complete-approved | productize, implement, generate-art, fix, review, test, build, status |
-| alpha | qa-lead | alpha-approved | productize, implement, generate-art, fix, review, test, build, status |
-| beta | qa-lead | beta-approved | productize, release, fix, review, test, build, status |
+| vertical-slice | producer | vertical-slice-approved | productize, implement, generate-art, fix, review, test, status |
+| production | unity-architect | content-complete-approved | productize, implement, generate-art, fix, review, test, status |
+| alpha | qa-lead | alpha-approved | productize, implement, generate-art, fix, review, test, status |
+| beta | qa-lead | beta-approved | productize, release, fix, review, test, status |
 | release-candidate | qa-lead | release-candidate-approved | release, fix, review, test, build, status |
 | release | qa-lead | release-approved | release, fix, review, test, build, status |

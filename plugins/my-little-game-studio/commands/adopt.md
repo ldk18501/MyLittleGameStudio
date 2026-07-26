@@ -74,6 +74,7 @@ Do not copy the Unity project into MLGS. Do not rewrite existing design docs dur
    powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot <path> -Apply
    ```
    Include `-OwnerParticipation low|medium|high` and `-ApprovedWritePaths` when known. Add `-SetCurrent` only when the owner explicitly wants to change the navigation pointer; normal adoption remains project-local.
+   Adoption initializes `.mlgs/build-policy.json`, but never automatically produces a package build. Existing build evidence may be recorded later; a fresh development build still requires the owner's explicit current request.
 7. Do not force the adopted project into its current architecture. The report is evidence for planning; it may lead to extending, lightly adapting, replacing a harmful legacy area, or creating an isolated new module.
 7. Ask or recommend next work:
    - missing concept -> `/mlgs 帮我头脑风暴这个游戏概念`

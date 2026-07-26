@@ -11,6 +11,7 @@
 - 给出 `pass`、`concerns` 或 `blocked`，并为失败指定 owner 与复现步骤。
 - 审查整屏 Unity 截图和逐资源 review，防止技术检查被误当成视觉批准。
 - 按工作包的 `verificationPolicy` 控制验证节奏。普通实现默认把小改动聚合到任务边界，一次运行编译、验收和集成 smoke；只有验收关键、高风险、上次失败、相关输入变化或阶段门禁才在任务内追加测试，禁止把每个小函数都当成独立回归批次。
+- 完整回归和阶段门禁只扩大测试覆盖，不自动升级成打包构建。首次平台验证通过后，普通开发使用编译、EditMode/PlayMode、编辑器流程、数据和平台预检；没有 owner 当前明确要求或 Release Candidate/Release 授权时，不生成、签名、安装或部署包体。
 
 ## 正式美术回归
 
@@ -29,6 +30,7 @@
 - 运行 `tools/test-presentation-architecture.ps1`，拒绝用 Canvas/UGUI 承载 2D 非纯 UI 玩法场景，或让 UI handler 持有权威玩法规则。
 - 按 `design/art/visual-scene-contract.json` 验证整屏构图、锚点、空间占用、深度、光照、材质、细节、叙事整合、可读性和渲染归属。
 - 阶段 gate 必须联合验证质量报告、release scope、资源清单、正式引用和项目内证据路径。
+- 运行 `tools/test-content-architecture.ps1`，验证研究数量与角色、四层循环、相互作用系统、内容族、成长阶段、范围映射和时长预算。只把 Demo 换成正式美术、复制同质内容或堆叠数值，均不能通过成品度评审。
 
 ## 交接
 

@@ -34,15 +34,17 @@ Do not skip a stage by merely creating its files. `tools/test-quality-gate.ps1` 
    ```
 
 4. Convert every failed or missing check into a bounded task with acceptance criteria and evidence path. Acquire non-overlapping leases before executing project writes.
+4.1 Treat phase verification as non-packaging through Beta. Reuse the successful initial platform-validation evidence and run compile/editor/play-mode/platform-preflight checks. Do not package after each content change and do not interpret `build-or-phase-gate` as build authorization.
 5. Validate the explicit release scope with `tools/validate-release-scope.ps1`; never infer completeness from implemented files alone. Missing planned counts, tutorial beats, UI screens, configuration sources, audio, or art are blockers.
+5.1 Run `tools/test-content-architecture.ps1`. If the implemented game is only the prototype loop with production visuals, or the architecture no longer supports its promised playtime, route back to `plan` and deliberately re-freeze the design baseline before continuing.
 6. For production code, read `rules/production-code.md`; run `tools/test-production-code.ps1` and attach the report at Content Complete or earlier.
 7. For art, run the formal `generate-art` route and validate the screen-level visual scene contract before asset approval. Every product gate revalidates the stage-scoped art manifest and approved scene contract, so stale comparison, lifecycle, import, reference, or in-game evidence fails later stages too. A correctly skinned UGUI panel over a background is not final-look evidence when the target requires a layered scene or diegetic display.
 8. Validate framework adoption and presentation architecture. A Vertical Slice fails if production gameplay is still a Demo/Test implementation, bypasses the existing framework, or implements 2D core play through UGUI without an approved pure-UI decision.
 8. Complete the stage definition:
-   - Vertical Slice: one representative final-quality player journey, final-look target, production architecture, performance budget, and asset pipeline all proven together.
-   - Content Complete: every enumerated release-scope feature, planned content quantity, tutorial beat, UI screen, production configuration, audio set, and formal art item is integrated; placeholders, unfinished flows, temporary code, and missing references are removed.
+   - Vertical Slice: one representative final-quality player journey, final-look target, production architecture, performance budget, asset pipeline, and at least one real cross-system progression path are proven together.
+   - Content Complete: every enumerated release-scope feature, planned content quantity, tutorial beat, UI screen, production configuration, audio set, and formal art item is integrated; all content-architecture system/content mappings exist; placeholders, unfinished flows, temporary code, and missing references are removed.
    - Alpha: a new player can complete the first-session journey without developer guidance; all release-scope items are verified; blockers are fixed; performance, localization integrity, missing references, and crash-free smoke are verified.
-   - Beta: target-device regression passes; icon, localization, crash/error check, and known-issues review are complete.
+   - Beta: target-platform preflight and non-packaging regression pass; icon, localization, crash/error check, and known-issues review are complete. A fresh target-device package is deferred to Release Candidate unless the owner explicitly requests it now.
 9. Put existing project-relative evidence files on every required check, keep `blockers` empty, set `ownerApproval: true` only after the owner approves the major gate, then validate:
 
    ```powershell
