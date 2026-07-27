@@ -11,7 +11,7 @@ $Root = [System.IO.Path]::GetFullPath($Root)
 $ProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
 $initArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/init-production-pipeline.ps1"), "-Root", $Root, "-ProjectRoot", $ProjectRoot)
 & powershell @initArgs | Out-Null
-$catalog = Get-Content -LiteralPath (Join-Path $Root "workflow/catalog.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+$catalog = Import-MLGSWorkflowCatalog -Root $Root -IncludeGates
 $definition = $null
 foreach ($gateProperty in $catalog.gates.PSObject.Properties) {
   $gate = $gateProperty.Value

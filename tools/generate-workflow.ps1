@@ -2,16 +2,35 @@ param([string]$Root = "", [switch]$Check)
 
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
-$catalogPath = Join-Path $Root "workflow/catalog.json"
-$catalog = Get-Content -LiteralPath $catalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
+. (Join-Path $Root "tools/workflow-catalog.ps1")
+$catalog = Import-MLGSWorkflowCatalog -Root $Root -IncludePhases -IncludeGates
+
+function Get-MLGSOptionalArray {
+  param($Object, [Parameter(Mandatory = $true)][string]$Name)
+  if ($Object.PSObject.Properties.Name -contains $Name) { return @($Object.$Name) }
+  return @()
+}
 
 $errors = @()
 foreach ($command in $catalog.commands) {
   if (-not (Test-Path (Join-Path $Root $command.file))) { $errors += "Missing command file: $($command.file)" }
   if (-not (Test-Path (Join-Path $Root ("agents/" + $command.lead + ".md")))) { $errors += "Missing lead agent: $($command.lead)" }
-  $supports = @($command.support | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+  $supports = @(Get-MLGSOptionalArray -Object $command -Name "support" | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
   foreach ($support in $supports) {
     if (-not (Test-Path (Join-Path $Root ("agents/" + $support + ".md")))) { $errors += "Missing supporting agent: $support" }
+  }
+  if ($command.PSObject.Properties.Name -contains "modes") {
+    $defaults = @($command.modes | Where-Object { $_.default -eq $true })
+    if ($defaults.Count -ne 1) { $errors += "Command $($command.id) must define exactly one default mode." }
+    foreach ($mode in @($command.modes)) {
+      foreach ($name in @("id", "file", "intents")) {
+        if (-not ($mode.PSObject.Properties.Name -contains $name)) { $errors += "Command $($command.id) mode is missing $name." }
+      }
+      if ($mode.file -and -not (Test-Path (Join-Path $Root ([string]$mode.file)))) { $errors += "Missing mode file: $($mode.file)" }
+      foreach ($stageFile in @(Get-MLGSOptionalArray -Object $mode -Name "stageFiles")) {
+        if (-not (Test-Path (Join-Path $Root ([string]$stageFile)))) { $errors += "Missing mode stage file: $stageFile" }
+      }
+    }
   }
 }
 $commandIds = @($catalog.commands.id)
@@ -46,7 +65,7 @@ if ($errors.Count -gt 0) { throw ($errors -join "`n") }
 $lines = @(
   "# MLGS Command Index",
   "",
-  '> Generated from `workflow/catalog.json`. Do not edit by hand.',
+  '> Generated from `workflow/catalog.json` plus its phase/gate catalogs. Do not edit by hand.',
   "",
   'MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.',
   "",
@@ -54,7 +73,7 @@ $lines = @(
   "|---|---|---|---|"
 )
 foreach ($command in $catalog.commands) {
-  $supports = @($command.support | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+  $supports = @(Get-MLGSOptionalArray -Object $command -Name "support" | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
   $support = if ($supports.Count -gt 0) { $supports -join ", " } else { "-" }
   $intents = @($command.intents) -join ", "
   $lines += ('| `{0}` | {1} | {2} | {3} |' -f $command.id, $command.lead, $support, $intents)
@@ -63,6 +82,16 @@ $lines += @("", "## Phases", "", "| Phase | Lead | Gate | Routes |", "|---|---|-
 foreach ($phase in $catalog.phases) {
   $phaseCommands = @($phase.commands) -join ", "
   $lines += ('| {0} | {1} | {2} | {3} |' -f $phase.id, $phase.lead, $phase.gate, $phaseCommands)
+}
+$modeRows = @()
+foreach ($command in $catalog.commands) {
+  foreach ($mode in @(Get-MLGSOptionalArray -Object $command -Name "modes")) {
+    $modeRows += ('| `{0}` | `{1}` | {2} | {3} |' -f $command.id, $mode.id, [bool]$mode.default, (@($mode.intents) -join ", "))
+  }
+}
+if ($modeRows.Count -gt 0) {
+  $lines += @("", "## Route Modes", "", "| Route | Mode | Default | Intent examples |", "|---|---|---|---|")
+  $lines += $modeRows
 }
 $content = ($lines -join "`r`n") + "`r`n"
 $outputPath = Join-Path $Root "workflow/command-index.md"
@@ -74,4 +103,4 @@ if ($Check) {
   Set-Content -LiteralPath $outputPath -Value $content -Encoding UTF8 -NoNewline
 }
 
-[pscustomobject]@{ status = "passed"; check = [bool]$Check; output_path = $outputPath; command_count = $catalog.commands.Count } | ConvertTo-Json
+[pscustomobject]@{ status = "passed"; check = [bool]$Check; output_path = $outputPath; command_count = $catalog.commands.Count; mode_count = $modeRows.Count } | ConvertTo-Json

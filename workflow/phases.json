@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0",
+  "phases": [
+    {
+      "id": "intake",
+      "lead": "producer",
+      "commands": [
+        "start",
+        "adopt",
+        "status",
+        "help"
+      ],
+      "gate": "project-selected"
+    },
+    {
+      "id": "concept",
+      "lead": "creative-director",
+      "commands": [
+        "brainstorm",
+        "generate-art",
+        "review",
+        "status"
+      ],
+      "gate": "concept-approved"
+    },
+    {
+      "id": "plan",
+      "lead": "game-designer",
+      "commands": [
+        "plan",
+        "generate-art",
+        "review",
+        "test",
+        "status"
+      ],
+      "gate": "plan-approved"
+    },
+    {
+      "id": "prototype",
+      "lead": "gameplay-developer",
+      "commands": [
+        "prototype",
+        "test",
+        "review",
+        "status"
+      ],
+      "gate": "prototype-passed-or-skipped"
+    },
+    {
+      "id": "vertical-slice",
+      "lead": "producer",
+      "commands": [
+        "productize",
+        "implement",
+        "generate-art",
+        "fix",
+        "review",
+        "test",
+        "status"
+      ],
+      "gate": "vertical-slice-approved"
+    },
+    {
+      "id": "production",
+      "lead": "unity-architect",
+      "commands": [
+        "productize",
+        "implement",
+        "generate-art",
+        "fix",
+        "review",
+        "test",
+        "status"
+      ],
+      "gate": "content-complete-approved"
+    },
+    {
+      "id": "alpha",
+      "lead": "qa-lead",
+      "commands": [
+        "productize",
+        "implement",
+        "generate-art",
+        "fix",
+        "review",
+        "test",
+        "status"
+      ],
+      "gate": "alpha-approved"
+    },
+    {
+      "id": "beta",
+      "lead": "qa-lead",
+      "commands": [
+        "productize",
+        "release",
+        "fix",
+        "review",
+        "test",
+        "status"
+      ],
+      "gate": "beta-approved"
+    },
+    {
+      "id": "release-candidate",
+      "lead": "qa-lead",
+      "commands": [
+        "release",
+        "fix",
+        "review",
+        "test",
+        "build",
+        "status"
+      ],
+      "gate": "release-candidate-approved"
+    },
+    {
+      "id": "release",
+      "lead": "qa-lead",
+      "commands": [
+        "release",
+        "fix",
+        "review",
+        "test",
+        "build",
+        "status"
+      ],
+      "gate": "release-approved"
+    }
+  ]
+}

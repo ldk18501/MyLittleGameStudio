@@ -7,7 +7,7 @@ param(
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
 $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
-$catalog = Get-Content -LiteralPath (Join-Path $Root "workflow/catalog.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+$catalog = Import-MLGSWorkflowCatalog -Root $Root -IncludeGates
 $gateName = ""
 foreach ($gateProperty in $catalog.gates.PSObject.Properties) {
   $gate = $gateProperty.Value

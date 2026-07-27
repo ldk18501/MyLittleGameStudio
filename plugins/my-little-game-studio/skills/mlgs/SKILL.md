@@ -1,113 +1,83 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio 单入口智能路由。用于 /mlgs 后以自然语言执行 Unity/C# 游戏工作室流程，包括稀疏点子的自主发散、网页游戏参考调研、长线内容架构、新项目、接管、规划、原型、正式美术生产与 Unity 接入、模块化实现、Vertical Slice、Content Complete、Alpha/Beta、图标、本地化、崩溃检查、构建、状态和 dashboard。"
+description: "MyLittleGameStudio single-entry router for Unity/C# game-studio work through /mlgs plus natural language."
 ---
 
 # MLGS
 
-把当前 skill 目录向上两级解析为插件根目录。插件根必须包含 `workflow/catalog.json`、`commands/`、`agents/`、`tools/` 和 `studio/state.json`；这些资源随插件一起发布，不依赖外部 MyLittleGameStudio checkout。
+Resolve the plugin root two levels above this skill. It must contain `workflow/catalog.json`, `commands/`, `agents/`, `tools/`, and `studio/state.json`. The installed plugin root is read-only.
 
-## 路由
+## Route
 
-1. 读取插件根下的 `studio/config.md`、`rules/state.md` 和 `workflow/catalog.json`。
-2. 运行：
+1. Read only:
+   - `studio/config.md`
+   - `rules/state.md`
+   - `workflow/catalog.json`
+2. Run:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/resolve-state.ps1 -Root <plugin-root> -AllowTemplate
    ```
 
-   项目任务一旦确定路径，立即运行 `tools/new-project-context.ps1 -ProjectRoot <path>`，保存返回的 `contextPath`、`projectRoot`、`runtimeRoot` 和 `invocationId`；本任务后续不得脱离该 context 重新使用全局指针解析。
+3. Select one command from `commands[].intents`.
+4. Read that command, its lead agent, and only the supporting agents needed for the current stage.
+5. Load route-specific policies listed by `studio/config.md`.
+6. Read the referenced phase catalog or gate catalog only for phase/gate evaluation. Read `workflow/onboarding.yaml` only for start, adopt, status, or pointer recovery.
 
-3. 从 catalog 的 `commands[].intents` 选择一个内部 route。
-4. 只读取对应 command 文件、lead agent 和必要 supporting agents。
-5. `start`、`adopt`、`status` 才额外读取 `workflow/onboarding.yaml`；阶段评审才读取 catalog 的 phases/gates。
-6. 意图仍然模糊时只问一个短问题。
+Users need only `/mlgs` plus natural language. Do not recommend hidden sub-skills or nested slash commands.
 
-用户只需记住 `/mlgs`；不要推荐隐藏内部 skill 或一组子 slash 命令。
+## Project context
 
-涉及正式美术、切图、导入或引用时路由 `generate-art`；涉及 Vertical Slice、Content Complete、Alpha、Beta 或去 Demo 化时路由 `productize`；涉及图标、本地化、崩溃/错误检查或 Release Candidate 时路由 `release`。
-
-## 状态与兼容
-
-- 新状态：`<UnityProject>/.mlgs/state.json`。
-- 旧 `.mlgs/state.yaml` 可读，但状态输出必须提示可运行 `tools/migrate-state.ps1`；不要未经 owner 允许迁移真实项目。
-- 用户级当前项目指针只用于只读导航回退。项目 runtime、trace、dashboard、context 和 lease 写入 `$CODEX_HOME/mlgs/projects/<project-id>/`；未设置 `CODEX_HOME` 时使用 `~/.codex/mlgs/projects/<project-id>/`。
-- 写入命令只能使用显式项目路径、绑定 context 或当前目录最近的项目状态。`current-project.json` 和旧 checkout pointer 不能授权写入。
-- 多项目可并行。同一项目写入前用 `tools/acquire-project-lease.ps1` 声明计划路径，结束后用 `tools/release-project-lease.ps1` 释放；路径重叠时停止。
-- 插件安装目录视为只读；不要把 pointer、日志或 dashboard 数据写进插件缓存。
-
-## 生产安全
-
-在 `implement` 或 `fix` 写入前运行：
+When a project path is known, bind it once:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/preflight-task.ps1 -Root <plugin-root> -Command implement -ContextPath <context-path>
+powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/new-project-context.ps1 -ProjectRoot <path>
 ```
 
-实际调用必须附带本任务的 `-ContextPath <context-path>`；所有项目产物工具显式传递绑定的 `-ProjectRoot`。
+Keep the returned `contextPath`, `projectId`, `projectRoot`, `runtimeRoot`, and `invocationId` for the whole task. Never switch back to a global pointer during that task.
 
-生产未解锁时停止；只有 owner 明确接受风险后才传 `-AcceptRisk`。完成写入后、释放 lease 前，使用同一个 `-ContextPath` 运行 `tools/validate-changes.ps1`，拒绝 lease 声明路径或 approved write paths 之外的 Unity 改动。
+- Canonical state: `<ProjectRoot>/.mlgs/state.json`.
+- Legacy `.mlgs/state.yaml` is readable but migrates only with owner approval.
+- User and legacy pointers are read-only navigation fallbacks.
+- Same-project writes require a non-overlapping path lease.
+- Pass the bound context to preflight, status, trace, dashboard, and validation.
 
-## 打包节奏
+## Write safety
 
-- 新项目确认发布平台后可以执行一次初始包体链路验证，并把结果写入 `.mlgs/build-policy.json`。
-- 初始验证通过后，普通代码、内容、UI、美术、配置、修复、回归以及 Vertical Slice 到 Beta gate 都只运行编译、编辑器/PlayMode、数据和非打包平台预检。
-- 完整回归、阶段 gate、scene/prefab 改动或构建环境可用都不授权实际打包。
-- 开发期再次生成、签名、安装或部署包体，必须来自 owner 当前消息的明确真机/打包要求；自动打包只在 Release Candidate/Release 流程恢复。
-- 任何实际包体构建前运行 `tools/preflight-task.ps1 -Command build` 并提供合法 `BuildReason`；结束后用 `tools/record-build-event.ps1` 记录。
+Before `implement`, `fix`, `generate-art`, or `productize` writes:
 
-## Unity 机制资料
+1. Acquire a lease for the planned project-relative paths.
+2. Run `tools/preflight-task.ps1 -ContextPath <context-path>` with the selected command.
+3. Perform only approved writes.
+4. Run `tools/validate-changes.ps1 -ContextPath <context-path>` before releasing the lease.
+5. Record terminal trace, then release the lease.
 
-玩法手感、调参、对象池、DOD、instancing、弹幕、大量对象、输入反馈或性能预算任务，读取：
+Production that is not unblocked stops unless the owner explicitly accepts the recorded risk.
 
-```text
-<plugin-root>/internal/skills/mlgs-unity-mechanics/SKILL.md
-```
+## Art routing
 
-并在 trace 中记录 `mlgs-unity-mechanics`。
+Image requests route to `generate-art`, which selects one mode:
 
-## 成品化门禁
+- `draft`: candidates and concept exploration; default when ambiguous.
+- `batch-plan`: shared style baseline plus per-item deltas and grouping.
+- `formal`: production lifecycle, Unity integration, and approval.
 
-- Prototype 之后的生产代码必须读取 `rules/production-code.md`。
-- 低参与度只减少 owner 日常决策，不缩小游戏范围。用户只给一句点子时，MLGS 要主动研究、发散、综合和量化；不得把未描述的正式内容默认为不存在。
-- 参考驱动、明确非轻度、10 小时以上或 `standard`/`deep` 项目，规划前必须查找当前网页游戏参考，并在 `design/reference-analysis.md` 与 `design/content-architecture.json` 记录来源、观察、推断、借鉴和拒绝。无法联网时显式阻塞，不伪造研究。
-- 生产前 `tools/test-content-architecture.ps1` 必须通过。契约必须覆盖即时/单次/中期/长期循环、相互作用系统、内容族、成长阶段、变化与重复控制、差异化、后期玩法、release-scope 映射和足以支撑承诺时长的内容预算。
-- Prototype 只是风险验证子集。把 Prototype 换成正式美术、增加同质内容或堆叠数值不构成成品化。
-- HTML 原型只验证交互，不是视觉实现参考。正式美术必须链接 `design/art/visual-target.json` 中已批准的效果图 ID，并在处理、Unity 导入、真实引用、目标图对比和游戏内证据齐全后才能标记 `approved`。
-- 生产前必须建立 `production/scope/release-scope.json`，逐项覆盖功能、内容数量、教学、UI、配置表、音频、美术、本地化、operations readiness 和构建；未列入或未验证的项目不能被“全部完成”吞掉。
-- Vertical Slice、Content Complete、Alpha、Beta、Release Candidate 和 Release 使用 `tools/test-quality-gate.ps1`；它联合验证质量报告、美术、release scope 和代码审计，证据必须是存在的项目内文件。
-- `0.1.x` 只表示原型/预发布。只有最终 Release gate 通过后，游戏才可以标记 `1.0.0` 或 release-ready。
-- MLGS 发布范围仅含图标、本地化、崩溃/错误检查和最终构建证据。
+Explicit phrases such as `模式：草稿`, `模式：批量规划`, or `模式：正式` win. Read only the chosen mode and formal lifecycle stage. Drafts do not enter the formal manifest until promoted. Formal gates remain fail-closed.
 
-## 验证与 Trace
+## Production and release
 
-- 状态：`tools/get-project-status.ps1 -AllowTemplate`
-- 接管：`tools/adopt-project.ps1 -ProjectRoot <path>`
-- 隔离 smoke：`tools/run-smoke-tests.ps1`
-- context：`tools/new-project-context.ps1 -ProjectRoot <path>`
-- lease：`tools/acquire-project-lease.ps1 -ContextPath <path> -InvocationId <id> -Paths <paths>`
-- trace：`tools/trace.ps1 -ContextPath <path> -InvocationId <id>`
+Load the relevant policy under `rules/studio/` rather than carrying every production contract in the router.
 
-每个 route 记录 command、lead/support agents、skills、读写文件、假设、决策和验证。低/中参与度下直接执行常规工作；依赖、包、Unity 设置、大范围 scene/prefab、build settings 和核心架构变化仍需 owner 确认。
-## Production contracts
+- Product depth and research: `content-design.md`
+- Production code: `adaptive-code.md` plus `rules/production-code.md` after prototype
+- Art: `art-generation.md` and selected `rules/art-generation/` files
+- Verification/build cadence: `verification-build.md`
+- Product gates: `productization.md` plus referenced gate catalog
 
-- Use `tools/new-work-package.ps1`, `run-objective-checks.ps1`, and `test-work-package.ps1` for production tasks. Completion requires both declared and objective verdicts to pass; rework is bounded.
-- Formal assets require Art Director and QA pass in `production/assets/reviews/<asset-id>.json`; comparison errors, unavailable automation, low scores, missing evidence, and attempt exhaustion fail closed.
-- Formal assets use manifest schema 1.6. Every lifecycle step through the current status must appear in `statusHistory` with project-local evidence; imported assets require a validated import recipe, Unity usage metadata, and Unity Importer evidence.
-- 只有 2D 角色采用骨骼分件、Sprite Skin 或含骨骼的混合动画时，才读取 `rules/character-animation-art.md` 并建立 `design/art/characters/<character-id>.animation.json`。锁定方向、头身比、姿势引导、Rig Master、唯一部件所有权、Pivot、接缝、Sorting 和确定性 Prefab；AI 爆炸拆件只允许作为草稿。纯帧动画和其他美术资产继续原流程。
-- Approved visual targets carry a structured style lock. Production prompts must include the target image as a real reference, copy that lock exactly, repeat preserve/avoid invariants, and pass `tools/test-art-prompt.ps1`.
-- Small same-style icons/portraits may use a 2–9 item registered sheet and `tools/split-art-sheet.ps1`. The model canvas obeys gpt-image-2 size limits and uses an opaque matte; 512×512 is a local final size, not a model canvas.
-- Work packages default to task-boundary verification. Aggregate small edits, use focused checks only for acceptance-critical or risk-triggered changes, and avoid rerunning a passing full suite until relevant inputs or declared regression triggers change.
-- Run `tools/test-visual-comparison.ps1` for deterministic asset and scene comparison reports. These metrics detect visual drift but never replace Art Director and QA judgment.
-- Select a profile from `profiles/unity/`, expand every profile requirement into release scope, validate coverage, enumerate UI screens, and freeze `design/baseline.json` before production.
-- A changed frozen design source invalidates its mapped product stages until impact is reviewed and a new baseline version is deliberately frozen.
-- Refresh and validate `production/capabilities/capability-manifest.json` before formal production. Required image/Sprite/mesh/animation/audio/video, Unity import/validation, and visual-comparison entries must be ready with evidence.
-- Non-direct work uses `tools/new-execution-strategy.ps1`; logical role groups remain in the current thread unless the owner explicitly requests separate threads.
-- Whole-screen fidelity is governed by `design/art/visual-scene-contract.json`. Lock composition anchors, depth layers, renderer ownership, Unity scene/camera/resolution, then run `tools/test-visual-scene-contract.ps1`; isolated asset quality cannot approve a mismatched scene.
-- Approved UI effect images require a component audit in `design/ui/screen-inventory.json` before formal generation. Every visible control or decorative UI atom must have a reference rectangle, state set, reuse key, and explicit generated/reused/procedural/typography decision; generated image components link to `screen-derived` art-manifest entries with component-specific style and prompt constraints.
-- Production implementation requires approved `design/framework-adoption.json` and `design/presentation-architecture.json`. Existing Unity framework integration points are adopted before code is written.
-- In 2D non-pure-UI games, core gameplay uses SpriteRenderer/TilemapRenderer scene content. UGUI/UI Toolkit is restricted to UI surfaces and owner-approved exceptions; authoritative gameplay rules never live in UI views.
-- Code production is adaptively classified as new-project/lightweight, small-existing/standard, or large-framework/deep. The owner or Unity Architect may override classification with a recorded reason; do not impose deep-project ceremony on a new game.
-- Run `tools/inspect-codebase.ps1 -Apply` and approve `design/code/codebase-profile.json` plus `design/code/module-map.json`. Deep structural evidence may come from CodeGraph, Roslyn, or documented manual review.
-- Every production code work package links `production/context-packs/<task-id>.json`, `production/change-plans/<task-id>.json`, and `production/quality/code-conformance-<task-id>.json`. Preflight requires a fresh task context; completion requires planned-vs-actual conformance.
-- Existing code is evidence rather than an absolute constraint. Extend, adapt, replace legacy code, create a minimal foundation, or isolate a new module according to the approved tradeoff and selected intensity.
+Use Unity/C# only. Prototype evidence never substitutes for production visual or architecture evidence.
+
+Ordinary development through Beta uses compile/editor/PlayMode/data/platform-preflight checks. A later development package requires an explicit owner request in the current message; automatic packaging resumes only for Release Candidate or Release.
+
+## Trace
+
+Every routed task records command, lead/support roles, skills, files read/written, assumptions, decisions, and verification. Prefer `tools/trace.ps1`, update the bound runtime dashboard, and never write runtime data into the installed plugin.

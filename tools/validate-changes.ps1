@@ -43,7 +43,7 @@ if ($ChangedPaths.Count -eq 0) {
   ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 }
 
-$catalog = Get-Content -LiteralPath (Join-Path $Root "workflow/catalog.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+$catalog = Import-MLGSWorkflowCatalog -Root $Root
 $allowedRoots = @($catalog.alwaysWritableProjectPaths) + @($state.activeProject.approvedWritePaths)
 $allowedRoots = @($allowedRoots | ForEach-Object { ([string]$_).Replace("\", "/").Trim("/") } | Where-Object { $_ } | Select-Object -Unique)
 $checked = @()

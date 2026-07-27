@@ -1,4 +1,5 @@
 Set-StrictMode -Version 2.0
+. (Join-Path $PSScriptRoot "workflow-catalog.ps1")
 
 function Get-MLGSRuntimeRoot {
   param(
@@ -2148,8 +2149,7 @@ function Get-MLGSGateEvaluation {
     $State = $null
   )
 
-  $catalogPath = Join-Path $Root "workflow/catalog.json"
-  $catalog = Get-Content -LiteralPath $catalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $catalog = Import-MLGSWorkflowCatalog -Root $Root -IncludeGates
   $gateResults = [ordered]@{}
   foreach ($gateProperty in $catalog.gates.PSObject.Properties) {
     $gate = $gateProperty.Value

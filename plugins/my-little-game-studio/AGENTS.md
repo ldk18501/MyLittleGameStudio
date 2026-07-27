@@ -17,7 +17,7 @@ Before routing any MLGS request, read:
 3. `workflow/catalog.json`
 4. the project state resolved by `tools/resolve-state.ps1`
 
-Only read `workflow/onboarding.yaml`, the selected command file, agent files, templates, or extra rules when the task needs them. `workflow/catalog.json` is the routing and phase source of truth; `workflow/command-index.md` is generated.
+Only read `workflow/onboarding.yaml`, the selected command file, agent files, templates, or extra rules when the task needs them. `workflow/catalog.json` is the lightweight routing source and references the phase and gate catalogs; read those referenced files only for phase/gate work. `workflow/command-index.md` is generated.
 
 ## Command Entry
 
@@ -47,7 +47,7 @@ Internal routes:
 - `review` - code, design, task, phase, or build review
 - `test` - run or define verification
 - `build` - Unity build or build preflight
-- `generate-art` - formal art generation, processing, slicing/import, Unity references, and approval
+- `generate-art` - draft candidates, batch planning, or staged formal art production
 - `productize` - Vertical Slice, Content Complete, Alpha, and Beta completion
 - `release` - icon, localization, crash/error, Release Candidate, and final game-content checks
 - `dashboard` - refresh/open dashboard guidance

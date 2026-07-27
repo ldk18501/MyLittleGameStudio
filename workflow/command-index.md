@@ -1,6 +1,6 @@
 ﻿# MLGS Command Index
 
-> Generated from `workflow/catalog.json`. Do not edit by hand.
+> Generated from `workflow/catalog.json` plus its phase/gate catalogs. Do not edit by hand.
 
 MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.
 
@@ -37,3 +37,11 @@ MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.
 | beta | qa-lead | beta-approved | productize, release, fix, review, test, status |
 | release-candidate | qa-lead | release-candidate-approved | release, fix, review, test, build, status |
 | release | qa-lead | release-approved | release, fix, review, test, build, status |
+
+## Route Modes
+
+| Route | Mode | Default | Intent examples |
+|---|---|---|---|
+| `generate-art` | `draft` | True | ?????, ????, ??, ???, ????, ????? |
+| `generate-art` | `batch-plan` | False | ???????, ??????, ????, ????, ???? |
+| `generate-art` | `formal` | False | ?????, ????, ???, ????, ?? Unity, ???? |

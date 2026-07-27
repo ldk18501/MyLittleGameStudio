@@ -15,6 +15,8 @@ $required = @(
   "studio/project-context.schema.json",
   "studio/project-lease.schema.json",
   "workflow/catalog.json",
+  "workflow/phases.json",
+  "workflow/gates.json",
   "workflow/onboarding.yaml",
   "tools/resolve-state.ps1",
   "tools/new-project-context.ps1",
