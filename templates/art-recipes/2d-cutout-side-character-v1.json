@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0",
+  "id": "2d-cutout-side-character-v1",
+  "representation": "skeletal-cutout",
+  "supportedViews": ["side-left", "side-right"],
+  "useWhen": [
+    "角色需要共享待机、移动和轻中度动作。",
+    "装备或服装部件需要换装。",
+    "动作不会频繁重构躯干和肢体轮廓。"
+  ],
+  "rejectWhen": [
+    "主要动作包含强透视缩短、躯干大幅扭转或前后肢体频繁交叉。",
+    "单一侧面 Rig 无法覆盖玩法要求的其他方向。"
+  ],
+  "requiredCapabilities": [
+    "reference-guided-image-generation",
+    "pose-conditioned-image-generation",
+    "mask-editing-or-manual-layer-authoring",
+    "deterministic-sprite-extraction",
+    "unity-2d-rig-validation"
+  ],
+  "stages": [
+    {
+      "id": "rig-master",
+      "promptCore": "依据批准效果图和方向专用骨架，制作完整的同方向侧面 Rig Master；保持标准姿势、头身比、脚底基线和角色轮廓。",
+      "preserve": ["固定侧面朝向。", "固定头身比、骨骼关节和服装层级。"],
+      "avoid": ["禁止转为正面或四分之三视角。", "禁止生成拆散部件或额外肢体。"],
+      "output": "一张完整角色 Rig Master，不是拆件图。"
+    },
+    {
+      "id": "hidden-completion",
+      "promptCore": "只在提供的蒙版内补全关节后方隐藏区域，蒙版外像素保持不变。",
+      "preserve": ["保持原线条、色彩、材质和接缝方向。"],
+      "avoid": ["禁止重新设计衣服。", "禁止扩大或复制肩膀、上臂、手和腿。"],
+      "output": "局部补全结果和可追溯蒙版。"
+    }
+  ],
+  "ownershipDefaults": [
+    "每个 visibleRegionId 只有一个所有者。",
+    "肩甲独立时，躯干和上臂均不得重复肩甲主体。",
+    "关节只在声明的接缝覆盖带内重叠。"
+  ],
+  "validationTypes": [
+    "view-match",
+    "proportion",
+    "bind-reconstruction",
+    "part-ownership",
+    "upper-limb-envelope",
+    "lower-limb-envelope",
+    "seam-overlap",
+    "gameplay-silhouette",
+    "unity-prefab"
+  ],
+  "unityDefault": "sprite-parts"
+}
+

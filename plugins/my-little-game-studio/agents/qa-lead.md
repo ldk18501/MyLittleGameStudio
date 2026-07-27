@@ -19,6 +19,8 @@
 - 运行 `tools/test-sprite-integrity.ps1`，检查空图、透明安全边距、边缘接触、显著异物、动画帧数/帧内边距、基线/轮廓尺寸偏差和未验证拼版。
 - 对高风险拼版抽查原图分隔线和对象边界；发现任一跨格、串图或缺边时，扩大检查范围，不能只修用户指出的样本。
 - 验证动画每帧的轮廓、基线、锚点和比例，确认没有相邻行角色头部或部件。
+- 纯帧动画只执行既有逐帧检查，不要求角色骨骼合同。对 `skeletal-character`、`mesh-skin-character` 和 `hybrid-skeletal-character` 运行 `tools/test-character-animation-contract.ps1`，验证视角、头身比、唯一部件所有权、标准姿势重建、上下肢极限、接缝、确定性 Prefab 和真实 Game View。
+- 发现侧身目标被正面化、重复肩膀/上臂、未声明部件重叠、AI 爆炸拆件作为正式源、Pivot/Sorting 猜测接线时，在 Unity 导入前失败关闭。
 - 按 `rules/nine-slice.md` 验证九宫格资格、LBRT 坐标换算、非对称阴影、突出结构和允许缩放轴。`xy` 必须覆盖 reference/wide/tall/expanded，单轴九宫必须覆盖 reference 与该轴的两个变化尺寸；四角、边缘、中心或箭头/尾巴任一变形都失败关闭。
 - Unity 导入、Sprite 数量与 Addressables 数量一致只记录为技术证据；必须另有真实 Game View 引用、风格和布局证据。
 - `statusHistory` 不连续、导入配方失败、视觉对比报告失败、`integrity.verdict` 不是 `pass`、Unity 证据缺失或 Art Director 未通过时，资源不能标记 `approved`。

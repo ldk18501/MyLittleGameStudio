@@ -21,6 +21,8 @@ Art Director。
 - `design/art/style-bible.md`
 - `design/art/visual-target.json` 及已批准目标图
 - `design/art/visual-scene-contract.json`
+- 骨骼/分件/蒙皮角色才需要 `design/art/characters/<character-id>.animation.json`
+- 骨骼角色生产配方位于 `design/art/recipes/`
 - `design/ui/screen-inventory.json` with an approved per-screen `componentAudit` for UI targets
 - `production/assets/asset-manifest.json`
 - `production/assets/prompts/`
@@ -53,12 +55,15 @@ planned -> prompt-ready -> generated -> selected -> processed -> imported -> ref
 3. 把发布范围展开为逐项资源清单。UI 效果图必须先在 `design/ui/screen-inventory.json.componentAudit` 中逐组件审计：绿色/灰色按钮、关闭按钮、下拉框、复选框、进度格、表格行底、面板边框、图标、分隔线和字体区域都要记录像素矩形、状态、复用族以及“生成/复用/Unity 程序化/运行时文字”决策，不能只写一个笼统的“仓库界面”资源。
    - 每个需要生成或复用图片的 UI 组件都必须成为独立资源清单项，并使用 `visualComponent.mode: screen-derived`。清单内直接记录 `role`、`reuseKey`、`generationUnit`、`styleDescription`、`promptCore`、`textPolicy`、`requiredStates`、`preserve/avoid`，以及指回效果图、屏幕 ID、组件 ID 和像素矩形的 `sourceComponents`。Art Director 未批准组件审计时不得进入 `prompt-ready`。
    - 每个资源仍必须关联已批准的 `visualTargets`、真实 `sourceFile`、使用位置、导入配方、`usageMetadata` 和 `integrity` 合同。
+   - 如果角色采用纯帧动画，继续使用现有逐帧提取、基线、轮廓和帧一致性规则，不创建骨骼合同，也不进入下述骨骼门禁。
+   - 如果 `generationUnit` 为 `skeletal-character`、`mesh-skin-character` 或 `hybrid-skeletal-character`，读取 `rules/character-animation-art.md`，从 `templates/character-animation-contract.json` 建立角色合同，并在资源清单的 `animationContract` 指向它。先选择方向专用的内置配方，再锁定正式视角、头身比、姿势引导图、Rig Master、骨骼、部件所有权、Pivot、Socket、接缝、Sorting 和 Unity 组装方式。
+   - 骨骼合同未达到 `specified` 前不得进入 `prompt-ready`。效果图是视觉目标，不是拆件源；方向专用姿势引导图、Rig Master 和骨架叠加图必须保持同一生产视图。AI 爆炸拆件图只能作为草稿，正式部件必须来自作者图层、人工分层或确定性蒙版，并且隐藏区域只在声明蒙版内补全。
 4. 先制作小规模代表性试产批次，至少覆盖：单体建筑或道具、角色动画、普通 UI 图标和九宫格面板。试产批次未通过完整性检查与 Unity 预览时，禁止扩大批量。
-5. 生成前为每个正式资源写 `production/assets/prompts/<asset-id>.json`。`styleLockSnapshot` 必须与已批准目标完全一致，目标图必须作为实际图片输入，`promptSections.invariants/negativeConstraints` 必须逐项覆盖 `preserve/avoid`。每次编辑都重述“只改变什么”和“其他项保持不变”，然后运行 `tools/test-art-prompt.ps1`；只写自由文本 prompt 或只提“相同风格”不能进入正式生成。
+5. 生成前为每个正式资源写 `production/assets/prompts/<asset-id>.json`。`styleLockSnapshot` 必须与已批准目标完全一致，目标图必须作为实际图片输入，`promptSections.invariants/negativeConstraints` 必须逐项覆盖 `preserve/avoid`。每次编辑都重述“只改变什么”和“其他项保持不变”，然后运行 `tools/test-art-prompt.ps1`；只写自由文本 prompt 或只提“相同风格”不能进入正式生成。骨骼角色还必须写 `animationContractSnapshot`，包含合同路径、配方、表示方式、`productionView`、`headCount` 和完整 prompt lock；`promptText` 保留 `productionView=<值>` 与 `headCount=<值>` 机器锚点，并包含效果图与方向专用姿势引导图作为真实引用。
 6. 生成式正式资源默认“一次输出一个语义对象”：主体完整、四周有明确安全边距、无相邻对象、无文字、无投影污染。`gpt-image-2` 输出画布必须满足边长为 16 的倍数、至少 655,360 像素、最多 8,294,400 像素、边长不超过 3840 且长短边不超过 3:1；512×512 只能作为本地最终尺寸，不能作为模型画布。该模型不支持透明输出，使用声明的纯色不透明 matte，随后本地去底。
 7. 2–9 个同一视觉目标、同一用途层级、低细节且不含文字的道具 icon、头像或缩略图可合并为 `registered-sheet`；动画帧、九宫格、带字 UI、轮廓易跨格或风格差异大的对象仍逐对象生成。批次必须有 `production/assets/batches/<batch-id>.json` 的显式矩形、matte、格内安全边距和最终尺寸；用 `tools/split-art-sheet.ps1` 拆分、去底、居中、降采样并生成报告。任一格越界、重叠、触边、为空或显著对象超限时整批失败，不允许猜测网格。
 8. 其他拼版只允许作为候选源。未经注册验证的拼版不得按等宽等高网格直接切分。固定网格裁切仅适用于已证明分隔线、留白、帧尺寸和对象边界稳定的 `registered-sheet`；否则使用逐对象生成、对象感知提取或显式矩形，并逐项检查。
-9. 动画帧必须逐帧提取、逐帧校验，再重组为统一画布；禁止把存在不均匀留白或串行污染的整行直接缩放。检查帧数、帧内安全边距、脚底基线、锚点、比例和邻行残片；合同必须声明允许的基线与轮廓尺寸偏差。
+9. 纯帧动画仍按原流程逐帧提取、逐帧校验，再重组为统一画布；禁止把存在不均匀留白或串行污染的整行直接缩放。检查帧数、帧内安全边距、脚底基线、锚点、比例和邻行残片；完整性合同必须声明允许的基线与轮廓尺寸偏差。本条不要求角色骨骼合同。
 10. UI 图标按语义独立制作。九宫格先读取 `rules/nine-slice.md`，登记 `none/xy/x-only/y-only/composite/reject` 资格，再独立计算 L/B/R/T；中段箭头、尾巴、页签等突出结构不能直接按双轴九宫拉伸，需要固定未声明轴、拆成独立 Sprite 或拒绝。不能把任意插画或按钮截图直接设为 Sliced；图标和面板不能靠无关资源染色冒充。
 11. 非破坏处理后运行：
 
@@ -69,6 +74,8 @@ planned -> prompt-ready -> generated -> selected -> processed -> imported -> ref
    空图、边缘接触、安全边距不足、显著异物超限、动画缺帧/串帧、未验证拼版或非法固定网格裁切均失败关闭。把报告路径和 `pass` 结果写回资源的 `integrity`；报告失败不得进入 Unity 正式目录。
 12. 导入前写完整 import recipe：Texture Type、Sprite Mode、PPU、Pivot、Border、Mesh Type、Filter/Wrap、压缩、平台覆盖、切片、图集和 Addressables 决策。九宫格配方还必须记录原图尺寸、左上坐标安全中心矩形、`LBRT` 映射、多级 Alpha + 颜色边缘检查、允许缩放轴、突出结构策略和验证模式。运行 `tools/test-art-import-recipe.ps1`；`xy` 至少提供 reference/wide/tall/expanded 四种证据，单轴九宫至少提供对应三种尺寸证据。不得手改 `.meta`。
 13. 同时写 `production/assets/usage/<asset-id>.json`：声明真实 Unity 目标、组件/属性、像素尺寸、缩放与锚点、PPU/Pivot/Border、颜色空间与是否允许 tint、材质 Shader、Sorting、交互状态和 Game View 证据。运行 `tools/test-art-usage.ps1`。Unity 还原必须从该文件接线，不能仅凭 PNG 猜测。
+   - 骨骼角色的 Unity 接入还必须从动画合同确定性构建骨骼路径、部件局部坐标、Pivot、Socket、Sorting、Sprite Skin/权重职责和 Sprite Swap。不得按包围盒自动居中，也不得用 Transform 微调掩盖错误拆件。
+   - 在进入 `processed` 前运行 `tools/test-character-animation-contract.ps1 -MinimumStatus parts-validated`；在进入 `referenced` 前以 `unity-integrated` 验证；正式批准前以 `approved` 验证。标准姿势重建、部件所有权、上下肢极限、接缝覆盖、玩法轮廓和 Unity Prefab 任一未通过都停止。
 14. 为计划中的资源、配方、usage JSON、Prefab/场景引用申请项目 lease，运行 `tools/preflight-task.ps1 -Command generate-art -ContextPath <context-path>`，再通过 Unity 自动化或经批准的项目内 Editor 工具导入、切片和登记 Addressables。
 15. 通过 usage JSON 指定的序列化字段、Prefab、ScriptableObject、UI 文档或 Addressables 接线；不得用未审查的运行时字符串路径或 `Resources.Load` 代替正式引用。
 16. 在场景合同规定的 Unity Game View、相机和分辨率下截图。使用 `tools/test-visual-comparison.ps1` 生成逐资源与整屏可复现对比报告；它只提供客观漂移信号，不能替代 Art Director/QA。先检查 palette/value/material 和 usage JSON 的 tint/material/sorting，再运行 `tools/test-visual-scene-contract.ps1`、`tools/test-art-review.ps1` 和 `tools/validate-art-manifest.ps1`。
@@ -82,6 +89,8 @@ planned -> prompt-ready -> generated -> selected -> processed -> imported -> ref
 - 目标匹配低于 80、任一维度低于 70、场景合同低于门槛或仍有 blocker，都必须返工。
 - 返工受 `maxAttempts` 限制；耗尽后状态为 `blocked`，不能降低门槛放行。
 - Vertical Slice 及以后拒绝所需范围内的占位图、串图、缺边、错误九宫格和未经验证的拼版裁切资源。
+- 骨骼角色若改变视角、头身比、方向专用骨架，或存在重复 `visibleRegionId`、未声明重叠、生成式爆炸拆件、猜测 Pivot/Sorting、非确定性 Prefab 组装，必须退回相应合同阶段；不能靠 Unity 手调放行。
+- 纯帧动画、静态 Sprite、UI、图标和场景资产不受角色骨骼合同影响。
 
 ## 完成条件
 

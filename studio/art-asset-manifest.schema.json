@@ -34,7 +34,18 @@
               "mode": { "enum": ["standalone", "screen-derived"] },
               "role": { "type": "string", "minLength": 1 },
               "reuseKey": { "type": "string", "minLength": 1 },
-              "generationUnit": { "enum": ["single-sprite", "nine-slice", "icon", "state-set", "procedural-unity"] },
+              "generationUnit": {
+                "enum": [
+                  "single-sprite",
+                  "nine-slice",
+                  "icon",
+                  "state-set",
+                  "procedural-unity",
+                  "skeletal-character",
+                  "mesh-skin-character",
+                  "hybrid-skeletal-character"
+                ]
+              },
               "styleDescription": { "type": "string", "minLength": 1 },
               "promptCore": { "type": "string", "minLength": 1 },
               "textPolicy": { "enum": ["no-text", "separate-runtime-text", "baked-approved-text"] },
@@ -67,6 +78,7 @@
           },
           "sourceFile": { "type": "string", "minLength": 1 },
           "outputPath": { "type": "string", "minLength": 1 },
+          "animationContract": { "type": "string" },
           "status": { "enum": ["planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved"] },
           "statusHistory": {
             "type": "array",

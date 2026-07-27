@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mylittlegamestudio.local/schemas/character-animation-contract.schema.json",
+  "title": "MLGS 2D 角色动画生产合同",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "id",
+    "updated",
+    "status",
+    "assetIds",
+    "visualTargetIds",
+    "recipeId",
+    "recipePath",
+    "representation",
+    "productionView",
+    "decisionReason",
+    "proportions",
+    "canonicalSource",
+    "generationPolicy",
+    "promptLock",
+    "skeleton",
+    "parts",
+    "validationTests",
+    "unity",
+    "reviews"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": "1.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "updated": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["planned", "specified", "source-approved", "parts-validated", "unity-integrated", "approved"]
+    },
+    "assetIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "visualTargetIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "recipeId": { "type": "string", "minLength": 1 },
+    "recipePath": { "type": "string", "minLength": 1 },
+    "representation": { "enum": ["skeletal-cutout", "mesh-skin", "hybrid"] },
+    "productionView": {
+      "enum": ["front", "side-left", "side-right", "three-quarter-left", "three-quarter-right", "back"]
+    },
+    "decisionReason": { "type": "string", "minLength": 1 },
+    "proportions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headCount", "characterHeightPixels", "baselineY", "tolerancePixels"],
+      "properties": {
+        "headCount": { "type": "number", "exclusiveMinimum": 1, "maximum": 12 },
+        "characterHeightPixels": { "type": "integer", "minimum": 1 },
+        "baselineY": { "type": "integer", "minimum": 0 },
+        "tolerancePixels": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "canonicalSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effectImage", "poseGuideImage", "rigMasterImage", "skeletonOverlayImage", "bindPose", "sameViewRequired"],
+      "properties": {
+        "effectImage": { "type": "string", "minLength": 1 },
+        "poseGuideImage": { "type": "string", "minLength": 1 },
+        "rigMasterImage": { "type": "string", "minLength": 1 },
+        "skeletonOverlayImage": { "type": "string", "minLength": 1 },
+        "bindPose": { "type": "string", "minLength": 1 },
+        "sameViewRequired": { "const": true }
+      }
+    },
+    "generationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalPartSource",
+        "explodedSheetPolicy",
+        "hiddenGeometry",
+        "poseConditioning",
+        "deterministicMasksRequired"
+      ],
+      "properties": {
+        "canonicalPartSource": {
+          "enum": ["authored-layers", "deterministic-mask-segmentation", "manually-authored-parts"]
+        },
+        "explodedSheetPolicy": { "const": "draft-only-never-canonical" },
+        "hiddenGeometry": { "enum": ["mask-inpaint", "manual-authoring", "not-needed"] },
+        "poseConditioning": { "enum": ["required", "available", "not-required"] },
+        "deterministicMasksRequired": { "const": true }
+      }
+    },
+    "promptLock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preserve", "avoid"],
+      "properties": {
+        "preserve": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "avoid": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "skeleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sharedProfile", "joints"],
+      "properties": {
+        "sharedProfile": { "type": "string" },
+        "joints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/joint" }
+        }
+      }
+    },
+    "parts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/part" }
+    },
+    "validationTests": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validationTest" }
+    },
+    "unity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "renderer",
+        "deterministicAssembly",
+        "prefabPath",
+        "boneRoot",
+        "pixelsPerUnit",
+        "sortingStrategy",
+        "gameViewEvidence"
+      ],
+      "properties": {
+        "renderer": { "enum": ["sprite-parts", "sprite-skin", "hybrid"] },
+        "deterministicAssembly": { "type": "boolean" },
+        "prefabPath": { "type": "string" },
+        "boneRoot": { "type": "string" },
+        "pixelsPerUnit": { "type": "number", "exclusiveMinimum": 0 },
+        "sortingStrategy": { "type": "string", "minLength": 1 },
+        "gameViewEvidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "reviews": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artDirectorVerdict", "technicalArtistVerdict", "qaVerdict", "blockers"],
+      "properties": {
+        "artDirectorVerdict": { "$ref": "#/$defs/verdict" },
+        "technicalArtistVerdict": { "$ref": "#/$defs/verdict" },
+        "qaVerdict": { "$ref": "#/$defs/verdict" },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "joint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "parent", "position", "rotationRange"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "parent": { "type": "string" },
+        "position": { "$ref": "#/$defs/point" },
+        "rotationRange": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": -360, "maximum": 360 },
+            { "type": "number", "minimum": -360, "maximum": 360 }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "bone",
+        "visibleRegionId",
+        "sourceFile",
+        "maskFile",
+        "pivot",
+        "socket",
+        "sortingLayer",
+        "sortingOrder",
+        "ownership",
+        "overlapWith",
+        "seamPolicy"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "bone": { "type": "string", "minLength": 1 },
+        "visibleRegionId": { "type": "string", "minLength": 1 },
+        "sourceFile": { "type": "string", "minLength": 1 },
+        "maskFile": { "type": "string", "minLength": 1 },
+        "pivot": { "$ref": "#/$defs/point" },
+        "socket": { "type": "string", "minLength": 1 },
+        "sortingLayer": { "type": "string", "minLength": 1 },
+        "sortingOrder": { "type": "integer" },
+        "ownership": { "enum": ["exclusive", "declared-overlap"] },
+        "overlapWith": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "seamPolicy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "validationTest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "description", "evidence", "verdict"],
+      "properties": {
+        "type": {
+          "enum": [
+            "view-match",
+            "proportion",
+            "bind-reconstruction",
+            "part-ownership",
+            "upper-limb-envelope",
+            "lower-limb-envelope",
+            "seam-overlap",
+            "frame-consistency",
+            "gameplay-silhouette",
+            "unity-prefab"
+          ]
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "verdict": { "$ref": "#/$defs/verdict" }
+      }
+    },
+    "verdict": {
+      "enum": ["pending", "pass", "fail", "unavailable", "error"]
+    }
+  }
+}

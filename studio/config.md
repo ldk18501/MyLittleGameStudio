@@ -68,6 +68,9 @@
 - Batch only 2–9 low-detail icons, portraits, or thumbnails with the same target into a registered sheet. Split only explicit rectangles with local matte removal, margin/component validation, and per-item reports.
 - Every formal asset has a Unity usage JSON in addition to its import recipe, so tint, material, sizing, anchors, sorting, state sprites, and real target components are explicit.
 - Approved UI target screens are decomposed before asset generation. `design/ui/screen-inventory.json` records every visible component, its exact source rectangle, state set, reuse key, and generated/reused/procedural/typography decision. Generated components must have matching `screen-derived` manifest entries with component-specific style descriptions, prompt cores, preserve/avoid rules, and text policy.
+- 只有 2D 角色采用骨骼分件、Sprite Skin 或含骨骼的混合动画时，才应用 `rules/character-animation-art.md` 和项目内角色动画合同。纯帧动画、静态 Sprite、UI、图标和场景资源继续原流程，不增加骨骼合同负担。
+- 骨骼角色在生成前锁定方向专用配方、生产视图、头身比、姿势引导、Rig Master、骨骼、唯一部件所有权、Pivot/Socket、接缝和 Unity 组装。AI 爆炸拆件只能是草稿；正式部件来自作者图层、人工分层或确定性蒙版。
+- 骨骼角色 prompt 从内置 `templates/art-recipes/`、项目 `styleLock` 和角色合同合成，复制 `animationContractSnapshot` 并重复所有 preserve/avoid；不再临时自由发挥拆件提示词。
 
 ## Verification Cadence
 

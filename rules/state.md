@@ -51,6 +51,7 @@ If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1
 - `.mlgs/build-policy.json` is the project-local source of truth for package-build cadence. Initial platform validation may run once during new-project start; after it passes, ordinary development cannot package automatically.
 - A current explicit owner request or the Release Candidate/Release flow is required for later package builds. Full regression and phase gates do not grant that authority.
 - Formal art entries must link to approved IDs in `design/art/visual-target.json`; Unity references and in-game evidence must be existing project-relative files.
+- 只有资源的 `visualComponent.generationUnit` 为 `skeletal-character`、`mesh-skin-character` 或 `hybrid-skeletal-character` 时，正式美术门禁才要求 `animationContract`。其状态必须随资源生命周期达到 specified/source-approved/parts-validated/unity-integrated/approved；纯帧动画和其他资产不受此合同影响。
 - Quality-check evidence must be existing project-relative files. Labels such as `manual:passed` or unresolvable prose are not gate evidence.
 - Version strings never advance state. `0.x` is prototype/pre-release; `1.0.0+` requires the final Release gate and a fully verified release scope.
 - Gate evaluation is evidence-driven. Never advance a phase merely because a report file exists or because implementation subjectively looks complete.

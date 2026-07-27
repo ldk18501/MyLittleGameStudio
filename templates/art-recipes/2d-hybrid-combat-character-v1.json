@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0",
+  "id": "2d-hybrid-combat-character-v1",
+  "representation": "hybrid",
+  "supportedViews": ["side-left", "side-right", "three-quarter-left", "three-quarter-right"],
+  "useWhen": [
+    "待机、移动和轻微受击适合骨骼复用。",
+    "攻击包含躯干扭转、交叉手臂、透视缩短、衣摆展开或武器夸张动作。",
+    "需要通过替换部件、整帧动作和 VFX 保持关键轮廓。"
+  ],
+  "rejectWhen": [
+    "项目无法维护骨骼与替换帧两套资产关系。",
+    "所有动作都能由高质量逐帧动画以更低复杂度完成。"
+  ],
+  "requiredCapabilities": [
+    "reference-guided-image-generation",
+    "pose-conditioned-image-generation",
+    "mask-editing-or-manual-layer-authoring",
+    "deterministic-sprite-extraction",
+    "frame-consistency-validation",
+    "unity-rig-sprite-swap-validation"
+  ],
+  "stages": [
+    {
+      "id": "rig-master",
+      "promptCore": "制作与批准效果图同方向的完整战斗角色 Rig Master，用于待机、移动和轻微受击；保持头身比、关节和服装层级。",
+      "preserve": ["固定生产视图、标准姿势和角色轮廓。", "固定方向专用骨架。"],
+      "avoid": ["禁止正面化。", "禁止提前拆散角色。", "禁止复制肩膀、手臂或腿。"],
+      "output": "完整 Rig Master。"
+    },
+    {
+      "id": "rig-parts",
+      "promptCore": "依据确定性蒙版导出骨骼基础部件；只在声明的隐藏区域蒙版内补全接缝。",
+      "preserve": ["保持部件 visibleRegionId、Pivot 和接缝覆盖方向。"],
+      "avoid": ["禁止用生成式爆炸拆件图替代蒙版切分。", "禁止重复服装区域。"],
+      "output": "基础 Rig 部件、蒙版和重建证据。"
+    },
+    {
+      "id": "action-replacements",
+      "promptCore": "为合同指定的极限攻击制作替换手臂、衣摆、武器姿势或整角色关键帧；其他区域保持角色身份和风格锁。",
+      "preserve": ["保持面部、配色、材质、身体比例和动作方向。"],
+      "avoid": ["禁止把替换帧强行套回不适合的基础骨骼。", "禁止改变角色身份和镜头。"],
+      "output": "动作专用替换部件或关键帧。"
+    }
+  ],
+  "ownershipDefaults": [
+    "基础 Rig 与动作替换帧的生效区间必须互斥。",
+    "武器、剑光、拖尾和冲击波为独立 VFX，不重复绘入基础肢体。",
+    "衣摆和肩甲在极限动作中允许 Sprite Swap，但所有者必须保持唯一。"
+  ],
+  "validationTypes": [
+    "view-match",
+    "proportion",
+    "bind-reconstruction",
+    "part-ownership",
+    "upper-limb-envelope",
+    "lower-limb-envelope",
+    "seam-overlap",
+    "frame-consistency",
+    "gameplay-silhouette",
+    "unity-prefab"
+  ],
+  "unityDefault": "hybrid"
+}
+

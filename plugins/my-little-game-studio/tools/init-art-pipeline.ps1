@@ -13,12 +13,17 @@ if (-not (Test-Path $ProjectRoot)) { throw "Project root does not exist: $Projec
 $directories = @(
   "design/art",
   "design/art/targets",
+  "design/art/characters",
+  "design/art/characters/source",
+  "design/art/characters/masks",
+  "design/art/recipes",
   "production/assets/prompts",
   "production/assets/batches",
   "production/assets/import-recipes",
   "production/assets/usage",
   "production/assets/reviews",
   "production/qa/evidence/art-batches",
+  "production/qa/evidence/character-animation",
   "production/qa/evidence/visual-comparisons",
   "production/quality",
   ".mlgs"
@@ -42,12 +47,17 @@ Copy-MLGSTemplate "studio/visual-target.schema.json" ".mlgs/visual-target.schema
 Copy-MLGSTemplate "studio/art-prompt-metadata.schema.json" ".mlgs/art-prompt-metadata.schema.json"
 Copy-MLGSTemplate "studio/art-batch.schema.json" ".mlgs/art-batch.schema.json"
 Copy-MLGSTemplate "studio/art-usage.schema.json" ".mlgs/art-usage.schema.json"
+Copy-MLGSTemplate "studio/character-animation-contract.schema.json" ".mlgs/character-animation-contract.schema.json"
 Copy-MLGSTemplate "studio/quality-gate.schema.json" ".mlgs/quality-gate.schema.json"
 Copy-MLGSTemplate "studio/art-review.schema.json" ".mlgs/art-review.schema.json"
 Copy-MLGSTemplate "studio/visual-scene-contract.schema.json" ".mlgs/visual-scene-contract.schema.json"
 Copy-MLGSTemplate "studio/art-import-recipe.schema.json" ".mlgs/art-import-recipe.schema.json"
 Copy-MLGSTemplate "studio/visual-comparison.schema.json" ".mlgs/visual-comparison.schema.json"
 Copy-MLGSTemplate "templates/visual-scene-contract.json" "design/art/visual-scene-contract.json"
+Copy-MLGSTemplate "templates/character-animation-contract.json" "design/art/characters/_template.animation.json"
+Copy-MLGSTemplate "templates/art-recipes/2d-cutout-side-character-v1.json" "design/art/recipes/2d-cutout-side-character-v1.json"
+Copy-MLGSTemplate "templates/art-recipes/2d-cutout-three-quarter-character-v1.json" "design/art/recipes/2d-cutout-three-quarter-character-v1.json"
+Copy-MLGSTemplate "templates/art-recipes/2d-hybrid-combat-character-v1.json" "design/art/recipes/2d-hybrid-combat-character-v1.json"
 
 $visualTargetPath = Join-Path $ProjectRoot "design/art/visual-target.json"
 if (Test-Path $visualTargetPath) {

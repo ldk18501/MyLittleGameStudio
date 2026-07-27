@@ -702,6 +702,108 @@ try {
     Write-MLGSJsonAtomic -Path $scopePath -Value $scope
   }
 
+  $results += Invoke-Step "skeletal-character-contract-is-scoped" {
+    $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
+    $promptPath = Join-Path $project "production/assets/prompts/hero.json"
+    $contractRelative = "design/art/characters/hero.animation.json"
+    $contractPath = Join-Path $project $contractRelative
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $prompt = Get-Content -LiteralPath $promptPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $savedManifestJson = $manifest | ConvertTo-Json -Depth 40
+    $savedPromptJson = $prompt | ConvertTo-Json -Depth 40
+    try {
+      foreach ($relative in @(
+        "design/art/characters/source/hero-pose-guide.png",
+        "design/art/characters/source/hero-rig-master.png",
+        "design/art/characters/source/hero-skeleton-overlay.png",
+        "design/art/characters/masks/hero-torso-mask.png"
+      )) {
+        $full = Join-Path $project $relative
+        New-Item -ItemType Directory -Path (Split-Path -Parent $full) -Force | Out-Null
+        Write-SmokePng -Path $full
+      }
+      $contract = Get-Content -LiteralPath (Join-Path $Root "templates/character-animation-contract.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+      $contract.id = "hero-rig"
+      $contract.updated = (Get-Date).ToString("o")
+      $contract.status = "approved"
+      $contract.assetIds = @("hero")
+      $contract.visualTargetIds = @("VT-001")
+      $contract.recipeId = "2d-hybrid-combat-character-v1"
+      $contract.recipePath = "design/art/recipes/2d-hybrid-combat-character-v1.json"
+      $contract.representation = "hybrid"
+      $contract.productionView = "side-right"
+      $contract.decisionReason = "Smoke validates that skeletal character rules apply only to a declared hybrid-skeletal asset."
+      $contract.proportions.headCount = 3
+      $contract.proportions.characterHeightPixels = 32
+      $contract.proportions.baselineY = 31
+      $contract.proportions.tolerancePixels = 1
+      $contract.canonicalSource.effectImage = "design/art/targets/final-gameplay-target.png"
+      $contract.canonicalSource.poseGuideImage = "design/art/characters/source/hero-pose-guide.png"
+      $contract.canonicalSource.rigMasterImage = "design/art/characters/source/hero-rig-master.png"
+      $contract.canonicalSource.skeletonOverlayImage = "design/art/characters/source/hero-skeleton-overlay.png"
+      $contract.skeleton.sharedProfile = "side-right-smoke-rig"
+      $contract.parts[0].sourceFile = "Assets/Art/Sprites/hero.png"
+      $contract.parts[0].maskFile = "design/art/characters/masks/hero-torso-mask.png"
+      foreach ($test in @($contract.validationTests)) {
+        $test.verdict = "pass"
+        $test.evidence = @("production/assets/reviews/hero-game-view.png")
+      }
+      $contract.unity.prefabPath = "Assets/Prefabs/Hero.prefab"
+      $contract.unity.gameViewEvidence = @("production/assets/reviews/hero-game-view.png")
+      $contract.reviews.artDirectorVerdict = "pass"
+      $contract.reviews.technicalArtistVerdict = "pass"
+      $contract.reviews.qaVerdict = "pass"
+      Write-MLGSJsonAtomic -Path $contractPath -Value $contract
+
+      $manifest.assets[0].visualComponent.generationUnit = "hybrid-skeletal-character"
+      $manifest.assets[0] | Add-Member -MemberType NoteProperty -Name animationContract -Value $contractRelative -Force
+      Write-MLGSJsonAtomic -Path $manifestPath -Value $manifest
+
+      $prompt.manifestComponentSnapshot = $manifest.assets[0].visualComponent
+      $prompt.referenceImages = @($prompt.referenceImages + @(
+        "design/art/characters/source/hero-pose-guide.png"
+      ) | Select-Object -Unique)
+      $prompt.promptSections.invariants = @($prompt.promptSections.invariants + @($contract.promptLock.preserve) | Select-Object -Unique)
+      $prompt.promptSections.negativeConstraints = @($prompt.promptSections.negativeConstraints + @($contract.promptLock.avoid) | Select-Object -Unique)
+      $prompt.promptText = ([string]$prompt.promptText) + " productionView=side-right headCount=3"
+      $prompt | Add-Member -MemberType NoteProperty -Name animationContractSnapshot -Value ([pscustomobject][ordered]@{
+        contractPath = $contractRelative
+        contractId = "hero-rig"
+        recipeId = "2d-hybrid-combat-character-v1"
+        representation = "hybrid"
+        productionView = "side-right"
+        headCount = 3
+        preserve = @($contract.promptLock.preserve)
+        avoid = @($contract.promptLock.avoid)
+      }) -Force
+      Write-MLGSJsonAtomic -Path $promptPath -Value $prompt
+
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-character-animation-contract.ps1") -Root $Root -ProjectRoot $project -ContractPath $contractRelative -MinimumStatus approved -AssetId hero | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw "Approved skeletal character animation contract did not pass." }
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw "Art manifest did not enforce and pass the skeletal character contract." }
+
+      $duplicatePart = $contract.parts[0] | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+      $duplicatePart.id = "duplicate-upper-arm"
+      $contract.parts = @($contract.parts + $duplicatePart)
+      Write-MLGSJsonAtomic -Path $contractPath -Value $contract
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-character-animation-contract.ps1") -Root $Root -ProjectRoot $project -ContractPath $contractRelative -MinimumStatus approved -AssetId hero 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 28) { throw "Duplicate skeletal visible-region ownership passed." }
+      $contract.parts = @($contract.parts | Select-Object -First 1)
+
+      $contract.generationPolicy.explodedSheetPolicy = "canonical"
+      Write-MLGSJsonAtomic -Path $contractPath -Value $contract
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-character-animation-contract.ps1") -Root $Root -ProjectRoot $project -ContractPath $contractRelative -MinimumStatus approved -AssetId hero 2>$null | Out-Null
+      if ($LASTEXITCODE -ne 28) { throw "Generated exploded sheet was accepted as a canonical skeletal source." }
+    } finally {
+      Write-MLGSJsonAtomic -Path $manifestPath -Value ($savedManifestJson | ConvertFrom-Json)
+      Write-MLGSJsonAtomic -Path $promptPath -Value ($savedPromptJson | ConvertFrom-Json)
+    }
+
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/validate-art-manifest.ps1") -Root $Root -ProjectRoot $project -RequiredFor vertical-slice -MinimumStatus approved -DisallowPlaceholders | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Static/frame-compatible art path was affected by the skeletal contract." }
+  }
+
   $results += Invoke-Step "art-usage-missing-metadata-fails-closed" {
     $manifestPath = Join-Path $project "production/assets/asset-manifest.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1075,7 +1177,7 @@ staff:
 
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/init-build-policy.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-content-architecture.ps1", "tools/test-build-authorization.ps1", "tools/record-build-event.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/test-art-usage.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/content-architecture.schema.json", "studio/build-policy.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "profiles/unity/catalog.json", "commands/status.md", "rules/character-animation-art.md", "templates/character-animation-contract.json", "templates/art-recipes/2d-hybrid-combat-character-v1.json", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/init-build-policy.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-content-architecture.ps1", "tools/test-build-authorization.ps1", "tools/record-build-event.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/test-art-usage.ps1", "tools/test-character-animation-contract.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/character-animation-contract.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/content-architecture.schema.json", "studio/build-policy.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

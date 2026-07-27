@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0",
+  "id": "2d-cutout-three-quarter-character-v1",
+  "representation": "mesh-skin",
+  "supportedViews": ["three-quarter-left", "three-quarter-right"],
+  "useWhen": [
+    "角色需要保留四分之三侧面的体积感。",
+    "待机和移动可通过有限骨骼变形完成。",
+    "近侧和远侧肢体可以在方向专用 Rig 中明确分层。"
+  ],
+  "rejectWhen": [
+    "动作会让近侧与远侧肢体频繁互换。",
+    "服装和武器轮廓在主要动作中大幅重构。"
+  ],
+  "requiredCapabilities": [
+    "reference-guided-image-generation",
+    "pose-conditioned-image-generation",
+    "mask-editing-or-manual-layer-authoring",
+    "deterministic-sprite-extraction",
+    "unity-sprite-skin-and-weight-validation"
+  ],
+  "stages": [
+    {
+      "id": "rig-master",
+      "promptCore": "依据批准效果图和四分之三方向骨架制作完整 Rig Master；近侧与远侧肢体、肩线、骨盆和脚底基线必须明确。",
+      "preserve": ["固定四分之三朝向和镜头高度。", "固定近远侧肢体的视觉层级。"],
+      "avoid": ["禁止正面化或左右对称化。", "禁止把远侧肢体复制成第二套近侧肢体。"],
+      "output": "同视角完整 Rig Master。"
+    },
+    {
+      "id": "hidden-completion",
+      "promptCore": "只补全合同声明的关节覆盖区，为 Sprite Skin 或独立层保留足够隐藏像素。",
+      "preserve": ["保持关节坐标和已批准轮廓。"],
+      "avoid": ["禁止改变透视、肢体长度和衣物所有权。"],
+      "output": "带确定性蒙版的隐藏区域补全。"
+    }
+  ],
+  "ownershipDefaults": [
+    "近侧和远侧肢体使用不同 visibleRegionId。",
+    "躯干不重复拥有独立袖子、肩甲和前臂。",
+    "Sorting 与权重变形职责分别声明。"
+  ],
+  "validationTypes": [
+    "view-match",
+    "proportion",
+    "bind-reconstruction",
+    "part-ownership",
+    "upper-limb-envelope",
+    "lower-limb-envelope",
+    "seam-overlap",
+    "gameplay-silhouette",
+    "unity-prefab"
+  ],
+  "unityDefault": "sprite-skin"
+}
+

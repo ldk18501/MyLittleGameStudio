@@ -43,6 +43,18 @@
 - Model canvas size versus local final size：
 - Background removal and downsample policy：
 
+### 仅骨骼角色
+
+- 是否使用骨骼分件、Sprite Skin 或含骨骼的混合动画：
+- 纯帧动画应填写“不适用”，继续既有逐帧流程：
+- Direction-specific recipe / production view：
+- Character animation contract path：
+- Head count / height / baseline tolerance：
+- Pose guide / Rig Master / skeleton overlay：
+- Part ownership, Pivot, Socket, seam, and Sorting rules：
+- AI exploded-sheet policy：`draft-only-never-canonical`
+- Deterministic Prefab / Sprite Skin / Sprite Swap strategy：
+
 ## Unity import defaults
 
 - Sprite mode / slicing：

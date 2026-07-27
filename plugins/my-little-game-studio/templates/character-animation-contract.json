@@ -1,0 +1,151 @@
+{
+  "$schema": "../../.mlgs/character-animation-contract.schema.json",
+  "schemaVersion": "1.0",
+  "id": "replace-character-id",
+  "updated": "",
+  "status": "planned",
+  "assetIds": ["replace-animation-asset-id"],
+  "visualTargetIds": ["VT-001"],
+  "recipeId": "2d-hybrid-combat-character-v1",
+  "recipePath": "design/art/recipes/2d-hybrid-combat-character-v1.json",
+  "representation": "hybrid",
+  "productionView": "three-quarter-right",
+  "decisionReason": "记录为何选择逐帧、骨骼、蒙皮或混合动画。",
+  "proportions": {
+    "headCount": 3,
+    "characterHeightPixels": 384,
+    "baselineY": 360,
+    "tolerancePixels": 3
+  },
+  "canonicalSource": {
+    "effectImage": "design/art/targets/replace-effect-target.png",
+    "poseGuideImage": "design/art/characters/source/replace-direction-pose-guide.png",
+    "rigMasterImage": "design/art/characters/source/replace-rig-master.png",
+    "skeletonOverlayImage": "design/art/characters/source/replace-skeleton-overlay.png",
+    "bindPose": "同视角轻微 A Pose 或战斗中性姿势",
+    "sameViewRequired": true
+  },
+  "generationPolicy": {
+    "canonicalPartSource": "deterministic-mask-segmentation",
+    "explodedSheetPolicy": "draft-only-never-canonical",
+    "hiddenGeometry": "mask-inpaint",
+    "poseConditioning": "required",
+    "deterministicMasksRequired": true
+  },
+  "promptLock": {
+    "preserve": [
+      "保持 productionView 指定的朝向和镜头，不得重置为正面。",
+      "保持批准的头身比、关节位置、角色轮廓和服装层级。",
+      "保持每个 visibleRegionId 的唯一所有权。"
+    ],
+    "avoid": [
+      "禁止生成额外肢体、重复肩膀、重复上臂或重复服装区域。",
+      "禁止把 AI 爆炸拆件图当作正式部件规范。",
+      "禁止改变骨架方向、Pivot、Socket 或前后层级。"
+    ]
+  },
+  "skeleton": {
+    "sharedProfile": "replace-direction-specific-rig-profile",
+    "joints": [
+      {
+        "id": "root",
+        "parent": "",
+        "position": [0.5, 0.72],
+        "rotationRange": [-20, 20]
+      },
+      {
+        "id": "torso",
+        "parent": "root",
+        "position": [0.5, 0.48],
+        "rotationRange": [-30, 30]
+      }
+    ]
+  },
+  "parts": [
+    {
+      "id": "torso",
+      "bone": "torso",
+      "visibleRegionId": "torso-costume-core",
+      "sourceFile": "Assets/Game/Art/Characters/replace/torso.png",
+      "maskFile": "design/art/characters/masks/replace-torso-mask.png",
+      "pivot": [0.5, 0.72],
+      "socket": "root/torso",
+      "sortingLayer": "Character",
+      "sortingOrder": 0,
+      "ownership": "exclusive",
+      "overlapWith": [],
+      "seamPolicy": "躯干只拥有胸腹和衣摆核心，不重复拥有独立肩甲或上臂袖子。"
+    }
+  ],
+  "validationTests": [
+    {
+      "type": "view-match",
+      "description": "Rig Master、骨架叠加、拆件重建与效果图使用同一生产视图。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "proportion",
+      "description": "头身比、总高度和脚底基线符合合同。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "bind-reconstruction",
+      "description": "所有部件按合同重新合成后还原 Rig Master。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "part-ownership",
+      "description": "每个 visibleRegionId 唯一，只有声明的接缝覆盖带重叠。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "upper-limb-envelope",
+      "description": "肩、肘、腕在合同旋转范围内无重复、断裂或错误穿插。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "lower-limb-envelope",
+      "description": "髋、膝、踝在合同旋转范围内无断裂和错位。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "seam-overlap",
+      "description": "袖口、护膝、靴筒、衣摆和肩甲的覆盖方向正确。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "gameplay-silhouette",
+      "description": "在典型游戏尺寸与动作中保持批准效果图的轮廓语言。",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    {
+      "type": "unity-prefab",
+      "description": "Prefab 由合同确定性构建，骨骼、Pivot、Sorting 和 Sprite Swap 正确。",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  ],
+  "unity": {
+    "renderer": "hybrid",
+    "deterministicAssembly": true,
+    "prefabPath": "Assets/Game/Prefabs/Characters/replace.prefab",
+    "boneRoot": "Visual/Rig",
+    "pixelsPerUnit": 100,
+    "sortingStrategy": "方向专用的近侧肢体、躯干、远侧肢体、武器与衣摆顺序；交叉动作使用显式 Sorting/Sprite Swap。",
+    "gameViewEvidence": []
+  },
+  "reviews": {
+    "artDirectorVerdict": "pending",
+    "technicalArtistVerdict": "pending",
+    "qaVerdict": "pending",
+    "blockers": []
+  }
+}

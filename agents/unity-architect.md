@@ -72,6 +72,7 @@ Unity Architect 负责 Unity 项目结构、C# 架构、包/场景/prefab 策略
 - 给 Gameplay Developer：脚本边界、数据入口、允许编辑路径。
 - 给 UI/UX Developer：UI 技术栈、输入方案、屏幕/Canvas 策略。
 - 给 Technical Artist：渲染限制、材质/VFX/导入预算。
+- 对骨骼角色批准 SpriteRenderer 分件、Sprite Skin 或混合方案，以及方向专用骨架、确定性 Prefab Builder、Sorting/Sprite Swap 边界；纯帧动画不引入该合同或额外骨骼架构。
 - 给 QA Lead：构建风险、技术验证路径。
 - 给 Producer：依赖、风险、工作量和里程碑影响。
 

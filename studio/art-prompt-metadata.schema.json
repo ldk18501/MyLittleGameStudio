@@ -43,6 +43,7 @@
     "generationStrategy": { "enum": ["reference-edit", "reference-guided", "registered-sheet-edit"] },
     "batchPlan": { "type": "string" },
     "manifestComponentSnapshot": { "$ref": "#/$defs/visualComponent" },
+    "animationContractSnapshot": { "$ref": "#/$defs/animationContractSnapshot" },
     "styleLockSnapshot": { "$ref": "#/$defs/styleLock" },
     "promptSections": {
       "type": "object",
@@ -144,7 +145,18 @@
         "mode": { "enum": ["standalone", "screen-derived"] },
         "role": { "type": "string", "minLength": 1 },
         "reuseKey": { "type": "string", "minLength": 1 },
-        "generationUnit": { "enum": ["single-sprite", "nine-slice", "icon", "state-set", "procedural-unity"] },
+        "generationUnit": {
+          "enum": [
+            "single-sprite",
+            "nine-slice",
+            "icon",
+            "state-set",
+            "procedural-unity",
+            "skeletal-character",
+            "mesh-skin-character",
+            "hybrid-skeletal-character"
+          ]
+        },
         "styleDescription": { "type": "string", "minLength": 1 },
         "promptCore": { "type": "string", "minLength": 1 },
         "textPolicy": { "enum": ["no-text", "separate-runtime-text", "baked-approved-text"] },
@@ -177,6 +189,42 @@
         },
         "preserve": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
         "avoid": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "animationContractSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractPath",
+        "contractId",
+        "recipeId",
+        "representation",
+        "productionView",
+        "headCount",
+        "preserve",
+        "avoid"
+      ],
+      "properties": {
+        "contractPath": { "type": "string", "minLength": 1 },
+        "contractId": { "type": "string", "minLength": 1 },
+        "recipeId": { "type": "string", "minLength": 1 },
+        "representation": { "enum": ["skeletal-cutout", "mesh-skin", "hybrid"] },
+        "productionView": {
+          "enum": ["front", "side-left", "side-right", "three-quarter-left", "three-quarter-right", "back"]
+        },
+        "headCount": { "type": "number", "exclusiveMinimum": 1, "maximum": 12 },
+        "preserve": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "avoid": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
       }
     }
   }

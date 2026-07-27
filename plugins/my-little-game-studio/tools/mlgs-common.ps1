@@ -545,6 +545,72 @@ function Test-MLGSArtPromptMetadata {
       }
     }
   }
+  $skeletalGenerationUnits = @("skeletal-character", "mesh-skin-character", "hybrid-skeletal-character")
+  $animationContractPath = ""
+  if ($Asset.PSObject.Properties.Name -contains "animationContract") { $animationContractPath = [string]$Asset.animationContract }
+  $isSkeletalCharacter = $null -ne $Asset.visualComponent -and $skeletalGenerationUnits -contains [string]$Asset.visualComponent.generationUnit
+  if ($isSkeletalCharacter) {
+    if ([string]::IsNullOrWhiteSpace($animationContractPath)) {
+      $issues += "Skeletal character prompt requires asset.animationContract."
+    } elseif ($prompt.PSObject.Properties.Name -notcontains "animationContractSnapshot" -or $null -eq $prompt.animationContractSnapshot) {
+      $issues += "Skeletal character prompt requires animationContractSnapshot."
+    } else {
+      $animationResult = Test-MLGSCharacterAnimationContract -ProjectRoot $ProjectRoot -Path $animationContractPath -MinimumStatus specified -AssetId $assetId
+      if (-not $animationResult.passed) {
+        foreach ($animationIssue in @($animationResult.issues)) { $issues += $animationIssue }
+      } else {
+        $contract = $animationResult.contract
+        $snapshot = $prompt.animationContractSnapshot
+        $expectedRepresentation = switch ([string]$Asset.visualComponent.generationUnit) {
+          "skeletal-character" { "skeletal-cutout" }
+          "mesh-skin-character" { "mesh-skin" }
+          "hybrid-skeletal-character" { "hybrid" }
+        }
+        if ([string]$contract.representation -ne $expectedRepresentation) {
+          $issues += "Skeletal generationUnit does not match animation contract representation."
+        }
+        $snapshotChecks = [ordered]@{
+          contractPath = $animationContractPath
+          contractId = [string]$contract.id
+          recipeId = [string]$contract.recipeId
+          representation = [string]$contract.representation
+          productionView = [string]$contract.productionView
+        }
+        foreach ($entry in $snapshotChecks.GetEnumerator()) {
+          if ([string]$snapshot.($entry.Key) -ne [string]$entry.Value) {
+            $issues += "Animation prompt snapshot.$($entry.Key) does not match the character animation contract."
+          }
+        }
+        if ([double]$snapshot.headCount -ne [double]$contract.proportions.headCount) {
+          $issues += "Animation prompt snapshot.headCount does not match the character animation contract."
+        }
+        $contractPreserve = @($contract.promptLock.preserve) | ConvertTo-Json -Compress
+        $snapshotPreserve = @($snapshot.preserve) | ConvertTo-Json -Compress
+        $contractAvoid = @($contract.promptLock.avoid) | ConvertTo-Json -Compress
+        $snapshotAvoid = @($snapshot.avoid) | ConvertTo-Json -Compress
+        if ($contractPreserve -ne $snapshotPreserve) { $issues += "Animation prompt preserve snapshot must exactly match the character animation contract." }
+        if ($contractAvoid -ne $snapshotAvoid) { $issues += "Animation prompt avoid snapshot must exactly match the character animation contract." }
+        foreach ($value in @($contract.promptLock.preserve)) {
+          if (@($prompt.promptSections.invariants) -notcontains [string]$value) { $issues += "Animation prompt invariants omitted contract preserve rule: $value" }
+        }
+        foreach ($value in @($contract.promptLock.avoid)) {
+          if (@($prompt.promptSections.negativeConstraints) -notcontains [string]$value) { $issues += "Animation prompt negative constraints omitted contract avoid rule: $value" }
+        }
+        foreach ($relative in @([string]$contract.canonicalSource.effectImage, [string]$contract.canonicalSource.poseGuideImage)) {
+          if (@($prompt.referenceImages) -notcontains $relative) { $issues += "Animation prompt must include contract reference image: $relative" }
+        }
+        $viewAnchor = "productionView=$($contract.productionView)"
+        $headAnchor = "headCount=$($contract.proportions.headCount)"
+        if (-not ([string]$prompt.promptText).Contains($viewAnchor)) { $issues += "Animation promptText must contain machine anchor '$viewAnchor'." }
+        if (-not ([string]$prompt.promptText).Contains($headAnchor)) { $issues += "Animation promptText must contain machine anchor '$headAnchor'." }
+        if ([string]$prompt.generationStrategy -eq "registered-sheet-edit") {
+          $issues += "Skeletal character generation cannot use registered-sheet-edit."
+        }
+      }
+    }
+  } elseif ($prompt.PSObject.Properties.Name -contains "animationContractSnapshot" -and $null -ne $prompt.animationContractSnapshot) {
+    $issues += "animationContractSnapshot is only valid for skeletal character generation."
+  }
   if (@("low", "medium", "high", "auto") -notcontains [string]$prompt.quality) { $issues += "Art prompt quality is invalid." }
   if (@("opaque", "transparent", "auto") -notcontains [string]$prompt.background) { $issues += "Art prompt background is invalid." }
   if (@("reference-edit", "reference-guided", "registered-sheet-edit") -notcontains [string]$prompt.generationStrategy) { $issues += "Art prompt generationStrategy is invalid." }
@@ -1081,6 +1147,288 @@ function Test-MLGSArtReview {
   if (@($review.blockers).Count -gt 0) { $issues += "Art review still has blockers: $(@($review.blockers) -join '; ')" }
   return [pscustomobject]@{ passed = $issues.Count -eq 0; path = $reviewPath; assetId = [string]$review.assetId; issues = @($issues) }
 }
+function Test-MLGSCharacterAnimationContract {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectRoot,
+    [Parameter(Mandatory = $true)][string]$Path,
+    [ValidateSet("planned", "specified", "source-approved", "parts-validated", "unity-integrated", "approved")][string]$MinimumStatus = "specified",
+    [string]$AssetId = ""
+  )
+
+  $issues = @()
+  $statusOrder = @("planned", "specified", "source-approved", "parts-validated", "unity-integrated", "approved")
+  $minimumRank = [array]::IndexOf($statusOrder, $MinimumStatus)
+  try { $contractPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
+    return [pscustomobject]@{ passed = $false; path = $Path; id = ""; status = ""; issues = @($_.Exception.Message) }
+  }
+  if (-not (Test-Path $contractPath)) {
+    return [pscustomobject]@{ passed = $false; path = $contractPath; id = ""; status = ""; issues = @("Missing character animation contract: $Path") }
+  }
+  try { $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch {
+    return [pscustomobject]@{ passed = $false; path = $contractPath; id = ""; status = ""; issues = @("Invalid character animation contract JSON: $($_.Exception.Message)") }
+  }
+
+  $required = @(
+    "schemaVersion", "id", "updated", "status", "assetIds", "visualTargetIds", "recipeId", "recipePath",
+    "representation", "productionView", "decisionReason", "proportions", "canonicalSource", "generationPolicy",
+    "promptLock", "skeleton", "parts", "validationTests", "unity", "reviews"
+  )
+  foreach ($name in $required) {
+    if ($contract.PSObject.Properties.Name -notcontains $name) { $issues += "Character animation contract property is missing: $name" }
+  }
+  if ($issues.Count -gt 0) {
+    return [pscustomobject]@{ passed = $false; path = $contractPath; id = [string]$contract.id; status = [string]$contract.status; issues = @($issues) }
+  }
+
+  $contractId = [string]$contract.id
+  if ([string]$contract.schemaVersion -ne "1.0") { $issues += "${contractId}: character animation contract schemaVersion must be 1.0." }
+  if ([string]::IsNullOrWhiteSpace($contractId)) { $issues += "Character animation contract id is required." }
+  if ([string]::IsNullOrWhiteSpace([string]$contract.updated)) { $issues += "${contractId}: updated timestamp is required." }
+  $statusRank = [array]::IndexOf($statusOrder, [string]$contract.status)
+  if ($statusRank -lt 0) { $issues += "${contractId}: invalid status '$($contract.status)'." }
+  elseif ($statusRank -lt $minimumRank) { $issues += "${contractId}: status '$($contract.status)' is below '$MinimumStatus'." }
+  if (@($contract.assetIds).Count -eq 0) { $issues += "${contractId}: at least one assetId is required." }
+  if (-not [string]::IsNullOrWhiteSpace($AssetId) -and @($contract.assetIds) -notcontains $AssetId) {
+    $issues += "${contractId}: contract does not include asset '$AssetId'."
+  }
+  if (@($contract.visualTargetIds).Count -eq 0) { $issues += "${contractId}: at least one visualTargetId is required." }
+  if (@("skeletal-cutout", "mesh-skin", "hybrid") -notcontains [string]$contract.representation) {
+    $issues += "${contractId}: representation must be skeletal-cutout, mesh-skin, or hybrid. Pure frame animation does not use this contract."
+  }
+  $allowedViews = @("front", "side-left", "side-right", "three-quarter-left", "three-quarter-right", "back")
+  if ($allowedViews -notcontains [string]$contract.productionView) { $issues += "${contractId}: productionView is invalid." }
+  if ([string]::IsNullOrWhiteSpace([string]$contract.decisionReason)) { $issues += "${contractId}: decisionReason is required." }
+
+  $proportions = $contract.proportions
+  foreach ($name in @("headCount", "characterHeightPixels", "baselineY", "tolerancePixels")) {
+    if ($null -eq $proportions -or $proportions.PSObject.Properties.Name -notcontains $name) { $issues += "${contractId}: proportions.$name is required." }
+  }
+  if ($null -ne $proportions) {
+    if ([double]$proportions.headCount -le 1 -or [double]$proportions.headCount -gt 12) { $issues += "${contractId}: headCount must be greater than 1 and at most 12." }
+    if ([int]$proportions.characterHeightPixels -le 0) { $issues += "${contractId}: characterHeightPixels must be positive." }
+    if ([int]$proportions.baselineY -lt 0 -or [int]$proportions.tolerancePixels -lt 0) { $issues += "${contractId}: baselineY and tolerancePixels cannot be negative." }
+  }
+
+  $canonical = $contract.canonicalSource
+  foreach ($name in @("effectImage", "poseGuideImage", "rigMasterImage", "skeletonOverlayImage", "bindPose", "sameViewRequired")) {
+    if ($null -eq $canonical -or $canonical.PSObject.Properties.Name -notcontains $name) { $issues += "${contractId}: canonicalSource.$name is required." }
+  }
+  if ($null -ne $canonical) {
+    if (-not [bool]$canonical.sameViewRequired) { $issues += "${contractId}: effect image, Rig Master, and skeleton overlay must keep the same production view." }
+    foreach ($name in @("effectImage", "poseGuideImage", "rigMasterImage", "skeletonOverlayImage", "bindPose")) {
+      if ([string]::IsNullOrWhiteSpace([string]$canonical.$name)) { $issues += "${contractId}: canonicalSource.$name cannot be empty." }
+    }
+  }
+
+  $policy = $contract.generationPolicy
+  foreach ($name in @("canonicalPartSource", "explodedSheetPolicy", "hiddenGeometry", "poseConditioning", "deterministicMasksRequired")) {
+    if ($null -eq $policy -or $policy.PSObject.Properties.Name -notcontains $name) { $issues += "${contractId}: generationPolicy.$name is required." }
+  }
+  if ($null -ne $policy) {
+    if (@("authored-layers", "deterministic-mask-segmentation", "manually-authored-parts") -notcontains [string]$policy.canonicalPartSource) {
+      $issues += "${contractId}: canonicalPartSource cannot be a generated exploded sheet."
+    }
+    if ([string]$policy.explodedSheetPolicy -ne "draft-only-never-canonical") {
+      $issues += "${contractId}: AI exploded sheets must remain draft-only and never canonical."
+    }
+    if (@("mask-inpaint", "manual-authoring", "not-needed") -notcontains [string]$policy.hiddenGeometry) {
+      $issues += "${contractId}: hiddenGeometry policy is invalid."
+    }
+    if (@("required", "available", "not-required") -notcontains [string]$policy.poseConditioning) {
+      $issues += "${contractId}: poseConditioning policy is invalid."
+    }
+    if (-not [bool]$policy.deterministicMasksRequired) { $issues += "${contractId}: deterministic masks are required for skeletal part production." }
+  }
+
+  $promptLock = $contract.promptLock
+  foreach ($name in @("preserve", "avoid")) {
+    if ($null -eq $promptLock -or $promptLock.PSObject.Properties.Name -notcontains $name -or @($promptLock.$name).Count -eq 0) {
+      $issues += "${contractId}: promptLock.$name must contain at least one rule."
+    }
+  }
+
+  $recipe = $null
+  if ([string]::IsNullOrWhiteSpace([string]$contract.recipeId) -or [string]::IsNullOrWhiteSpace([string]$contract.recipePath)) {
+    $issues += "${contractId}: recipeId and recipePath are required."
+  } else {
+    try {
+      $recipeFull = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath ([string]$contract.recipePath)
+      if (-not (Test-Path $recipeFull)) { $issues += "${contractId}: missing project-local art recipe: $($contract.recipePath)" }
+      else {
+        $recipe = Get-Content -LiteralPath $recipeFull -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$recipe.id -ne [string]$contract.recipeId) { $issues += "${contractId}: recipe id does not match recipePath." }
+        if ([string]$recipe.representation -ne [string]$contract.representation) { $issues += "${contractId}: recipe representation does not match the contract." }
+        if (@($recipe.supportedViews) -notcontains [string]$contract.productionView) { $issues += "${contractId}: recipe does not support productionView '$($contract.productionView)'." }
+      }
+    } catch {
+      $issues += "${contractId}: invalid art recipe: $($_.Exception.Message)"
+    }
+  }
+
+  $jointIds = @{}
+  $joints = @($contract.skeleton.joints)
+  if ($joints.Count -eq 0) { $issues += "${contractId}: skeletal animation requires declared joints." }
+  $rootCount = 0
+  foreach ($joint in $joints) {
+    $jointId = [string]$joint.id
+    if ([string]::IsNullOrWhiteSpace($jointId)) { $issues += "${contractId}: joint id cannot be empty."; continue }
+    if ($jointIds.ContainsKey($jointId)) { $issues += "${contractId}: duplicate joint id '$jointId'." } else { $jointIds[$jointId] = $joint }
+    if ([string]::IsNullOrWhiteSpace([string]$joint.parent)) { $rootCount++ }
+    $position = @($joint.position)
+    if ($position.Count -ne 2 -or @($position | Where-Object { [double]$_ -lt 0 -or [double]$_ -gt 1 }).Count -gt 0) {
+      $issues += "${contractId}: joint '$jointId' position must be normalized [0,1]."
+    }
+    $rotation = @($joint.rotationRange)
+    if ($rotation.Count -ne 2 -or [double]$rotation[0] -gt [double]$rotation[1]) {
+      $issues += "${contractId}: joint '$jointId' has an invalid rotationRange."
+    }
+  }
+  if ($rootCount -ne 1) { $issues += "${contractId}: skeleton must have exactly one root joint." }
+  foreach ($joint in $joints) {
+    $parent = [string]$joint.parent
+    if (-not [string]::IsNullOrWhiteSpace($parent) -and -not $jointIds.ContainsKey($parent)) {
+      $issues += "${contractId}: joint '$($joint.id)' references missing parent '$parent'."
+    }
+  }
+
+  $partIds = @{}
+  $visibleRegions = @{}
+  $parts = @($contract.parts)
+  if ($parts.Count -eq 0) { $issues += "${contractId}: skeletal animation requires declared parts." }
+  foreach ($part in $parts) {
+    $partId = [string]$part.id
+    $regionId = [string]$part.visibleRegionId
+    if ([string]::IsNullOrWhiteSpace($partId)) { $issues += "${contractId}: part id cannot be empty."; continue }
+    if ($partIds.ContainsKey($partId)) { $issues += "${contractId}: duplicate part id '$partId'." } else { $partIds[$partId] = $part }
+    if ([string]::IsNullOrWhiteSpace($regionId)) { $issues += "${contractId}: part '$partId' needs a visibleRegionId." }
+    elseif ($visibleRegions.ContainsKey($regionId)) { $issues += "${contractId}: visibleRegionId '$regionId' has multiple owners." }
+    else { $visibleRegions[$regionId] = $partId }
+    if (-not $jointIds.ContainsKey([string]$part.bone)) { $issues += "${contractId}: part '$partId' references missing bone '$($part.bone)'." }
+    foreach ($name in @("sourceFile", "maskFile", "socket", "sortingLayer", "seamPolicy")) {
+      if ([string]::IsNullOrWhiteSpace([string]$part.$name)) { $issues += "${contractId}: part '$partId' needs $name." }
+    }
+    $pivot = @($part.pivot)
+    if ($pivot.Count -ne 2 -or @($pivot | Where-Object { [double]$_ -lt 0 -or [double]$_ -gt 1 }).Count -gt 0) {
+      $issues += "${contractId}: part '$partId' pivot must be normalized [0,1]."
+    }
+    if (@("exclusive", "declared-overlap") -notcontains [string]$part.ownership) { $issues += "${contractId}: part '$partId' ownership is invalid." }
+    if ([string]$part.ownership -eq "exclusive" -and @($part.overlapWith).Count -gt 0) {
+      $issues += "${contractId}: exclusive part '$partId' cannot declare overlapWith."
+    }
+    if ([string]$part.ownership -eq "declared-overlap" -and @($part.overlapWith).Count -eq 0) {
+      $issues += "${contractId}: declared-overlap part '$partId' must name its seam partners."
+    }
+  }
+  foreach ($part in $parts) {
+    foreach ($partnerId in @($part.overlapWith)) {
+      if (-not $partIds.ContainsKey([string]$partnerId)) {
+        $issues += "${contractId}: part '$($part.id)' overlaps missing part '$partnerId'."
+        continue
+      }
+      $partner = $partIds[[string]$partnerId]
+      if (@($partner.overlapWith) -notcontains [string]$part.id) {
+        $issues += "${contractId}: overlap declaration '$($part.id)' <-> '$partnerId' must be mutual."
+      }
+    }
+  }
+
+  $requiredTestTypes = @(
+    "view-match", "proportion", "bind-reconstruction", "part-ownership", "upper-limb-envelope",
+    "lower-limb-envelope", "seam-overlap", "gameplay-silhouette", "unity-prefab"
+  )
+  $testsByType = @{}
+  foreach ($test in @($contract.validationTests)) {
+    $type = [string]$test.type
+    if ($testsByType.ContainsKey($type)) { $issues += "${contractId}: duplicate validation test '$type'." }
+    else { $testsByType[$type] = $test }
+  }
+  foreach ($type in $requiredTestTypes) {
+    if (-not $testsByType.ContainsKey($type)) { $issues += "${contractId}: missing validation test '$type'." }
+    if ($null -ne $recipe -and @($recipe.validationTypes) -notcontains $type) { $issues += "${contractId}: recipe omitted required validation type '$type'." }
+  }
+
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "source-approved")) {
+    foreach ($name in @("effectImage", "poseGuideImage", "rigMasterImage", "skeletonOverlayImage")) {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$canonical.$name) -Label "${contractId} canonical source $name"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+    foreach ($type in @("view-match", "proportion")) {
+      if ($testsByType.ContainsKey($type)) {
+        $test = $testsByType[$type]
+        if ([string]$test.verdict -ne "pass") { $issues += "${contractId}: '$type' must pass before source-approved." }
+        foreach ($evidence in @($test.evidence)) {
+          $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$evidence) -Label "${contractId} $type evidence"
+          if ($pathIssue) { $issues += $pathIssue }
+        }
+      }
+    }
+  }
+
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "parts-validated")) {
+    foreach ($part in $parts) {
+      foreach ($name in @("sourceFile", "maskFile")) {
+        $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$part.$name) -Label "${contractId} part '$($part.id)' $name"
+        if ($pathIssue) { $issues += $pathIssue }
+      }
+    }
+    foreach ($type in @("bind-reconstruction", "part-ownership", "upper-limb-envelope", "lower-limb-envelope", "seam-overlap", "gameplay-silhouette")) {
+      if ($testsByType.ContainsKey($type)) {
+        $test = $testsByType[$type]
+        if ([string]$test.verdict -ne "pass") { $issues += "${contractId}: '$type' must pass before parts-validated." }
+        if (@($test.evidence).Count -eq 0) { $issues += "${contractId}: '$type' needs evidence." }
+        foreach ($evidence in @($test.evidence)) {
+          $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$evidence) -Label "${contractId} $type evidence"
+          if ($pathIssue) { $issues += $pathIssue }
+        }
+      }
+    }
+  }
+
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "unity-integrated")) {
+    if (-not [bool]$contract.unity.deterministicAssembly) { $issues += "${contractId}: Unity assembly must be deterministic." }
+    if ([string]::IsNullOrWhiteSpace([string]$contract.unity.prefabPath)) { $issues += "${contractId}: Unity Prefab path is required." }
+    else {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$contract.unity.prefabPath) -Label "${contractId} Unity Prefab"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+    if (@($contract.unity.gameViewEvidence).Count -eq 0) { $issues += "${contractId}: Unity integration needs Game View evidence." }
+    foreach ($evidence in @($contract.unity.gameViewEvidence)) {
+      $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$evidence) -Label "${contractId} Game View evidence"
+      if ($pathIssue) { $issues += $pathIssue }
+    }
+    if ($testsByType.ContainsKey("unity-prefab")) {
+      $test = $testsByType["unity-prefab"]
+      if ([string]$test.verdict -ne "pass") { $issues += "${contractId}: 'unity-prefab' must pass before unity-integrated." }
+      foreach ($evidence in @($test.evidence)) {
+        $pathIssue = Test-MLGSProjectEvidencePath -ProjectRoot $ProjectRoot -RelativePath ([string]$evidence) -Label "${contractId} unity-prefab evidence"
+        if ($pathIssue) { $issues += $pathIssue }
+      }
+    }
+  }
+
+  if ($statusRank -ge [array]::IndexOf($statusOrder, "approved")) {
+    foreach ($test in @($contract.validationTests)) {
+      if ([string]$test.verdict -ne "pass") { $issues += "${contractId}: all validation tests must pass before approval; '$($test.type)' is '$($test.verdict)'." }
+    }
+    foreach ($name in @("artDirectorVerdict", "technicalArtistVerdict", "qaVerdict")) {
+      if ([string]$contract.reviews.$name -ne "pass") { $issues += "${contractId}: reviews.$name must be pass before approval." }
+    }
+    if (@($contract.reviews.blockers).Count -gt 0) { $issues += "${contractId}: approval cannot retain blockers." }
+  }
+
+  return [pscustomobject]@{
+    passed = $issues.Count -eq 0
+    path = $contractPath
+    id = $contractId
+    status = [string]$contract.status
+    representation = [string]$contract.representation
+    productionView = [string]$contract.productionView
+    headCount = if ($null -ne $proportions) { [double]$proportions.headCount } else { 0 }
+    contract = $contract
+    issues = @($issues)
+  }
+}
+
 function Test-MLGSArtManifest {
   param(
     [Parameter(Mandatory = $true)][string]$ProjectRoot,
@@ -1093,6 +1441,7 @@ function Test-MLGSArtManifest {
 
   $issues = @()
   $statusOrder = @("planned", "prompt-ready", "generated", "selected", "processed", "imported", "referenced", "approved")
+  $skeletalGenerationUnits = @("skeletal-character", "mesh-skin-character", "hybrid-skeletal-character")
   $minimumRank = [array]::IndexOf($statusOrder, $MinimumStatus)
   $requiredStageRank = Get-MLGSStageRank -Stage $RequiredFor
   try { $manifestPath = Resolve-MLGSProjectArtifactPath -ProjectRoot $ProjectRoot -RelativePath $Path } catch {
@@ -1196,6 +1545,10 @@ function Test-MLGSArtManifest {
           $issues += "${id}: visualComponent.$name is incomplete."
         }
       }
+      $allowedGenerationUnits = @("single-sprite", "nine-slice", "icon", "state-set", "procedural-unity") + $skeletalGenerationUnits
+      if ($allowedGenerationUnits -notcontains [string]$component.generationUnit) {
+        $issues += "${id}: visualComponent.generationUnit is invalid."
+      }
       if ([string]$component.mode -eq "screen-derived") {
         if (@($component.sourceComponents).Count -eq 0) { $issues += "${id}: screen-derived visualComponent needs at least one source component." }
         foreach ($sourceComponent in @($component.sourceComponents)) {
@@ -1258,6 +1611,39 @@ function Test-MLGSArtManifest {
       }
     }
 
+    $animationContractPath = ""
+    if ($asset.PSObject.Properties.Name -contains "animationContract") { $animationContractPath = [string]$asset.animationContract }
+    $isSkeletalCharacter = $null -ne $component -and $skeletalGenerationUnits -contains [string]$component.generationUnit
+    if ($isSkeletalCharacter) {
+      if ([string]::IsNullOrWhiteSpace($animationContractPath)) {
+        $issues += "${id}: skeletal character art requires animationContract."
+      } else {
+        $contractMinimumStatus = if ($statusRank -ge [array]::IndexOf($statusOrder, "approved")) {
+          "approved"
+        } elseif ($statusRank -ge [array]::IndexOf($statusOrder, "referenced")) {
+          "unity-integrated"
+        } elseif ($statusRank -ge [array]::IndexOf($statusOrder, "processed")) {
+          "parts-validated"
+        } elseif ($statusRank -ge [array]::IndexOf($statusOrder, "generated")) {
+          "source-approved"
+        } else {
+          "specified"
+        }
+        $animationResult = Test-MLGSCharacterAnimationContract -ProjectRoot $ProjectRoot -Path $animationContractPath -MinimumStatus $contractMinimumStatus -AssetId $id
+        if (-not $animationResult.passed) {
+          foreach ($animationIssue in @($animationResult.issues)) { $issues += "${id}: $animationIssue" }
+        } elseif ($null -ne $animationResult.contract) {
+          foreach ($visualTargetId in @($asset.visualTargets)) {
+            if (@($animationResult.contract.visualTargetIds) -notcontains [string]$visualTargetId) {
+              $issues += "${id}: animation contract omitted visual target '$visualTargetId'."
+            }
+          }
+        }
+      }
+    } elseif (-not [string]::IsNullOrWhiteSpace($animationContractPath)) {
+      $issues += "${id}: animationContract is only valid for skeletal-character, mesh-skin-character, or hybrid-skeletal-character generation units."
+    }
+
     $pathRequirements = @{
       sourceFile = [array]::IndexOf($statusOrder, "generated")
       outputPath = [array]::IndexOf($statusOrder, "processed")
@@ -1286,6 +1672,9 @@ function Test-MLGSArtManifest {
     }
     elseif ($statusRank -ge [array]::IndexOf($statusOrder, "processed")) {
       if ([string]$asset.integrity.sourceLayout -eq "unverified-sheet") { $issues += "${id}: unverified composite sheets cannot enter formal processing." }
+      if ($isSkeletalCharacter -and [string]$asset.integrity.sourceLayout -eq "registered-sheet") {
+        $issues += "${id}: skeletal character parts cannot use registered-sheet as their canonical source."
+      }
       if ([string]$asset.integrity.extractionMode -eq "fixed-grid" -and [string]$asset.integrity.sourceLayout -ne "registered-sheet") {
         $issues += "${id}: fixed-grid extraction requires a registered-sheet with verified gutters and registration."
       }
