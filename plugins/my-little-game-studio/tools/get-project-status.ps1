@@ -4,8 +4,12 @@ param(
   [string]$StatePath = "",
   [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
+  [switch]$AllowUserPointer,
+  [switch]$InspectPointer,
   [switch]$AllowLegacyPointer,
-  [switch]$AllowTemplate
+  [switch]$AllowTemplate,
+  [ValidateSet("model", "full")][string]$View = "full",
+  [ValidateRange(0, 10)][int]$ActivityLimit = 3
 )
 
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
@@ -13,10 +17,87 @@ $Root = [System.IO.Path]::GetFullPath($Root)
 . (Join-Path $Root "tools/mlgs-common.ps1")
 $RuntimeRoot = Get-MLGSRuntimeRoot -Root $Root -RuntimeRoot $RuntimeRoot
 
+function Write-MLGSStatusOutput {
+  param($Result)
+  if ($View -eq "full") {
+    $Result | ConvertTo-Json -Depth 20
+    return
+  }
+
+  $compactEvents = @()
+  foreach ($event in @($Result.latest_activity | Select-Object -Last $ActivityLimit)) {
+    $compactEvents += [ordered]@{
+      id = [string]$event.id
+      timestamp = [string]$event.timestamp
+      command = [string]$event.command
+      status = [string]$event.status
+      taskId = [string]$event.taskId
+      title = [string]$event.title
+      summary = [string]$event.summary
+    }
+  }
+
+  $compactProject = $null
+  if ($null -ne $Result.active_project) {
+    $compactProject = [ordered]@{
+      name = [string]$Result.active_project.name
+      phase = [string]$Result.active_project.phase
+      observedPhase = [string]$Result.active_project.observed_phase
+      phaseMismatch = [bool]$Result.active_project.phase_mismatch
+      participation = [string]$Result.active_project.owner_participation
+      projectRoot = [string]$Result.active_project.project_root
+      projectId = [string]$Result.active_project.project_id
+    }
+    if ($InspectPointer) { $compactProject["pointerMismatch"] = [bool]$Result.active_project.pointer_mismatch }
+  }
+
+  $compactProductization = $null
+  if ($null -ne $Result.productization) {
+    $compactProductization = [ordered]@{
+      targetVersion = [string]$Result.productization.target_version
+      scopeItems = [int]$Result.productization.release_scope_items
+      planned = [int]$Result.productization.planned_count
+      implemented = [int]$Result.productization.implemented_count
+      verified = [int]$Result.productization.verified_count
+      scopeGap = [int]$Result.productization.scope_count_gap
+      visualTargets = [int]$Result.productization.visual_targets_total
+      visualTargetsApproved = [int]$Result.productization.visual_targets_approved
+      contentStatus = [string]$Result.productization.content_architecture.status
+      contentValidationPassed = [bool]$Result.productization.content_architecture.validation_passed
+      buildPolicyStatus = [string]$Result.productization.build_policy.status
+      initialPlatformValidation = [string]$Result.productization.build_policy.initial_validation_status
+    }
+  }
+
+  [ordered]@{
+    schemaVersion = "1.0"
+    resolved = [ordered]@{
+      mode = [string]$Result.resolved.mode
+      projectRoot = [string]$Result.resolved.project_root
+      projectId = [string]$Result.resolved.project_id
+      statePath = [string]$Result.resolved.state_path
+      contextSafe = [bool]$Result.resolved.context_safe
+      needsRepair = [bool]$Result.resolved.needs_repair
+      reason = $(if ($Result.resolved.repair_reason) { [string]$Result.resolved.repair_reason } else { [string]$Result.resolved.context_reason })
+    }
+    project = $compactProject
+    productization = $compactProductization
+    gaps = @($Result.gaps | Select-Object -First 10)
+    risks = @($Result.risks | Select-Object -First 10)
+    nextCommand = [string]$Result.next_command
+    nextReason = [string]$Result.next_reason
+    nextOptions = @($Result.next_options | Select-Object -First 4)
+    recentActivity = @($compactEvents)
+    runtimeSummary = [string]$Result.runtime_summary
+  } | ConvertTo-Json -Depth 12 -Compress
+}
+
 $resolveArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $Root "tools/resolve-state.ps1"), "-Root", $Root, "-RuntimeRoot", $RuntimeRoot)
 if ($ProjectRoot) { $resolveArgs += @("-ProjectRoot", $ProjectRoot) }
 if ($StatePath) { $resolveArgs += @("-StatePath", $StatePath) }
 if ($ContextPath) { $resolveArgs += @("-ContextPath", $ContextPath) }
+if ($AllowUserPointer) { $resolveArgs += "-AllowUserPointer" }
+if ($InspectPointer) { $resolveArgs += "-InspectPointer" }
 if ($AllowLegacyPointer) { $resolveArgs += "-AllowLegacyPointer" }
 if ($AllowTemplate) { $resolveArgs += "-AllowTemplate" }
 $resolved = & powershell @resolveArgs | ConvertFrom-Json
@@ -37,7 +118,8 @@ if ($resolved.project_exists -and $resolved.mode -ne "template") {
 $latestEvents = @()
 $activityPath = Join-Path $projectRuntimeRoot "logs/activity.jsonl"
 if (Test-Path $activityPath) {
-  foreach ($line in @(Get-Content -LiteralPath $activityPath -Encoding UTF8 | Where-Object { $_.Trim() } | Select-Object -Last 5)) {
+  $eventReadLimit = if ($View -eq "full") { 5 } else { $ActivityLimit }
+  foreach ($line in @(Get-Content -LiteralPath $activityPath -Encoding UTF8 | Where-Object { $_.Trim() } | Select-Object -Last $eventReadLimit)) {
     try { $latestEvents += ($line | ConvertFrom-Json) } catch { }
   }
 }
@@ -48,7 +130,7 @@ if (Test-Path $runtimePath) {
 }
 
 if ($resolved.mode -eq "template" -or $null -eq $detection) {
-  [pscustomobject]@{
+  $templateResult = [pscustomobject]@{
     resolved = $resolved
     active_project = $null
     approvals = $null
@@ -68,7 +150,8 @@ if ($resolved.mode -eq "template" -or $null -eq $detection) {
     )
     latest_activity = $latestEvents
     runtime_summary = $runtimeSummary
-  } | ConvertTo-Json -Depth 15
+  }
+  Write-MLGSStatusOutput -Result $templateResult
   exit 0
 }
 
@@ -183,7 +266,7 @@ for ($i = 0; $i -lt @($gate.options).Count; $i++) {
   $nextOptions += [pscustomobject]@{ key = $keys[$i]; command = $gate.options[$i]; label = $gate.options[$i] }
 }
 
-[pscustomobject]@{
+$result = [pscustomobject]@{
   resolved = $resolved
   active_project = [pscustomobject]@{
     name = $state.activeProject.name
@@ -217,4 +300,5 @@ for ($i = 0; $i -lt @($gate.options).Count; $i++) {
   next_options = $nextOptions
   latest_activity = $latestEvents
   runtime_summary = $runtimeSummary
-} | ConvertTo-Json -Depth 20
+}
+Write-MLGSStatusOutput -Result $result

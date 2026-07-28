@@ -1,6 +1,6 @@
 ﻿# MLGS Command Index
 
-> Generated from `workflow/catalog.json` plus its phase/gate catalogs. Do not edit by hand.
+> Generated from `workflow/catalog.json`, `workflow/routes.json`, and the phase/gate catalogs. Do not edit by hand.
 
 MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.
 
@@ -42,6 +42,6 @@ MLGS publicly exposes only `/mlgs`; the Producer selects one internal route.
 
 | Route | Mode | Default | Intent examples |
 |---|---|---|---|
-| `generate-art` | `draft` | True | ?????, ????, ??, ???, ????, ????? |
-| `generate-art` | `batch-plan` | False | ???????, ??????, ????, ????, ???? |
-| `generate-art` | `formal` | False | ?????, ????, ???, ????, ?? Unity, ???? |
+| `generate-art` | `draft` | True | 模式：草稿, 草稿模式, 试稿, 候选图, 概念探索, 先看看 |
+| `generate-art` | `batch-plan` | False | 模式：批量规划, 批量规划模式, 批量生图, 统一规划, 分批生成 |
+| `generate-art` | `formal` | False | 模式：正式, 正式模式, 生产级, 最终资源, 接入 Unity, 完整验收 |

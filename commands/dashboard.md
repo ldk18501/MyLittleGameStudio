@@ -22,7 +22,7 @@ Producer
 ## Flow
 
 1. Run `tools/export-dashboard.ps1`.
-2. Run `tools/get-project-status.ps1 -AllowTemplate` when available.
+2. Run `tools/get-project-status.ps1 -AllowTemplate -View model` when available.
 3. Report the dashboard file path.
 4. Summarize latest staff activity and active project snapshot.
 5. Record trace.

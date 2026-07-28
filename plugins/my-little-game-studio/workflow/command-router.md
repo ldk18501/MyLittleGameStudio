@@ -1,16 +1,14 @@
-# MLGS Natural Language Router
+# MLGS 自然语言路由
 
-`workflow/catalog.json` is the lightweight routing source and references the phase and gate catalogs. This file only defines the routing procedure.
+`workflow/catalog.json` 保存意图数据，`workflow/routes.json` 保存模型执行 packet。两者由工具读取，不作为每次任务的固定对话上下文。
 
-## Procedure
+## 流程
 
-1. Read `studio/config.md`, `rules/state.md`, and `workflow/catalog.json`.
-2. Run `tools/resolve-state.ps1 -AllowTemplate`.
-3. Match the request to one catalog command using `commands[].intents`, then select an explicit route mode when the command defines `modes`.
-4. Read only that command file, the selected mode/stage files, its lead agent, and necessary supporting agents.
-5. Read `workflow/onboarding.yaml` only for start, adopt, status, or pointer recovery.
-6. Before implementation, fixes, formal art integration, or productization writes, bind a project context, acquire a path lease, and run `tools/preflight-task.ps1 -ContextPath <context-path>`; after writes, run `tools/validate-changes.ps1 -ContextPath <context-path>` with that same active lease, then trace and release it.
-7. Read the referenced phase/gate catalogs only for phase evaluation or gate work. At Vertical Slice or later, evaluate the structured quality report and configured art manifest gate; file presence is insufficient.
-8. Record trace.
+1. 从用户意图选择一个 command；美术请求同时选择 mode，formal 再选择当前 stage。
+2. 运行 `tools/get-route-packet.ps1 -Command <id> -View model`，已知项目时传入 `-ProjectRoot` 或 `-ContextPath`。
+3. 默认只使用 compact packet；只读取 packet 指定且当前成立的 policy。
+4. 仅在 packet 不足以处理专项细节时读取 `detailFile`、完整 agent 或 conditional file。
+5. 项目写入仍须绑定 context、申请 lease、preflight、validate、terminal trace、释放 lease。
+6. phase/gate 目录只在阶段评估时读取；完整状态和审计快照留给工具与 dashboard。
 
-Use one clear next question or natural-language `/mlgs ...` follow-up. Do not expose internal field names first, and do not recommend hidden sub-skills.
+对用户保持 `/mlgs` 加自然语言的单入口，并只给一个清晰下一步。

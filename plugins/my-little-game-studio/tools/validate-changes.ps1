@@ -5,7 +5,8 @@ param(
   [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
   [ValidatePattern('^$|^[A-Za-z0-9][A-Za-z0-9._-]*$')][string]$InvocationId = "",
-  [string[]]$ChangedPaths = @()
+  [string[]]$ChangedPaths = @(),
+  [ValidateSet("model", "full")][string]$View = "full"
 )
 
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
@@ -89,6 +90,18 @@ $result = [pscustomobject]@{
   violations = @($violations)
   lease_violations = @($leaseViolations)
 }
-$result | ConvertTo-Json -Depth 8
+if ($View -eq "model") {
+  [ordered]@{
+    valid = [bool]$result.valid
+    projectId = [string]$result.project_id
+    contextPath = [string]$result.context_path
+    invocationId = [string]$result.invocation_id
+    checkedCount = @($result.checked_paths).Count
+    violations = @($result.violations)
+    leaseViolations = @($result.lease_violations)
+  } | ConvertTo-Json -Depth 8 -Compress
+} else {
+  $result | ConvertTo-Json -Depth 8
+}
 if (-not $result.valid) { exit 3 }
 

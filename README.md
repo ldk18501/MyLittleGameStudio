@@ -70,6 +70,8 @@ You only need to remember:
 
 The generated grouped menu lives in `workflow/command-index.md`.
 
+At runtime MLGS asks `tools/get-route-packet.ps1` for one compact route packet. Full catalogs, commands, agent prompts, and gate documents are loaded only when the selected task needs them; machine audit snapshots are not echoed back into the conversation.
+
 ## Production Lifecycle
 
 ```text
@@ -191,18 +193,19 @@ $CODEX_HOME/mlgs/projects/<project-id>/logs/activity.jsonl
 $CODEX_HOME/mlgs/projects/<project-id>/dashboard/studio-data.js
 ```
 
-When `CODEX_HOME` is unset, MLGS uses `~/.codex/mlgs/`. The current-project pointer is a read/navigation fallback, never write authority. Project writes bind one immutable context and use non-overlapping leases, so separate projects can run in parallel. Legacy `.mlgs/state.yaml` remains readable; the checkout pointer is used only with explicit legacy recovery.
+When `CODEX_HOME` is unset, MLGS uses `~/.codex/mlgs/`. Normal routing ignores the legacy current-project pointer and resolves only an explicit path, a bound context, or the nearest project state. `-AllowUserPointer` is an opt-in compatibility recovery mode and never grants write authority. Project writes bind one immutable context and use non-overlapping leases, so separate projects can run in parallel. Legacy `.mlgs/state.yaml` remains readable; the checkout pointer is used only with explicit legacy recovery.
 
 Open `dashboard/index.html` to view the active project, observed phase, participation level, recent work, specialist status, risks, and recommended next command.
 
 ## Useful Repository Tools
 
 ```powershell
-# State and adoption
-powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate
+# Compact routing, state, and adoption
+powershell -ExecutionPolicy Bypass -File tools/get-route-packet.ps1 -Command implement -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate -View model
 powershell -ExecutionPolicy Bypass -File tools/detect-project-stage.ps1 -ProjectRoot E:/path/to/project
 powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
+powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate -View model
 
 # Initialize production contracts and classify code intensity
 powershell -ExecutionPolicy Bypass -File tools/init-production-pipeline.ps1 -ProjectRoot E:/path/to/project
@@ -213,14 +216,17 @@ powershell -ExecutionPolicy Bypass -File tools/new-code-task.ps1 -ProjectRoot E:
 powershell -ExecutionPolicy Bypass -File tools/test-code-task.ps1 -ProjectRoot E:/path/to/project -TaskId feature-id
 powershell -ExecutionPolicy Bypass -File tools/new-project-context.ps1 -ProjectRoot E:/path/to/project -InvocationId feature-run -TaskId feature-id
 powershell -ExecutionPolicy Bypass -File tools/acquire-project-lease.ps1 -ContextPath <context-path> -InvocationId feature-run -TaskId feature-id -Paths Assets/Game/Feature
-powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement -TaskId feature-id -ContextPath <context-path>
+powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement -TaskId feature-id -ContextPath <context-path> -View model
+powershell -ExecutionPolicy Bypass -File tools/start-route.ps1 -Command implement -ProjectRoot E:/path/to/project -TaskId feature-id -Paths Assets/Game/Feature
 
 # Project and package verification
 powershell -ExecutionPolicy Bypass -File tools/test-production-code.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1 -ContextPath <context-path>
+powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1 -ContextPath <context-path> -View model
+powershell -ExecutionPolicy Bypass -File tools/finish-route.ps1 -ContextPath <context-path> -Command implement -Title "Feature complete"
 powershell -ExecutionPolicy Bypass -File tools/release-project-lease.ps1 -ContextPath <context-path> -InvocationId feature-run
 powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
 powershell -ExecutionPolicy Bypass -File tools/generate-workflow.ps1 -Check
+powershell -ExecutionPolicy Bypass -File tools/test-token-budget.ps1
 powershell -ExecutionPolicy Bypass -File tools/build-plugin-package.ps1 -Check
 ```
 

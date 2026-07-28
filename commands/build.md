@@ -38,7 +38,7 @@ Unity Architect
    - non-development crash/error smoke for Release Candidate
 6. Check the current productization gate. Report missing content/art/quality evidence separately from technical build blockers.
 7. If only preflight was requested or the reason is `routine-development`, stop after the checks and recommend compile/editor/play-mode verification. Do not invoke Unity batch build, Gradle, Xcode, platform packagers, signing, installation, or device deployment.
-8. Before any actual package build, run `tools/preflight-task.ps1 -Command build` with exactly one authorized reason:
+8. Before any actual package build, run `tools/preflight-task.ps1 -Command build -View model` with exactly one authorized reason:
    - initial validation: `-BuildReason initial-platform-validation -StartFlowBuild`
    - current owner request: `-BuildReason owner-request -OwnerRequestedBuild`
    - formal flow: `-BuildReason release-candidate` or `-BuildReason release`

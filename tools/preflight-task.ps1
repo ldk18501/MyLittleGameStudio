@@ -10,7 +10,8 @@ param(
   [ValidateSet("initial-platform-validation", "owner-request", "release-candidate", "release", "routine-development")][string]$BuildReason = "routine-development",
   [switch]$OwnerRequestedBuild,
   [switch]$StartFlowBuild,
-  [switch]$AcceptRisk
+  [switch]$AcceptRisk,
+  [ValidateSet("model", "full")][string]$View = "full"
 )
 
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath) }
@@ -96,5 +97,18 @@ $result = [pscustomobject]@{
   build_reason = $(if ($Command -eq "build") { $BuildReason } else { "" })
   blockers = @($blockers)
 }
-$result | ConvertTo-Json -Depth 8
+if ($View -eq "model") {
+  [ordered]@{
+    allowed = [bool]$result.allowed
+    command = [string]$result.command
+    projectId = [string]$result.project_id
+    projectRoot = [string]$result.project_root
+    contextPath = [string]$result.context_path
+    invocationId = [string]$result.invocation_id
+    leasePath = [string]$result.lease_path
+    blockers = @($result.blockers)
+  } | ConvertTo-Json -Depth 8 -Compress
+} else {
+  $result | ConvertTo-Json -Depth 8
+}
 if (-not $result.allowed) { exit 2 }

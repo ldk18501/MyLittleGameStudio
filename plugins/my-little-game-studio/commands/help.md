@@ -13,7 +13,7 @@ Producer
 1. Resolve project state.
    Prefer:
    ```powershell
-   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
+   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate -View model
    ```
 2. Read `workflow/command-index.md`.
 3. Show the active project, if any.

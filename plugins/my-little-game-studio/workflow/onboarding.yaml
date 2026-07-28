@@ -1,6 +1,6 @@
 version: 0.3
 name: MyLittleGameStudio Codex Onboarding
-updated: 2026-06-30
+updated: 2026-07-29
 
 purpose: >
   Start MLGS from /mlgs plus natural language with the least possible friction. Detect context,
@@ -17,11 +17,14 @@ principles:
   - High participation means the owner gets more visible choices and drafts.
 
 state_signals:
+  nearest_project:
+    meaning: the current workspace or one of its parents contains a project-local .mlgs state.
+    next: status
   pointer_valid:
-    meaning: user runtime current-project.json resolves to a project state for read-only navigation; bind an explicit or nearest project context before writing.
+    meaning: explicit compatibility recovery with -AllowUserPointer resolved an old user pointer; bind that project explicitly before any write.
     next: status
   pointer_stale:
-    meaning: local pointer exists but state_path or project_root is missing.
+    meaning: explicit compatibility recovery found an old pointer whose state_path or project_root is missing.
     next: repair-pointer
   template_only:
     meaning: no active project exists; studio/state.json is only a template.
@@ -52,12 +55,12 @@ start_paths:
     recommended_next: adopt
   continue_current:
     label: "C) Continue current project"
-    description: "Inspect the active project pointer, then bind that project explicitly before any write."
+    description: "Use the project-local state in the current workspace, then bind it explicitly before any write."
     first_question: "Do you want a status report or should the studio pick the next useful task?"
     recommended_next: status
   repair_or_switch:
     label: "D) Repair or switch"
-    description: "Fix a stale pointer or choose a different project."
+    description: "Explicitly recover a stale legacy pointer or choose a different project."
     first_question: "Should I repair to a new project path, or clear the pointer and start again?"
     recommended_next: status
 
@@ -86,10 +89,10 @@ guided_start_prompt:
       description: "Inspect and attach an existing project directory."
     - id: continue_current
       label: "C) Continue current project"
-      description: "Use the active project if one is configured."
+      description: "Use the project-local state in the current workspace."
     - id: repair_or_switch
       label: "D) Repair or switch"
-      description: "Fix a stale pointer or choose another project."
+      description: "Explicitly recover a stale legacy pointer or choose another project."
 
 participation_prompt:
   text: "How much do you want to participate in day-to-day decisions?"

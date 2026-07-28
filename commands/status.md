@@ -13,7 +13,7 @@ Producer
 - `workflow/onboarding.yaml`
 - resolved project `.mlgs/state.json` or legacy `.mlgs/state.yaml`, or template only if no project exists
 - `workflow/catalog.json`
-- optional user runtime pointer, runtime, and latest activity
+- optional user runtime pointer only during explicit compatibility recovery; project runtime and latest activity
 - active project artifacts
 
 ## Write
@@ -26,14 +26,13 @@ Producer
 
 1. When a path or nearest project exists, bind it with `tools/new-project-context.ps1`, then run:
    ```powershell
-   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -ContextPath <context-path> -AllowTemplate
+   powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -ContextPath <context-path> -AllowTemplate -View model
    ```
-2. If pointer is stale, report broken paths and ask one recovery question.
+2. Only during explicit compatibility recovery with `-AllowUserPointer`, if the pointer is stale, report broken paths and ask one recovery question.
 3. If only template exists, report no active project and ask:
    - A) New game
    - B) Existing Unity project
    - C) Help/menu
-   - D) Clear/repair pointer
    If the user already provided an idea seed or project path, route directly to internal `brainstorm` or `adopt` instead of asking again.
 4. If active project exists, report from the structured status object:
    - active project
@@ -55,7 +54,7 @@ Producer
    - recommended command
 5. Offer the status object's A/B/C/D next options.
    Prefer natural-language phrases such as `/mlgs 把当前概念拆成开发计划`; keep old direct aliases only as compatibility.
-6. Record trace in the bound project's runtime. Pointer-only status remains read-only and must not authorize later writes.
+6. Record trace in the bound project's runtime. A compatibility-pointer recovery status remains read-only and must not authorize later writes.
 
 ## Completion
 

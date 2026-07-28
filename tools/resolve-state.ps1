@@ -4,9 +4,12 @@ param(
   [string]$StatePath = "",
   [string]$ContextPath = "",
   [string]$RuntimeRoot = "",
+  [switch]$AllowUserPointer,
+  [switch]$InspectPointer,
   [switch]$AllowLegacyPointer,
   [switch]$AllowTemplate,
-  [switch]$RequireProjectContext
+  [switch]$RequireProjectContext,
+  [ValidateSet("model", "full")][string]$View = "full"
 )
 
 if ([string]::IsNullOrWhiteSpace($Root)) {
@@ -91,7 +94,7 @@ if (-not [string]::IsNullOrWhiteSpace($ContextPath)) {
     $resolvedStatePath = $nearest.state
     $resolvedProjectRoot = $nearest.root
     $mode = "nearest-project"
-  } elseif (Test-Path $pointerPath) {
+  } elseif ($AllowUserPointer -and (Test-Path $pointerPath)) {
     $pointer = Get-Content -LiteralPath $pointerPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $resolvedStatePath = Resolve-MLGSPath -Base $globalRuntimeRoot -Path ([string]$pointer.statePath)
     $resolvedProjectRoot = Resolve-MLGSPath -Base $globalRuntimeRoot -Path ([string]$pointer.projectRoot)
@@ -123,7 +126,7 @@ if (@("user-pointer", "legacy-pointer") -contains $mode -and -not $exists) {
   $repairReason = if (-not $projectExists) { "project_root does not exist" } else { "state path does not exist" }
 }
 
-if ((Test-Path $pointerPath) -and $mode -notin @("user-pointer", "template", "missing")) {
+if ($InspectPointer -and (Test-Path $pointerPath) -and $mode -notin @("user-pointer", "template", "missing")) {
   try {
     $currentPointer = Get-Content -LiteralPath $pointerPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $pointerProjectRoot = Resolve-MLGSPath -Base $globalRuntimeRoot -Path ([string]$currentPointer.projectRoot)
@@ -145,7 +148,7 @@ $contextSafe = @("bound-context", "explicit-state", "explicit-project", "nearest
 $contextReason = if ($contextSafe) { "" } elseif ($mode -eq "user-pointer") { "A global pointer is only a compatibility fallback and cannot authorize project writes." } elseif ($mode -eq "legacy-pointer") { "A legacy pointer cannot authorize project writes." } else { "No bound project context is available." }
 if ($RequireProjectContext -and -not $contextSafe) { $needsRepair = $true; $repairReason = $contextReason }
 
-[pscustomobject]@{
+$result = [pscustomobject]@{
   mode = $mode
   exists = $exists
   project_exists = $projectExists
@@ -168,4 +171,25 @@ if ($RequireProjectContext -and -not $contextSafe) { $needsRepair = $true; $repa
   global_runtime_root = $globalRuntimeRoot
   project_runtime_root = $projectRuntimeRoot
   runtime_root = $projectRuntimeRoot
-} | ConvertTo-Json -Depth 8
+}
+
+if ($View -eq "model") {
+  $modelResult = [ordered]@{
+    mode = [string]$result.mode
+    projectRoot = [string]$result.project_root
+    projectId = [string]$result.project_id
+    statePath = [string]$result.state_path
+    stateFormat = [string]$result.state_format
+    contextPath = [string]$result.context_path
+    contextSafe = [bool]$result.context_safe
+    needsRepair = [bool]$result.needs_repair
+    reason = $(if ($result.repair_reason) { [string]$result.repair_reason } else { [string]$result.context_reason })
+  }
+  if ($InspectPointer) {
+    $modelResult["pointerMismatch"] = [bool]$result.pointer_mismatch
+    $modelResult["pointerProjectRoot"] = [string]$result.pointer_project_root
+  }
+  $modelResult | ConvertTo-Json -Depth 6 -Compress
+} else {
+  $result | ConvertTo-Json -Depth 8
+}

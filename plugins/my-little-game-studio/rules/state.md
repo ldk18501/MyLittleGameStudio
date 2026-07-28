@@ -28,13 +28,13 @@ When `CODEX_HOME` is unset, use `~/.codex/mlgs/`. In the MLGS source checkout, t
 1. Bound task context created by `tools/new-project-context.ps1`.
 2. Explicit state or project path.
 3. Nearest parent project state from the current directory.
-4. User runtime `current-project.json` as a compatibility fallback for read-only navigation.
-5. Legacy checkout pointer only when `-AllowLegacyPointer` is explicit.
+4. User runtime `current-project.json` only when `-AllowUserPointer` is explicitly requested for compatibility recovery.
+5. Legacy checkout pointer only when `-AllowLegacyPointer` is explicitly requested for compatibility recovery.
 6. `studio/state.json` template when `-AllowTemplate` is present.
 
 Project write routes must resolve through items 1-3. A global or legacy pointer cannot authorize `implement`, `fix`, `generate-art`, or `productize`. Resolve once at task start, retain the returned context path, and pass it through preflight, trace, dashboard, and post-change validation; never re-resolve a running task through the global pointer.
 
-If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1`. Do not silently clear or overwrite a real pointer during tests.
+Normal routing does not read or compare either pointer, so an unrelated project can never produce a mismatch warning. For deliberate recovery, use `-AllowUserPointer`; add `-InspectPointer` only when comparing a supplied project against the compatibility pointer is the task itself. If a pointer is stale, report it as repairable and use `tools/repair-pointer.ps1`. Do not silently clear or overwrite a real pointer during tests.
 
 ## Validation
 

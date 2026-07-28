@@ -1137,10 +1137,19 @@ staff:
     Push-Location $secondProject
     try { $nearest = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -RuntimeRoot $runtimeRoot | ConvertFrom-Json }
     finally { Pop-Location }
-    if ($nearest.mode -ne "nearest-project" -or $nearest.project_id -ne $contextB.projectId -or -not [bool]$nearest.pointer_mismatch) { throw "Nearest project did not safely override the different global pointer." }
+    if ($nearest.mode -ne "nearest-project" -or $nearest.project_id -ne $contextB.projectId -or [bool]$nearest.pointer_mismatch -or $nearest.pointer_project_root) { throw "Nearest project was contaminated by the compatibility pointer." }
+
+    $explicit = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -ProjectRoot $secondProject -RuntimeRoot $runtimeRoot | ConvertFrom-Json
+    if ($explicit.mode -ne "explicit-project" -or $explicit.project_id -ne $contextB.projectId -or [bool]$explicit.pointer_mismatch -or $explicit.pointer_project_root) { throw "Explicit project resolution was contaminated by the compatibility pointer." }
+
+    $pointerIgnored = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -RuntimeRoot $runtimeRoot -AllowTemplate | ConvertFrom-Json
+    if ($pointerIgnored.mode -eq "user-pointer") { throw "Compatibility pointer was read without explicit opt-in." }
+
+    $pointerRecovery = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/resolve-state.ps1") -Root $Root -RuntimeRoot $runtimeRoot -AllowUserPointer | ConvertFrom-Json
+    if ($pointerRecovery.mode -ne "user-pointer" -or $pointerRecovery.project_id -ne $contextA.projectId) { throw "Explicit compatibility-pointer recovery failed." }
 
     $pointerOnly = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/preflight-task.ps1") -Root $Root -RuntimeRoot $runtimeRoot -Command implement 2>$null | ConvertFrom-Json
-    if ($LASTEXITCODE -ne 2 -or @($pointerOnly.blockers | Where-Object { $_ -match "global pointer" }).Count -eq 0) { throw "Pointer-only project write was not blocked." }
+    if ($LASTEXITCODE -ne 2 -or @($pointerOnly.blockers | Where-Object { $_ -match "No project state" }).Count -eq 0) { throw "Pointer-only project write was not blocked." }
 
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $contextA.contextPath -RuntimeRoot $runtimeRoot -InvocationId smoke-a -TaskId task-a -Command test -Title "Project A trace" -Summary "A" | Out-Null
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/trace.ps1") -Root $Root -ContextPath $contextB.contextPath -RuntimeRoot $runtimeRoot -InvocationId smoke-b -TaskId task-b -Command test -Title "Project B trace" -Summary "B" | Out-Null
@@ -1180,9 +1189,25 @@ staff:
     }
   }
 
+  $results += Invoke-Step "model-context-token-budget" {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/test-token-budget.ps1") -Root $Root -View model | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Model-context token budget failed." }
+  }
+
+  $results += Invoke-Step "route-boundary-wrappers" {
+    $wrapperProject = Join-Path $sandbox "route-wrapper-project"
+    $wrapperRuntime = Join-Path $sandbox "route-wrapper-runtime"
+    New-Item -ItemType Directory -Path $wrapperProject -Force | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root "tools/init-project-state.ps1") -Root $Root -ProjectRoot $wrapperProject -Name "Route Wrapper Test" -ApprovedWritePaths Assets -RuntimeRoot $wrapperRuntime -SkipPointer | Out-Null
+    $start = & (Join-Path $Root "tools/start-route.ps1") -Root $Root -Command fix -ProjectRoot $wrapperProject -RuntimeRoot $wrapperRuntime -InvocationId wrapper-test -TaskId wrapper-task -Paths @("Assets") -AcceptRisk -View model | ConvertFrom-Json
+    if (-not [bool]$start.started) { throw "start-route did not acquire a context, lease, and passing preflight." }
+    $finish = & (Join-Path $Root "tools/finish-route.ps1") -Root $Root -ContextPath $start.contextPath -Command fix -Title "Route wrapper smoke" -TaskId wrapper-task -LeadAgent gameplay-developer -AgentsUsed @("gameplay-developer", "qa-lead") -ChangedPaths @("Assets/probe.txt") -Verification @("wrapper smoke") -Summary "wrapper passed" -View model | ConvertFrom-Json
+    if (-not [bool]$finish.finished -or -not [bool]$finish.traceRecorded -or -not [bool]$finish.leaseReleased) { throw "finish-route did not validate, trace, and release the lease." }
+  }
+
   $results += Invoke-Step "plugin-package-is-self-contained" {
     $pluginRoot = Join-Path $Root "plugins/my-little-game-studio"
-    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "workflow/phases.json", "workflow/gates.json", "profiles/unity/catalog.json", "commands/status.md", "rules/studio/art-generation.md", "rules/art-generation/draft.md", "rules/art-generation/batch-plan.md", "rules/art-generation/formal.md", "rules/character-animation-art.md", "templates/character-animation-contract.json", "templates/art-recipes/2d-hybrid-combat-character-v1.json", "tools/workflow-catalog.ps1", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/init-build-policy.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-content-architecture.ps1", "tools/test-build-authorization.ps1", "tools/record-build-event.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/get-art-prompt-packet.ps1", "tools/test-art-usage.ps1", "tools/test-character-animation-contract.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/character-animation-contract.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/content-architecture.schema.json", "studio/build-policy.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
+    foreach ($relative in @("AGENTS.md", "agents/art-director.md", "workflow/catalog.json", "workflow/routes.json", "workflow/phases.json", "workflow/gates.json", "profiles/unity/catalog.json", "commands/status.md", "rules/studio/art-generation.md", "rules/art-generation/draft.md", "rules/art-generation/batch-plan.md", "rules/art-generation/formal.md", "rules/character-animation-art.md", "templates/character-animation-contract.json", "templates/art-recipes/2d-hybrid-combat-character-v1.json", "tools/workflow-catalog.ps1", "tools/get-route-packet.ps1", "tools/start-route.ps1", "tools/finish-route.ps1", "tools/test-token-budget.ps1", "tools/resolve-state.ps1", "tools/new-project-context.ps1", "tools/acquire-project-lease.ps1", "tools/release-project-lease.ps1", "tools/init-production-pipeline.ps1", "tools/init-build-policy.ps1", "tools/new-work-package.ps1", "tools/get-production-capabilities.ps1", "tools/test-content-architecture.ps1", "tools/test-build-authorization.ps1", "tools/record-build-event.ps1", "tools/test-art-import-recipe.ps1", "tools/test-art-prompt.ps1", "tools/get-art-prompt-packet.ps1", "tools/test-art-usage.ps1", "tools/test-character-animation-contract.ps1", "tools/split-art-sheet.ps1", "tools/split_art_sheet.py", "tools/test-visual-comparison.ps1", "tools/test_visual_comparison.py", "tools/freeze-design-baseline.ps1", "tools/validate-release-scope.ps1", "studio/state.json", "studio/visual-target.schema.json", "studio/visual-comparison.schema.json", "studio/art-import-recipe.schema.json", "studio/art-prompt-metadata.schema.json", "studio/art-batch.schema.json", "studio/art-usage.schema.json", "studio/character-animation-contract.schema.json", "studio/project-context.schema.json", "studio/project-lease.schema.json", "studio/release-scope.schema.json", "studio/work-package.schema.json", "studio/game-profile.schema.json", "studio/content-architecture.schema.json", "studio/build-policy.schema.json", "studio/capability-manifest.schema.json", "dashboard/index.html")) {
       if (-not (Test-Path (Join-Path $pluginRoot $relative))) { throw "Plugin package is missing $relative" }
     }
     $pluginRuntime = Join-Path $sandbox "plugin-runtime"

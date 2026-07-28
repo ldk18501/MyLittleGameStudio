@@ -70,6 +70,8 @@ codex plugin marketplace add .
 
 完整的分组菜单由 `workflow/command-index.md` 生成。
 
+MLGS 运行时先通过 `tools/get-route-packet.ps1` 获取单条 compact route packet。完整 catalog、command、agent 和门禁文档只在当前任务确实需要时读取，机器审计数据不会重复回显到对话。
+
 ## 从原型到正式发布
 
 ```text
@@ -200,11 +202,14 @@ $CODEX_HOME/mlgs/projects/<project-id>/dashboard/studio-data.js
 ## 常用仓库工具
 
 ```powershell
-# 状态与项目接管
-powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate
+# Compact 路由、状态与项目接管
+powershell -ExecutionPolicy Bypass -File tools/get-route-packet.ps1 -Command implement -ProjectRoot E:/path/to/project
+powershell -ExecutionPolicy Bypass -File tools/resolve-state.ps1 -AllowTemplate -View model
 powershell -ExecutionPolicy Bypass -File tools/detect-project-stage.ps1 -ProjectRoot E:/path/to/project
 powershell -ExecutionPolicy Bypass -File tools/adopt-project.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate
+powershell -ExecutionPolicy Bypass -File tools/get-project-status.ps1 -AllowTemplate -View model
+
+正常路由不会读取或比较旧的全局 `current-project.json`，只认显式项目路径、绑定上下文或当前目录最近的项目状态。仅在兼容恢复时显式添加 `-AllowUserPointer`；它不能授权项目写入。
 
 # 初始化生产契约并判断代码策略强度
 powershell -ExecutionPolicy Bypass -File tools/init-production-pipeline.ps1 -ProjectRoot E:/path/to/project
@@ -213,11 +218,14 @@ powershell -ExecutionPolicy Bypass -File tools/inspect-codebase.ps1 -ProjectRoot
 # 准备和验证一个正式代码任务
 powershell -ExecutionPolicy Bypass -File tools/new-code-task.ps1 -ProjectRoot E:/path/to/project -TaskId feature-id
 powershell -ExecutionPolicy Bypass -File tools/test-code-task.ps1 -ProjectRoot E:/path/to/project -TaskId feature-id
-powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement -TaskId feature-id
+powershell -ExecutionPolicy Bypass -File tools/preflight-task.ps1 -Command implement -TaskId feature-id -View model
+powershell -ExecutionPolicy Bypass -File tools/start-route.ps1 -Command implement -ProjectRoot E:/path/to/project -TaskId feature-id -Paths Assets/Game/Feature
 
 # 工程与插件验证
 powershell -ExecutionPolicy Bypass -File tools/test-production-code.ps1 -ProjectRoot E:/path/to/project
-powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1
+powershell -ExecutionPolicy Bypass -File tools/validate-changes.ps1 -View model
+powershell -ExecutionPolicy Bypass -File tools/finish-route.ps1 -ContextPath <context-path> -Command implement -Title "Feature complete"
+powershell -ExecutionPolicy Bypass -File tools/test-token-budget.ps1
 powershell -ExecutionPolicy Bypass -File tools/run-smoke-tests.ps1
 powershell -ExecutionPolicy Bypass -File tools/generate-workflow.ps1 -Check
 powershell -ExecutionPolicy Bypass -File tools/build-plugin-package.ps1 -Check

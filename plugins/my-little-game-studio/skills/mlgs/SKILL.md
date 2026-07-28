@@ -1,83 +1,65 @@
 ---
 name: mlgs
-description: "MyLittleGameStudio single-entry router for Unity/C# game-studio work through /mlgs plus natural language."
+description: "MyLittleGameStudio 单入口路由；通过 /mlgs 加自然语言推进 Unity/C# 游戏工作。"
 ---
 
 # MLGS
 
-Resolve the plugin root two levels above this skill. It must contain `workflow/catalog.json`, `commands/`, `agents/`, `tools/`, and `studio/state.json`. The installed plugin root is read-only.
+插件根目录位于本 skill 上两级，安装目录只读。用户只需要 `/mlgs` 加自然语言，不推荐内部子命令或隐藏 skill。
 
-## Route
+## Compact 路由
 
-1. Read only:
-   - `studio/config.md`
-   - `rules/state.md`
-   - `workflow/catalog.json`
-2. Run:
+先从下列意图选择一个 command：
 
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/resolve-state.ps1 -Root <plugin-root> -AllowTemplate
-   ```
+- `start/adopt/status/help`：开始、接管、状态、帮助
+- `brainstorm/plan/prototype`：创意、规划、原型
+- `implement/fix/review/test`：实现、修复、审查、测试
+- `build/dashboard`：构建或看板
+- `generate-art/productize/release`：美术、成品化、发布
 
-3. Select one command from `commands[].intents`.
-4. Read that command, its lead agent, and only the supporting agents needed for the current stage.
-5. Load route-specific policies listed by `studio/config.md`.
-6. Read the referenced phase catalog or gate catalog only for phase/gate evaluation. Read `workflow/onboarding.yaml` only for start, adopt, status, or pointer recovery.
+然后运行一次：
 
-Users need only `/mlgs` plus natural language. Do not recommend hidden sub-skills or nested slash commands.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/get-route-packet.ps1 -Root <plugin-root> -Command <command> [-Mode <mode>] [-Stage <stage>] [-ProjectRoot <path> | -ContextPath <path>]
+```
 
-## Project context
+默认只使用返回的 compact packet。不要预读完整 `workflow/catalog.json`、`studio/config.md`、`rules/state.md`、command 或 agent 文件。
 
-When a project path is known, bind it once:
+- 只读取 packet 的 `policies` 和当前实际成立的 `conditionalPolicies`。
+- `conditionalFiles`、`onDemandModeFiles` 和 `detailFile` 仅在当前任务确实需要其细节时读取。
+- Agent 默认作为 trace 中的角色 ID；只有专项判断无法由 packet/policy 完成时才读取完整 agent 文件。
+- phase/gate 目录仅在阶段或门禁评估时读取。
+- start、adopt、status 或指针恢复才按需读取 onboarding。
+
+## 项目与写入安全
+
+已知项目路径时只绑定一次：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File <plugin-root>/tools/new-project-context.ps1 -ProjectRoot <path>
 ```
 
-Keep the returned `contextPath`, `projectId`, `projectRoot`, `runtimeRoot`, and `invocationId` for the whole task. Never switch back to a global pointer during that task.
+整个任务固定使用返回的 `contextPath`、`projectId`、`projectRoot`、`runtimeRoot` 和 `invocationId`。项目 canonical state 为 `<ProjectRoot>/.mlgs/state.json`。正常路由不读取或比较全局/legacy 指针；仅在显式兼容恢复时使用 `-AllowUserPointer` 或 `-AllowLegacyPointer`，且指针不能授权写入。
 
-- Canonical state: `<ProjectRoot>/.mlgs/state.json`.
-- Legacy `.mlgs/state.yaml` is readable but migrates only with owner approval.
-- User and legacy pointers are read-only navigation fallbacks.
-- Same-project writes require a non-overlapping path lease.
-- Pass the bound context to preflight, status, trace, dashboard, and validation.
+`implement`、`fix`、正式美术接入和 `productize` 写入必须：
 
-## Write safety
+1. 为计划路径申请非重叠 lease。
+2. 使用同一 context 运行 `preflight-task.ps1 -View model`。
+3. 只修改批准且被 lease 覆盖的路径。
+4. 使用同一 context 运行 `validate-changes.ps1 -View model`。
+5. 记录 terminal trace 后释放 lease。
 
-Before `implement`, `fix`, `generate-art`, or `productize` writes:
+优先用 `tools/start-route.ps1` 合并 context/lease/preflight，用 `tools/finish-route.ps1` 合并 validate/trace/dashboard/lease release；任一步失败时仍按上述顺序 fail-closed。
 
-1. Acquire a lease for the planned project-relative paths.
-2. Run `tools/preflight-task.ps1 -ContextPath <context-path>` with the selected command.
-3. Perform only approved writes.
-4. Run `tools/validate-changes.ps1 -ContextPath <context-path>` before releasing the lease.
-5. Record terminal trace, then release the lease.
+生产未解锁时停止；`-AcceptRisk` 只接受 owner 已明确记录的风险，不能绕过代码上下文、架构或门禁。
 
-Production that is not unblocked stops unless the owner explicitly accepts the recorded risk.
+## 美术与构建
 
-## Art routing
-
-Image requests route to `generate-art`, which selects one mode:
-
-- `draft`: candidates and concept exploration; default when ambiguous.
-- `batch-plan`: shared style baseline plus per-item deltas and grouping.
-- `formal`: production lifecycle, Unity integration, and approval.
-
-Explicit phrases such as `模式：草稿`, `模式：批量规划`, or `模式：正式` win. Read only the chosen mode and formal lifecycle stage. Drafts do not enter the formal manifest until promoted. Formal gates remain fail-closed.
-
-## Production and release
-
-Load the relevant policy under `rules/studio/` rather than carrying every production contract in the router.
-
-- Product depth and research: `content-design.md`
-- Production code: `adaptive-code.md` plus `rules/production-code.md` after prototype
-- Art: `art-generation.md` and selected `rules/art-generation/` files
-- Verification/build cadence: `verification-build.md`
-- Product gates: `productization.md` plus referenced gate catalog
-
-Use Unity/C# only. Prototype evidence never substitutes for production visual or architecture evidence.
-
-Ordinary development through Beta uses compile/editor/PlayMode/data/platform-preflight checks. A later development package requires an explicit owner request in the current message; automatic packaging resumes only for Release Candidate or Release.
+- `generate-art` 模式为 `draft`、`batch-plan`、`formal`；不明确时默认 `draft`。
+- formal 只加载当前生命周期阶段，保持 fail-closed。
+- 普通开发至 Beta 使用 compile/editor/PlayMode/data/platform-preflight。
+- 后续开发包体需要 owner 当前消息明确请求；自动打包仅在 Release Candidate/Release 恢复。
 
 ## Trace
 
-Every routed task records command, lead/support roles, skills, files read/written, assumptions, decisions, and verification. Prefer `tools/trace.ps1`, update the bound runtime dashboard, and never write runtime data into the installed plugin.
+每个路由任务记录 command、角色、skill、读写文件、假设、决策和验证，并刷新绑定项目的 dashboard。完整机器快照保存在项目/runtime；对话中只返回 compact verdict、blocker 和下一步。

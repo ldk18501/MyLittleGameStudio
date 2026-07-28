@@ -46,11 +46,11 @@
 
 ## 共通执行
 
-1. 项目写入前绑定 project context、申请覆盖计划路径的 lease，并运行 `tools/preflight-task.ps1 -Command generate-art -ContextPath <context-path>`。
+1. 项目写入前绑定 project context、申请覆盖计划路径的 lease，并运行 `tools/preflight-task.ps1 -Command generate-art -ContextPath <context-path> -View model`。
 2. 同一批图片使用一个父任务、同一个 context 和共享视觉目标摘要；子图片调用只携带参考图、共享 prompt 基线和当前对象差异。
 3. 对共享输入进行缓存。视觉目标、style lock、UI component audit 和 manifest 不因切换资产而重复读取，除非文件发生变化。
 4. 生成图片的并发只改善等待时间，不视为节省用量。默认并发不超过 3，并遵守图像能力限制。
-5. 完成项目写入后使用同一 context 运行 `tools/validate-changes.ps1`，记录 trace，再释放 lease。
+5. 完成项目写入后使用同一 context 运行 `tools/validate-changes.ps1 -View model`，记录 trace，再释放 lease。
 
 ## 输出
 

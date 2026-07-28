@@ -22,9 +22,9 @@ Gameplay Developer or UI/UX Developer based on issue type.
 3. Identify the smallest responsible area.
 4. For production code, create or refresh the task context and change plan. A focused fix may stay lightweight, but an existing-project fix must still identify the owning module, failure path, affected callers, and the style exemplars required by its selected intensity.
 4. Use `mlgs-unity-mechanics` for gameplay feel, timing, feedback, pooling, or performance bugs.
-5. Acquire a lease for the approved fix paths and run `tools/preflight-task.ps1 -Command fix -TaskId <id> -ContextPath <context-path>`; only use `-AcceptRisk` after explicit owner acceptance. Risk acceptance never waives missing code context.
+5. Acquire a lease for the approved fix paths and run `tools/preflight-task.ps1 -Command fix -TaskId <id> -ContextPath <context-path> -View model`; only use `-AcceptRisk` after explicit owner acceptance. Risk acceptance never waives missing code context.
 6. Make a focused fix inside approved paths.
-7. Run code conformance against the actual changed paths, including post-impact review for deep projects, then run the most relevant verification and `tools/validate-changes.ps1 -ContextPath <context-path>` while the same lease is active.
+7. Run code conformance against the actual changed paths, including post-impact review for deep projects, then run the most relevant verification and `tools/validate-changes.ps1 -ContextPath <context-path> -View model` while the same lease is active.
 8. Record fix, evidence, remaining risk, and next action.
 9. Record trace with the bound context and invocation ID, then release the lease.
 
